@@ -1,0 +1,650 @@
+[
+  {
+    "page": "overview",
+    "device": "mobile",
+    "repetition": 1,
+    "finalUrlPath": "/overview",
+    "performanceScore": 0.72,
+    "firstContentfulPaintMs": 3340.141,
+    "largestContentfulPaintMs": 4886.084,
+    "speedIndexMs": 4294,
+    "totalBlockingTimeMs": 150.47000000000025,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 388278,
+    "scriptTransferBytes": 360327,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "overview",
+    "device": "mobile",
+    "repetition": 2,
+    "finalUrlPath": "/overview",
+    "performanceScore": 0.73,
+    "firstContentfulPaintMs": 3338.472,
+    "largestContentfulPaintMs": 4884.395,
+    "speedIndexMs": 4306,
+    "totalBlockingTimeMs": 133.97200000000066,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 388278,
+    "scriptTransferBytes": 360327,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "overview",
+    "device": "mobile",
+    "repetition": 3,
+    "finalUrlPath": "/overview",
+    "performanceScore": 0.72,
+    "firstContentfulPaintMs": 3374.598,
+    "largestContentfulPaintMs": 4903.79,
+    "speedIndexMs": 4322,
+    "totalBlockingTimeMs": 119.63300000000027,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 388278,
+    "scriptTransferBytes": 360327,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payments",
+    "device": "mobile",
+    "repetition": 1,
+    "finalUrlPath": "/payments",
+    "performanceScore": 0.67,
+    "firstContentfulPaintMs": 3314.838,
+    "largestContentfulPaintMs": 5717.05,
+    "speedIndexMs": 4637,
+    "totalBlockingTimeMs": 198.87900000000036,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 528107,
+    "scriptTransferBytes": 493237,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 237 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payments",
+    "device": "mobile",
+    "repetition": 2,
+    "finalUrlPath": "/payments",
+    "performanceScore": 0.67,
+    "firstContentfulPaintMs": 3321.389,
+    "largestContentfulPaintMs": 5723.641,
+    "speedIndexMs": 4655,
+    "totalBlockingTimeMs": 206.2039999999988,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 528107,
+    "scriptTransferBytes": 493237,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 237 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payments",
+    "device": "mobile",
+    "repetition": 3,
+    "finalUrlPath": "/payments",
+    "performanceScore": 0.68,
+    "firstContentfulPaintMs": 3291.061,
+    "largestContentfulPaintMs": 5671.039,
+    "speedIndexMs": 4610,
+    "totalBlockingTimeMs": 159.53300000000036,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 528107,
+    "scriptTransferBytes": 493237,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 237 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payment-detail",
+    "device": "mobile",
+    "repetition": 1,
+    "finalUrlPath": "/payments/{synthetic-id}",
+    "performanceScore": 0.67,
+    "firstContentfulPaintMs": 3298.666,
+    "largestContentfulPaintMs": 5656.419,
+    "speedIndexMs": 4772,
+    "totalBlockingTimeMs": 188.79299999999967,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 390729,
+    "scriptTransferBytes": 364857,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payment-detail",
+    "device": "mobile",
+    "repetition": 2,
+    "finalUrlPath": "/payments/{synthetic-id}",
+    "performanceScore": 0.66,
+    "firstContentfulPaintMs": 3300.159,
+    "largestContentfulPaintMs": 5692.461,
+    "speedIndexMs": 4782,
+    "totalBlockingTimeMs": 200.9939999999997,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 390729,
+    "scriptTransferBytes": 364857,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payment-detail",
+    "device": "mobile",
+    "repetition": 3,
+    "finalUrlPath": "/payments/{synthetic-id}",
+    "performanceScore": 0.67,
+    "firstContentfulPaintMs": 3371.217,
+    "largestContentfulPaintMs": 5706.719,
+    "speedIndexMs": 4827,
+    "totalBlockingTimeMs": 186.86999987793024,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 390729,
+    "scriptTransferBytes": 364857,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "overview",
+    "device": "desktop",
+    "repetition": 1,
+    "finalUrlPath": "/overview",
+    "performanceScore": 1,
+    "firstContentfulPaintMs": 242.97969999999998,
+    "largestContentfulPaintMs": 742.9594000000001,
+    "speedIndexMs": 269.66480565034186,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0.02082959351431214,
+    "totalTransferBytes": 388278,
+    "scriptTransferBytes": 360327,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "overview",
+    "device": "desktop",
+    "repetition": 2,
+    "finalUrlPath": "/overview",
+    "performanceScore": 1,
+    "firstContentfulPaintMs": 243.49349999999998,
+    "largestContentfulPaintMs": 744.9870000000001,
+    "speedIndexMs": 273.0292377463698,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0.02082959351431214,
+    "totalTransferBytes": 388278,
+    "scriptTransferBytes": 360327,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "overview",
+    "device": "desktop",
+    "repetition": 3,
+    "finalUrlPath": "/overview",
+    "performanceScore": 1,
+    "firstContentfulPaintMs": 243.9961,
+    "largestContentfulPaintMs": 746.9922000000001,
+    "speedIndexMs": 287.2106406693153,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0.02082959351431214,
+    "totalTransferBytes": 388278,
+    "scriptTransferBytes": 360327,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payments",
+    "device": "desktop",
+    "repetition": 1,
+    "finalUrlPath": "/payments",
+    "performanceScore": 0.96,
+    "firstContentfulPaintMs": 245.2625,
+    "largestContentfulPaintMs": 850.5250000000001,
+    "speedIndexMs": 296.29427430485686,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0.10885236208333,
+    "totalTransferBytes": 528107,
+    "scriptTransferBytes": 493237,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 237 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payments",
+    "device": "desktop",
+    "repetition": 2,
+    "finalUrlPath": "/payments",
+    "performanceScore": 0.96,
+    "firstContentfulPaintMs": 247.1248,
+    "largestContentfulPaintMs": 854.2496000000001,
+    "speedIndexMs": 278.2453874352233,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0.10885236208333,
+    "totalTransferBytes": 528107,
+    "scriptTransferBytes": 493237,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 237 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payments",
+    "device": "desktop",
+    "repetition": 3,
+    "finalUrlPath": "/payments",
+    "performanceScore": 0.96,
+    "firstContentfulPaintMs": 246.5965,
+    "largestContentfulPaintMs": 853.193,
+    "speedIndexMs": 288.40493314820327,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0.10885236208333,
+    "totalTransferBytes": 528107,
+    "scriptTransferBytes": 493237,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 237 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payment-detail",
+    "device": "desktop",
+    "repetition": 1,
+    "finalUrlPath": "/payments/{synthetic-id}",
+    "performanceScore": 1,
+    "firstContentfulPaintMs": 245.0775,
+    "largestContentfulPaintMs": 747.1550000000001,
+    "speedIndexMs": 279.27464325520396,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 390729,
+    "scriptTransferBytes": 364857,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payment-detail",
+    "device": "desktop",
+    "repetition": 2,
+    "finalUrlPath": "/payments/{synthetic-id}",
+    "performanceScore": 1,
+    "firstContentfulPaintMs": 243.58460000000002,
+    "largestContentfulPaintMs": 745.1691999999999,
+    "speedIndexMs": 265.00849206586804,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 390729,
+    "scriptTransferBytes": 364857,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  },
+  {
+    "page": "payment-detail",
+    "device": "desktop",
+    "repetition": 3,
+    "finalUrlPath": "/payments/{synthetic-id}",
+    "performanceScore": 1,
+    "firstContentfulPaintMs": 245.1868,
+    "largestContentfulPaintMs": 748.3735999999999,
+    "speedIndexMs": 276.9855679178731,
+    "totalBlockingTimeMs": 0,
+    "cumulativeLayoutShift": 0,
+    "totalTransferBytes": 390729,
+    "scriptTransferBytes": 364857,
+    "diagnostics": [
+      {
+        "id": "render-blocking-resources",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "unused-javascript",
+        "score": 0,
+        "displayValue": "Est savings of 141 KiB"
+      },
+      {
+        "id": "uses-optimized-images",
+        "score": null,
+        "displayValue": null
+      },
+      {
+        "id": "uses-text-compression",
+        "score": null,
+        "displayValue": null
+      }
+    ]
+  }
+]

@@ -1,0 +1,47 @@
+{
+  "sourceFolder": "VIBE-CODING-KIT-ATUALIZADO/VIBE-CODING-KIT",
+  "importedOn": "2026-11-08",
+  "purpose": "Unmodified reference material; active FlowPay adaptations are documented separately.",
+  "files": [
+    {
+      "source": "AGENTS.md",
+      "archivedAs": "AGENTS.original.md",
+      "sha256": "131ef31d24efbdff9add0179fbac6e50d54c86615d263fe0e2bbc9915aae1add"
+    },
+    {
+      "source": "CODING-STANDARDS.md",
+      "archivedAs": "CODING-STANDARDS.md",
+      "sha256": "950b1aa1141749495f20f921531d0ad91ae2319dabc77bf4ca9d935c4a77fcf9"
+    },
+    {
+      "source": "DESIGN-GUIDELINES.md",
+      "archivedAs": "DESIGN-GUIDELINES.md",
+      "sha256": "d299683fb6a33d3fe5f14679906847f42a0b7d789f1bf6f2d500457368f093a0"
+    },
+    {
+      "source": "DESIGN-SYSTEM.md",
+      "archivedAs": "DESIGN-SYSTEM.md",
+      "sha256": "71e5929eb7897af8af9559dbc3d9c5362d21f80b198ee0577685fc93136fdb8f"
+    },
+    {
+      "source": "PRD-TEMPLATE.md",
+      "archivedAs": "PRD-TEMPLATE.md",
+      "sha256": "5f72106d2f10b557fe8b8febbf889e9ae54f0b5bcf9baad7e31230a9552d0085"
+    },
+    {
+      "source": "PROMPT-LIBRARY.md",
+      "archivedAs": "PROMPT-LIBRARY.md",
+      "sha256": "cc86631b2b653e77ec4a39a4c1ad35ac80f994bf9674b1938eb5bd3adda75944"
+    },
+    {
+      "source": "QUALITY-CHECKLIST.md",
+      "archivedAs": "QUALITY-CHECKLIST.md",
+      "sha256": "9ff970b2c2efc5d3b7e4820970bba8715fe9b62d5d31b3ff4441f3b31716ed51"
+    },
+    {
+      "source": "README.md",
+      "archivedAs": "README.md",
+      "sha256": "655ee8e304e2f408f4aae8d9dd23a87f8632ffe2afd0433b51f8931350ad7ad5"
+    }
+  ]
+}

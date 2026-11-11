@@ -1,0 +1,1540 @@
+# Canonical HTTP contract; planned behavior, not execution evidence.
+openapi: "3.0.3"
+info:
+  title: "FlowPay Simulation API"
+  version: "1.0.0"
+  description: "Contract-first personal portfolio simulator, no real money/card/bank data. Planned behavior, not implementation evidence. JSON camelCase, UUID IDs, UTC instants (offset required on input, Z output). Request objects reject unknown fields; documented parameter values are validated. Clients use only documented query parameters and do not send bodies on bodyless operations. API JSON Cache-Control:no-store. CSRF precedes business auth on writes, so 403 can precede 401. Java API errors use the problem envelope; proxy/network failures may be non-JSON and lack requestId. Java/operational details in module-contracts.md."
+servers:
+  -
+    url: "/"
+    description: "Same origin; paths include /api/v1."
+security:
+  -
+    sessionCookie: []
+tags:
+  -
+    name: "auth"
+    description: "Session identity and CSRF lifecycle."
+  -
+    name: "demo"
+    description: "Isolated synthetic demo provisioning."
+  -
+    name: "company"
+    description: "Authenticated company information."
+  -
+    name: "customers"
+    description: "Company-owned customer creation and lookup."
+  -
+    name: "payments"
+    description: "Simulated payments, response replay and immutable history."
+  -
+    name: "dashboard"
+    description: "Creation-cohort metrics using current status."
+  -
+    name: "documentation"
+    description: "Public read-only maintained API documentation."
+paths:
+  "/api/v1/auth/csrf":
+    get:
+      operationId: "getCsrfToken"
+      tags:
+        - "auth"
+      summary: "Get CSRF token"
+      description: "May initialize anonymous session. Keep token in memory, send unchanged in named header. Re-fetch after login/demo/logout which clear previous token."
+      security: []
+      parameters: []
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+            Set-Cookie:
+              description: "SESSION=<opaque>; Path=/; HttpOnly; SameSite=Lax; Secure in production. Browser-managed; 30-minute inactivity timeout. Login/demo rotate ID; logout expires cookie. Never persisted in idempotency record."
+              schema:
+                type: "string"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/CsrfToken"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/v1/auth/login":
+    post:
+      operationId: "login"
+      tags:
+        - "auth"
+      summary: "Log in conventional operator"
+      description: "Normalize email; verify password hash; rotate session ID and clear CSRF token. Client fetches fresh CSRF. No public conventional signup."
+      security: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/Csrf"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+            Set-Cookie:
+              description: "SESSION=<opaque>; Path=/; HttpOnly; SameSite=Lax; Secure in production. Browser-managed; 30-minute inactivity timeout. Login/demo rotate ID; logout expires cookie. Never persisted in idempotency record."
+              schema:
+                type: "string"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Session"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          description: "INVALID_CREDENTIALS: Generic wrong credentials/demo identity response; do not reveal account existence."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/problem+json":
+              schema:
+                "$ref": "#/components/schemas/Problem"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "415":
+          "$ref": "#/components/responses/UnsupportedMediaType"
+        "429":
+          "$ref": "#/components/responses/RateLimited"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/v1/auth/me":
+    get:
+      operationId: "getSession"
+      tags:
+        - "auth"
+      summary: "Get authenticated identity"
+      description: "Get authenticated identity"
+      parameters: []
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Session"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/v1/auth/logout":
+    post:
+      operationId: "logout"
+      tags:
+        - "auth"
+      summary: "Invalidate session"
+      description: "Requires authenticated active company and CSRF. No body. Invalidate session and expire cookie; clear identity/cache then obtain anonymous CSRF before next entry."
+      parameters:
+        -
+          "$ref": "#/components/parameters/Csrf"
+      responses:
+        "204":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+            Set-Cookie:
+              description: "SESSION=<opaque>; Path=/; HttpOnly; SameSite=Lax; Secure in production. Browser-managed; 30-minute inactivity timeout. Login/demo rotate ID; logout expires cookie. Never persisted in idempotency record."
+              schema:
+                type: "string"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/v1/demo/sessions":
+    post:
+      operationId: "createDemoSession"
+      tags:
+        - "demo"
+      summary: "Enter isolated synthetic demo"
+      description: "No body. Reuse valid current demo with 200; otherwise create company/operator/fixtures in one transaction, authenticate after commit and return 201. Conventional or expired session may explicitly enter a fresh demo. Rotate session ID and clear CSRF on success; client refreshes token. Serialized global capacity admission; 503 DEMO_CAPACITY_REACHED leaves no partial data."
+      security: []
+      parameters:
+        -
+          "$ref": "#/components/parameters/Csrf"
+      responses:
+        "200":
+          description: "Valid current demo reused, preserving data and fixed expiry."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+            Set-Cookie:
+              description: "SESSION=<opaque>; Path=/; HttpOnly; SameSite=Lax; Secure in production. Browser-managed; 30-minute inactivity timeout. Login/demo rotate ID; logout expires cookie. Never persisted in idempotency record."
+              schema:
+                type: "string"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Session"
+        "201":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+            Set-Cookie:
+              description: "SESSION=<opaque>; Path=/; HttpOnly; SameSite=Lax; Secure in production. Browser-managed; 30-minute inactivity timeout. Login/demo rotate ID; logout expires cookie. Never persisted in idempotency record."
+              schema:
+                type: "string"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Session"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "429":
+          "$ref": "#/components/responses/RateLimited"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+        "503":
+          "$ref": "#/components/responses/Unavailable"
+  "/api/v1/company":
+    get:
+      operationId: "getCompany"
+      tags:
+        - "company"
+      summary: "Get current company"
+      description: "Get current company"
+      parameters: []
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Company"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/v1/customers":
+    post:
+      operationId: "createCustomer"
+      tags:
+        - "customers"
+      summary: "Create customer"
+      description: "Email duplicates allowed. Demo company lock covers active check/count/insertion; max 100 customers. 409 DEMO_LIMIT_REACHED; 503 CONTENTION_TIMEOUT. No update/delete API."
+      parameters:
+        -
+          "$ref": "#/components/parameters/Csrf"
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/CustomerCreate"
+      responses:
+        "201":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Customer"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "409":
+          "$ref": "#/components/responses/Conflict"
+        "415":
+          "$ref": "#/components/responses/UnsupportedMediaType"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+        "503":
+          "$ref": "#/components/responses/Unavailable"
+    get:
+      operationId: "listCustomers"
+      tags:
+        - "customers"
+      summary: "List company customers"
+      description: "Fixed createdAt DESC, id DESC. Search name/email. Empty result totalPages=0; out-of-range page returns empty items with actual totals."
+      parameters:
+        -
+          "$ref": "#/components/parameters/Page"
+        -
+          "$ref": "#/components/parameters/Size"
+        -
+          "$ref": "#/components/parameters/Q"
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/CustomerPage"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/v1/payments":
+    post:
+      operationId: "createPayment"
+      tags:
+        - "payments"
+      summary: "Create or replay payment"
+      description: "Authenticate, validate/canonicalize DTO, verify active company; demo locks company before key reservation. INSERT ON CONFLICT DO NOTHING at READ COMMITTED; conflict read in later statement. Hash mismatch ->409 IDEMPOTENCY_KEY_REUSED. Matching replay returns stored 201 JSON and Location even after status changes/quota reached; check replay BEFORE customer existence/quota. Only new reservation validates owned customer (404 CUSTOMER_NOT_FOUND), max 500 demo payments (409 DEMO_LIMIT_REACHED), creates payment/event/stored response atomically. Failure rolls back reservation too. Timeout ->503 CONTENTION_TIMEOUT, retry same key. Fresh requestId headers; never replay session headers."
+      parameters:
+        -
+          "$ref": "#/components/parameters/Csrf"
+        -
+          name: "Idempotency-Key"
+          in: "header"
+          required: true
+          schema:
+            type: "string"
+            minLength: 1
+            maxLength: 128
+            pattern: "^[!-~]{1,128}$"
+          description: "Case-sensitive printable ASCII without spaces, scoped company + create-payment, retained for company lifetime."
+      requestBody:
+        required: true
+        content:
+          "application/json":
+            schema:
+              "$ref": "#/components/schemas/PaymentCreate"
+      responses:
+        "201":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+            Location:
+              description: "Relative /api/v1/payments/{id}; identical on original/replay."
+              schema:
+                type: "string"
+            Idempotency-Replayed:
+              description: "Always present, false new / true replay."
+              schema:
+                type: "boolean"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Payment"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "409":
+          "$ref": "#/components/responses/Conflict"
+        "415":
+          "$ref": "#/components/responses/UnsupportedMediaType"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+        "503":
+          "$ref": "#/components/responses/Unavailable"
+    get:
+      operationId: "listPayments"
+      tags:
+        - "payments"
+      summary: "List filtered payments"
+      description: "All supplied filters ANDed; q internally ORs exact payment UUID/name/email. Fixed createdAt DESC,id DESC. Empty/out-of-range behavior matches customer pages."
+      parameters:
+        -
+          "$ref": "#/components/parameters/Page"
+        -
+          "$ref": "#/components/parameters/Size"
+        -
+          "$ref": "#/components/parameters/Q"
+        -
+          name: "status"
+          in: "query"
+          schema:
+            "$ref": "#/components/schemas/PaymentStatus"
+        -
+          name: "customerId"
+          in: "query"
+          schema:
+            type: "string"
+            format: "uuid"
+          description: "Unknown/foreign customer returns empty list."
+        -
+          "$ref": "#/components/parameters/CreatedFrom"
+        -
+          "$ref": "#/components/parameters/CreatedTo"
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/PaymentPage"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/v1/payments/{id}":
+    get:
+      operationId: "getPayment"
+      tags:
+        - "payments"
+      summary: "Get current payment"
+      description: "Get current payment"
+      parameters:
+        -
+          "$ref": "#/components/parameters/Id"
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Payment"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/v1/payments/{id}/events":
+    get:
+      operationId: "getPaymentEvents"
+      tags:
+        - "payments"
+      summary: "Get immutable history"
+      description: "Ascending contiguous sequence from 1. Creation null->PENDING, null reason. Process PENDING->APPROVED/null reason or REJECTED/SIMULATED_DECLINE. Cancel PENDING->CANCELLED/null reason. Actor is authenticated user or synthetic fixture operator. No history mutation."
+      parameters:
+        -
+          "$ref": "#/components/parameters/Id"
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/json":
+              schema:
+                type: "array"
+                items:
+                  "$ref": "#/components/schemas/PaymentEvent"
+                minItems: 1
+                maxItems: 2
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/v1/payments/{id}/process":
+    post:
+      operationId: "processPayment"
+      tags:
+        - "payments"
+      summary: "Process deterministic simulation"
+      description: "No body. Check active company; company lock before payment lock when both required (always demo). Query/lock by payment AND company, recheck PENDING under lock. APPROVE->APPROVED; DECLINE->REJECTED with SIMULATED_DECLINE. Status and event commit atomically. Every final state, including repeated same action, returns 409 PAYMENT_FINAL_STATE. 503 CONTENTION_TIMEOUT may retry but these actions have no response replay."
+      parameters:
+        -
+          "$ref": "#/components/parameters/Csrf"
+        -
+          "$ref": "#/components/parameters/Id"
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Payment"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "409":
+          "$ref": "#/components/responses/Conflict"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+        "503":
+          "$ref": "#/components/responses/Unavailable"
+  "/api/v1/payments/{id}/cancel":
+    post:
+      operationId: "cancelPayment"
+      tags:
+        - "payments"
+      summary: "Cancel pending payment"
+      description: "No body. Check active company; company lock before payment lock when both required (always demo). Query/lock by payment AND company, recheck PENDING under lock. PENDING->CANCELLED. Status and event commit atomically. Every final state, including repeated same action, returns 409 PAYMENT_FINAL_STATE. 503 CONTENTION_TIMEOUT may retry but these actions have no response replay."
+      parameters:
+        -
+          "$ref": "#/components/parameters/Csrf"
+        -
+          "$ref": "#/components/parameters/Id"
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/Payment"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "403":
+          "$ref": "#/components/responses/Forbidden"
+        "404":
+          "$ref": "#/components/responses/NotFound"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "409":
+          "$ref": "#/components/responses/Conflict"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+        "503":
+          "$ref": "#/components/responses/Unavailable"
+  "/api/v1/dashboard/summary":
+    get:
+      operationId: "getDashboardSummary"
+      tags:
+        - "dashboard"
+      summary: "Get creation-cohort metrics"
+      description: "Require from<to; client sends last 30 days UTC instants by default. All metrics use creation [from,to) and current status. approvedVolume sums APPROVED; pending count/amount use PENDING; total includes all states. Approval denominator APPROVED+REJECTED excludes PENDING/CANCELLED. No denominator means null. Metrics may change after processing. No chart endpoint."
+      parameters:
+        -
+          name: "from"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+            format: "date-time"
+        -
+          name: "to"
+          in: "query"
+          required: true
+          schema:
+            type: "string"
+            format: "date-time"
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+            Cache-Control:
+              description: "Do not cache API identity or business JSON."
+              schema:
+                type: "string"
+                enum:
+                  - "no-store"
+          content:
+            "application/json":
+              schema:
+                "$ref": "#/components/schemas/DashboardSummary"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "401":
+          "$ref": "#/components/responses/Unauthorized"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/openapi.yaml":
+    get:
+      operationId: "getOpenApi"
+      tags:
+        - "documentation"
+      summary: "Canonical maintained OpenAPI document."
+      description: "Canonical maintained OpenAPI document."
+      security: []
+      parameters: []
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+          content:
+            "application/yaml":
+              schema:
+                type: "string"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+  "/api/docs":
+    get:
+      operationId: "getApiDocs"
+      tags:
+        - "documentation"
+      summary: "Swagger UI page with interactive execution disabled."
+      description: "Swagger UI page with interactive execution disabled."
+      security: []
+      parameters: []
+      responses:
+        "200":
+          description: "Success."
+          headers:
+            X-Request-Id:
+              description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+              schema:
+                type: "string"
+                format: "uuid"
+          content:
+            "text/html":
+              schema:
+                type: "string"
+        "400":
+          "$ref": "#/components/responses/BadRequest"
+        "405":
+          "$ref": "#/components/responses/MethodNotAllowed"
+        "500":
+          "$ref": "#/components/responses/InternalError"
+components:
+  securitySchemes:
+    sessionCookie:
+      type: "apiKey"
+      in: "cookie"
+      name: "SESSION"
+      description: "Opaque Spring Session JDBC cookie, browser-managed and HttpOnly; never returned in JSON/storage."
+  parameters:
+    Csrf:
+      name: "X-CSRF-TOKEN"
+      in: "header"
+      required: true
+      schema:
+        type: "string"
+        minLength: 1
+      description: "Token from GET /api/v1/auth/csrf. Required even for anonymous login/demo. Refresh after login/demo/logout."
+    Id:
+      name: "id"
+      in: "path"
+      required: true
+      schema:
+        type: "string"
+        format: "uuid"
+    Page:
+      name: "page"
+      in: "query"
+      schema:
+        type: "integer"
+        minimum: 0
+        maximum: 2147483647
+        default: 0
+    Size:
+      name: "size"
+      in: "query"
+      schema:
+        type: "integer"
+        minimum: 1
+        maximum: 100
+        default: 20
+    Q:
+      name: "q"
+      in: "query"
+      schema:
+        type: "string"
+        maxLength: 200
+      description: "Strip outer whitespace; empty is no filter. Case-insensitive literal substring on customer name/email; payment query also ORs exact parsed payment UUID. SQL wildcards treated literally. U+0000 is invalid and returns 400 VALIDATION_FAILED."
+    CreatedFrom:
+      name: "createdFrom"
+      in: "query"
+      schema:
+        type: "string"
+        format: "date-time"
+      description: "Inclusive; optional independently. If both supplied require createdFrom < createdTo."
+    CreatedTo:
+      name: "createdTo"
+      in: "query"
+      schema:
+        type: "string"
+        format: "date-time"
+      description: "Exclusive; optional independently."
+  responses:
+    BadRequest:
+      description: "VALIDATION_FAILED: Malformed JSON, unknown request fields, invalid field/header/UUID/date/paging. fieldErrors present for field validation."
+      headers:
+        X-Request-Id:
+          description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+          schema:
+            type: "string"
+            format: "uuid"
+        Cache-Control:
+          description: "Do not cache API identity or business JSON."
+          schema:
+            type: "string"
+            enum:
+              - "no-store"
+      content:
+        "application/problem+json":
+          schema:
+            "$ref": "#/components/schemas/Problem"
+          example:
+            type: "about:blank"
+            title: "Bad Request"
+            status: 400
+            detail: "One or more fields are invalid."
+            instance: "/api/v1/payments"
+            code: "VALIDATION_FAILED"
+            requestId: "6e0fa13d-394b-4d06-9eaf-7664b448082b"
+            fieldErrors:
+              -
+                field: "amount"
+                code: "OUT_OF_RANGE"
+                message: "Amount must be positive and at most 99999999999999999.99."
+    Unauthorized:
+      description: "UNAUTHENTICATED / DEMO_EXPIRED: Missing/expired session; demo expiry invalidates session."
+      headers:
+        X-Request-Id:
+          description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+          schema:
+            type: "string"
+            format: "uuid"
+        Cache-Control:
+          description: "Do not cache API identity or business JSON."
+          schema:
+            type: "string"
+            enum:
+              - "no-store"
+      content:
+        "application/problem+json":
+          schema:
+            "$ref": "#/components/schemas/Problem"
+    Forbidden:
+      description: "CSRF_INVALID: Missing/invalid CSRF; obtain a fresh token."
+      headers:
+        X-Request-Id:
+          description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+          schema:
+            type: "string"
+            format: "uuid"
+        Cache-Control:
+          description: "Do not cache API identity or business JSON."
+          schema:
+            type: "string"
+            enum:
+              - "no-store"
+      content:
+        "application/problem+json":
+          schema:
+            "$ref": "#/components/schemas/Problem"
+    NotFound:
+      description: "CUSTOMER_NOT_FOUND / PAYMENT_NOT_FOUND: Object absent from authenticated company; foreign IDs indistinguishable."
+      headers:
+        X-Request-Id:
+          description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+          schema:
+            type: "string"
+            format: "uuid"
+        Cache-Control:
+          description: "Do not cache API identity or business JSON."
+          schema:
+            type: "string"
+            enum:
+              - "no-store"
+      content:
+        "application/problem+json":
+          schema:
+            "$ref": "#/components/schemas/Problem"
+    Conflict:
+      description: "IDEMPOTENCY_KEY_REUSED / PAYMENT_FINAL_STATE / DEMO_LIMIT_REACHED: Applicable code depends on operation."
+      headers:
+        X-Request-Id:
+          description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+          schema:
+            type: "string"
+            format: "uuid"
+        Cache-Control:
+          description: "Do not cache API identity or business JSON."
+          schema:
+            type: "string"
+            enum:
+              - "no-store"
+      content:
+        "application/problem+json":
+          schema:
+            "$ref": "#/components/schemas/Problem"
+    Unavailable:
+      description: "CONTENTION_TIMEOUT / DEMO_CAPACITY_REACHED: No partial commit or success assumed."
+      headers:
+        X-Request-Id:
+          description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+          schema:
+            type: "string"
+            format: "uuid"
+        Cache-Control:
+          description: "Do not cache API identity or business JSON."
+          schema:
+            type: "string"
+            enum:
+              - "no-store"
+        Retry-After:
+          description: "Positive seconds until retry; creation retries retain original key/payload."
+          schema:
+            type: "string"
+            pattern: "^[1-9][0-9]*$"
+      content:
+        "application/problem+json":
+          schema:
+            "$ref": "#/components/schemas/Problem"
+    RateLimited:
+      description: "RATE_LIMITED: Proxy login/demo attempt limit. The problem schema describes the normalized case; clients must also handle non-JSON proxy responses and missing headers."
+      headers:
+        X-Request-Id:
+          description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+          schema:
+            type: "string"
+            format: "uuid"
+        Cache-Control:
+          description: "Do not cache API identity or business JSON."
+          schema:
+            type: "string"
+            enum:
+              - "no-store"
+        Retry-After:
+          description: "Positive seconds until retry; creation retries retain original key/payload."
+          schema:
+            type: "string"
+            pattern: "^[1-9][0-9]*$"
+      content:
+        "application/problem+json":
+          schema:
+            "$ref": "#/components/schemas/Problem"
+    InternalError:
+      description: "INTERNAL_ERROR: No stack traces, SQL or personal data."
+      headers:
+        X-Request-Id:
+          description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+          schema:
+            type: "string"
+            format: "uuid"
+        Cache-Control:
+          description: "Do not cache API identity or business JSON."
+          schema:
+            type: "string"
+            enum:
+              - "no-store"
+      content:
+        "application/problem+json":
+          schema:
+            "$ref": "#/components/schemas/Problem"
+    UnsupportedMediaType:
+      description: "UNSUPPORTED_MEDIA_TYPE: Body must be application/json."
+      headers:
+        X-Request-Id:
+          description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+          schema:
+            type: "string"
+            format: "uuid"
+        Cache-Control:
+          description: "Do not cache API identity or business JSON."
+          schema:
+            type: "string"
+            enum:
+              - "no-store"
+      content:
+        "application/problem+json":
+          schema:
+            "$ref": "#/components/schemas/Problem"
+    MethodNotAllowed:
+      description: "METHOD_NOT_ALLOWED: Unsupported method."
+      headers:
+        X-Request-Id:
+          description: "Fresh server-generated UUID on every response, including replay/errors; do not trust incoming IDs."
+          schema:
+            type: "string"
+            format: "uuid"
+        Cache-Control:
+          description: "Do not cache API identity or business JSON."
+          schema:
+            type: "string"
+            enum:
+              - "no-store"
+        Allow:
+          description: "Permitted methods for this path."
+          schema:
+            type: "string"
+      content:
+        "application/problem+json":
+          schema:
+            "$ref": "#/components/schemas/Problem"
+  schemas:
+    Name:
+      type: "string"
+      minLength: 1
+      maxLength: 120
+      description: "Strip outer Unicode whitespace; nonblank; Unicode code point length after stripping."
+    Email:
+      type: "string"
+      format: "email"
+      minLength: 3
+      maxLength: 254
+      description: "Strip outer Unicode whitespace then lowercase with Locale.ROOT, validate normalized email. Customer duplicates allowed."
+    Description:
+      type: "string"
+      nullable: true
+      maxLength: 500
+      description: "Strip outer Unicode whitespace; absent/null/empty canonicalize to null; code point length after stripping."
+    MoneyInput:
+      type: "string"
+      pattern: "^(0|[1-9][0-9]{0,16})(\\.[0-9]{1,2})?$"
+      maxLength: 20
+      description: "Must be >0 and <=99999999999999999.99. Accept 1, 1.0, 1.00 as equivalent strings; normalize scale 2, never round. Reject numeric JSON, exponent, signs, whitespace and separators."
+      example: "150.00"
+    Money:
+      type: "string"
+      pattern: "^(0|[1-9][0-9]{0,16})\\.[0-9]{2}$"
+      maxLength: 20
+      example: "150.00"
+    AggregateMoney:
+      type: "string"
+      pattern: "^(0|[1-9][0-9]*)\\.[0-9]{2}$"
+      description: "Nonnegative BRL sum at scale 2; may exceed individual NUMERIC(19,2) bound."
+      example: "1200.00"
+    PaymentStatus:
+      type: "string"
+      enum:
+        - "PENDING"
+        - "APPROVED"
+        - "REJECTED"
+        - "CANCELLED"
+    SimulationScenario:
+      type: "string"
+      enum:
+        - "APPROVE"
+        - "DECLINE"
+    Company:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "id"
+        - "name"
+        - "createdAt"
+        - "demo"
+        - "expiresAt"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        name:
+          "$ref": "#/components/schemas/Name"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        demo:
+          type: "boolean"
+        expiresAt:
+          type: "string"
+          format: "date-time"
+          nullable: true
+          description: "Null conventional; demo creation +24 hours."
+    User:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "id"
+        - "email"
+        - "createdAt"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        email:
+          "$ref": "#/components/schemas/Email"
+        createdAt:
+          type: "string"
+          format: "date-time"
+    Session:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "user"
+        - "company"
+      properties:
+        user:
+          "$ref": "#/components/schemas/User"
+        company:
+          "$ref": "#/components/schemas/Company"
+    CsrfToken:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "token"
+        - "headerName"
+        - "parameterName"
+      properties:
+        token:
+          type: "string"
+          minLength: 1
+        headerName:
+          type: "string"
+          enum:
+            - "X-CSRF-TOKEN"
+        parameterName:
+          type: "string"
+          enum:
+            - "_csrf"
+    LoginRequest:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "email"
+        - "password"
+      properties:
+        email:
+          "$ref": "#/components/schemas/Email"
+        password:
+          type: "string"
+          minLength: 1
+          maxLength: 128
+          writeOnly: true
+          description: "Never trim/normalize."
+    CustomerCreate:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "name"
+        - "email"
+      properties:
+        name:
+          "$ref": "#/components/schemas/Name"
+        email:
+          "$ref": "#/components/schemas/Email"
+    Customer:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "id"
+        - "name"
+        - "email"
+        - "createdAt"
+        - "updatedAt"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        name:
+          "$ref": "#/components/schemas/Name"
+        email:
+          "$ref": "#/components/schemas/Email"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+    PaymentCreate:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "customerId"
+        - "amount"
+        - "currency"
+        - "simulationScenario"
+      properties:
+        customerId:
+          type: "string"
+          format: "uuid"
+        amount:
+          "$ref": "#/components/schemas/MoneyInput"
+        currency:
+          type: "string"
+          enum:
+            - "BRL"
+        description:
+          "$ref": "#/components/schemas/Description"
+        simulationScenario:
+          "$ref": "#/components/schemas/SimulationScenario"
+    Payment:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "id"
+        - "customerId"
+        - "amount"
+        - "currency"
+        - "status"
+        - "description"
+        - "simulationScenario"
+        - "createdAt"
+        - "updatedAt"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        customerId:
+          type: "string"
+          format: "uuid"
+        amount:
+          "$ref": "#/components/schemas/Money"
+        currency:
+          type: "string"
+          enum:
+            - "BRL"
+        status:
+          "$ref": "#/components/schemas/PaymentStatus"
+        description:
+          "$ref": "#/components/schemas/Description"
+        simulationScenario:
+          "$ref": "#/components/schemas/SimulationScenario"
+        createdAt:
+          type: "string"
+          format: "date-time"
+        updatedAt:
+          type: "string"
+          format: "date-time"
+    PaymentEvent:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "id"
+        - "paymentId"
+        - "sequence"
+        - "previousStatus"
+        - "newStatus"
+        - "reasonCode"
+        - "actorUserId"
+        - "createdAt"
+      properties:
+        id:
+          type: "string"
+          format: "uuid"
+        paymentId:
+          type: "string"
+          format: "uuid"
+        sequence:
+          type: "integer"
+          format: "int64"
+          minimum: 1
+        previousStatus:
+          type: "string"
+          nullable: true
+          enum:
+            - "PENDING"
+            - "APPROVED"
+            - "REJECTED"
+            - "CANCELLED"
+            - null
+        newStatus:
+          "$ref": "#/components/schemas/PaymentStatus"
+        reasonCode:
+          type: "string"
+          nullable: true
+          enum:
+            - "SIMULATED_DECLINE"
+            - null
+        actorUserId:
+          type: "string"
+          format: "uuid"
+        createdAt:
+          type: "string"
+          format: "date-time"
+    DashboardSummary:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "from"
+        - "to"
+        - "currency"
+        - "approvedVolume"
+        - "pendingCount"
+        - "pendingAmount"
+        - "approvedCount"
+        - "rejectedCount"
+        - "totalPayments"
+        - "approvalRate"
+      properties:
+        from:
+          type: "string"
+          format: "date-time"
+        to:
+          type: "string"
+          format: "date-time"
+        currency:
+          type: "string"
+          enum:
+            - "BRL"
+        approvedVolume:
+          "$ref": "#/components/schemas/AggregateMoney"
+        pendingCount:
+          type: "integer"
+          format: "int64"
+          minimum: 0
+        pendingAmount:
+          "$ref": "#/components/schemas/AggregateMoney"
+        approvedCount:
+          type: "integer"
+          format: "int64"
+          minimum: 0
+        rejectedCount:
+          type: "integer"
+          format: "int64"
+          minimum: 0
+        totalPayments:
+          type: "integer"
+          format: "int64"
+          minimum: 0
+        approvalRate:
+          type: "string"
+          nullable: true
+          pattern: "^(0\\.[0-9]{4}|1\\.0000)$"
+          description: "approvedCount/(approvedCount+rejectedCount), ratio 0..1, HALF_UP scale 4; null for zero denominator, display no data (never 0%). Counts are exact; use decimal-safe formatting."
+          example: "0.7500"
+    CustomerPage:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "items"
+        - "page"
+        - "size"
+        - "totalElements"
+        - "totalPages"
+      properties:
+        items:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Customer"
+        page:
+          type: "integer"
+          minimum: 0
+        size:
+          type: "integer"
+          minimum: 1
+          maximum: 100
+        totalElements:
+          type: "integer"
+          format: "int64"
+          minimum: 0
+        totalPages:
+          type: "integer"
+          minimum: 0
+    PaymentPage:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "items"
+        - "page"
+        - "size"
+        - "totalElements"
+        - "totalPages"
+      properties:
+        items:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Payment"
+        page:
+          type: "integer"
+          minimum: 0
+        size:
+          type: "integer"
+          minimum: 1
+          maximum: 100
+        totalElements:
+          type: "integer"
+          format: "int64"
+          minimum: 0
+        totalPages:
+          type: "integer"
+          minimum: 0
+    FieldError:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "field"
+        - "code"
+        - "message"
+      properties:
+        field:
+          type: "string"
+        code:
+          type: "string"
+          enum:
+            - "REQUIRED"
+            - "INVALID_FORMAT"
+            - "OUT_OF_RANGE"
+            - "TOO_LONG"
+            - "UNKNOWN_FIELD"
+        message:
+          type: "string"
+    Problem:
+      type: "object"
+      additionalProperties: false
+      required:
+        - "type"
+        - "title"
+        - "status"
+        - "detail"
+        - "instance"
+        - "code"
+        - "requestId"
+      properties:
+        type:
+          type: "string"
+          format: "uri"
+          enum:
+            - "about:blank"
+        title:
+          type: "string"
+        status:
+          type: "integer"
+          minimum: 400
+          maximum: 599
+        detail:
+          type: "string"
+        instance:
+          type: "string"
+          description: "Path without query string."
+        code:
+          type: "string"
+          enum:
+            - "VALIDATION_FAILED"
+            - "UNAUTHENTICATED"
+            - "INVALID_CREDENTIALS"
+            - "DEMO_EXPIRED"
+            - "CSRF_INVALID"
+            - "CUSTOMER_NOT_FOUND"
+            - "PAYMENT_NOT_FOUND"
+            - "IDEMPOTENCY_KEY_REUSED"
+            - "PAYMENT_FINAL_STATE"
+            - "DEMO_LIMIT_REACHED"
+            - "RATE_LIMITED"
+            - "CONTENTION_TIMEOUT"
+            - "DEMO_CAPACITY_REACHED"
+            - "UNSUPPORTED_MEDIA_TYPE"
+            - "METHOD_NOT_ALLOWED"
+            - "INTERNAL_ERROR"
+        requestId:
+          type: "string"
+          format: "uuid"
+        fieldErrors:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/FieldError"

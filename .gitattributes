@@ -1,0 +1,8 @@
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.jpeg binary
+# Preserve the imported kit byte-for-byte against its SHA-256 manifest.
+docs/reference/vibe-coding-kit/*.md -text
