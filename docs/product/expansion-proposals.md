@@ -1,6 +1,6 @@
 # FlowPay product expansion proposals
 
-Status: exploratory ideas captured on 2026-11-10 at the owner's request. These are **not approved requirements, implementation tasks, or completed features**. R00–R23 and the current MVP scope remain unchanged until the owner chooses a proposal and approves a bounded specification change.
+Status: 2026-11-16. Operational reporting and CSV export are approved and implementation is underway. Refunds and audit trail remain proposals.
 
 ## Why consider an expansion
 
@@ -30,17 +30,17 @@ FlowPay already demonstrates a complete simulated payment lifecycle. A useful ne
 
 **Decisions before implementation:** model refunds as separate records versus expanding payment states; allowed amount precision; whether multiple partial refunds are supported; outcome/failure simulation; whether a fully refunded payment gets a derived display state; and how dashboard totals represent refunds. These choices affect Java domain rules, PostgreSQL schema, OpenAPI, metrics, and UI. Refunds are explicitly outside the current MVP in the [approved specification](../specs/2026-11-08-flowpay-portfolio-design.md); implementation requires an explicit scope/spec update.
 
-## Proposal C — Operational reports and CSV export
+## Approved scope — Operational reports and CSV export
 
 **User need:** review a bounded period of payment activity outside the screen and share a useful operational summary.
 
-**Possible scope:** add a server-generated CSV export that uses the same company-scoped filters and documented date boundaries as payment search. Include only fields needed for the report, with stable column names, correct BRL decimal strings and timestamps, and safe CSV escaping/formula-injection handling.
+**Scope:** add API-backed daily status counts and BRL volume summaries, plus a server-generated CSV that uses the same company-scoped search/status/customer/date filters as payment search. Export all matching rows (bounded to a documented maximum), with stable columns, BRL decimal strings, ISO timestamps, and safe CSV quoting/formula-injection handling. The overview links each status metric to the corresponding payment list filter. Both date range endpoints follow existing [from,to) semantics.
 
 **Potential user flow:** an operator applies status/customer/date filters, requests an export, and downloads a CSV whose rows match those criteria.
 
 **Engineering story:** streaming versus bounded export design, query reuse, authorization, consistent filters, CSV correctness, and tests for escaping, tenant boundaries, empty results and larger datasets.
 
-**Decisions before implementation:** maximum date range/row count, whether export reflects the current filtered page or all matching results, exact columns/timezone, synchronous response limits, and whether the API should expose a download endpoint or a generated report resource. Do not add a decorative export control before a real API contract exists.
+**Implementation decisions:** export all matching results up to 10,000 rows; requests exceeding that limit return a validation error asking the operator to narrow the filters. CSV timestamps are UTC ISO-8601. Export is a synchronous authenticated download and is never cached. Daily aggregation is by UTC creation date and current status. No chart library is required; use a clear semantic table first.
 
 ## Suggested order (provisional)
 

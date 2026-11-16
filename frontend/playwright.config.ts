@@ -7,5 +7,13 @@ export default defineConfig({
   retries: process.env.CI ? 1 : 0,
   reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   outputDir: 'test-results',
-  use: { baseURL, ...devices['Desktop Chrome'], headless: true, trace: 'retain-on-failure', screenshot: 'only-on-failure', video: 'retain-on-failure', ignoreHTTPSErrors: false },
+  use: {
+    baseURL,
+    ...devices['Desktop Chrome'],
+    headless: true,
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+    video: process.env.FLOWPAY_RECORD_VIDEO === '1' ? 'on' : 'retain-on-failure',
+    ignoreHTTPSErrors: false,
+  },
 })
