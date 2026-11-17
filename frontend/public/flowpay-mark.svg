@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none">
-  <defs>
-    <linearGradient id="light" x1="7" y1="6" x2="30" y2="33" gradientUnits="userSpaceOnUse"><stop stop-color="#b8e5ff"/><stop offset="1" stop-color="#579bff"/></linearGradient>
-    <linearGradient id="blue" x1="12" y1="32" x2="29" y2="7" gradientUnits="userSpaceOnUse"><stop stop-color="#073ee9"/><stop offset="1" stop-color="#417bff"/></linearGradient>
-  </defs>
-  <path d="M4 25C5 15 14 5 23 5c7 0 13 5 13 12 0 8-8 16-17 17C10 36 3 33 4 25Z" fill="url(#light)"/>
-  <path d="M6 32c-3-5 0-12 6-15l13-8c6-4 12-1 11 5-1 5-6 9-12 11l-9 4c-4 2-6 7-9 3Z" fill="url(#blue)"/>
-</svg>
