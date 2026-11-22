@@ -1,0 +1,13 @@
+spring:
+  config:
+    activate:
+      on-profile: local
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/flowpay}
+    username: ${SPRING_DATASOURCE_USERNAME:flowpay_dev}
+    password: ${SPRING_DATASOURCE_PASSWORD:flowpay_dev_only_local}
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false

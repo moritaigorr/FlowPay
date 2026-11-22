@@ -1,6 +1,6 @@
 # FlowPay bootstrap and development standard
 
-**Status:** proposed for approval.  
+**Status:** bootstrap implemented; backend and database startup still need an environment with Java 21 and Docker Compose.
 **Date:** 2026-11-22
 
 ## Intent
@@ -36,13 +36,13 @@ The project owner also requested two standing rules: the assistant should assess
 
 - Keep the existing docs, agent profiles, skills, and validator intact.
 - Add `backend/`, `frontend/`, `.github/workflows/`, root `.gitignore`, `.env.example`, and a root README only as needed for executable setup.
-- Backend: Java 21, Maven Wrapper, Spring Boot **4.2.0** as the current stable line. Use Spring Web, Validation, Data JPA, PostgreSQL, Flyway, and Actuator only where needed for the bootstrap. Do not implement authentication in this increment. Expose only health endpoints and keep details/configuration private.
+- Backend: Java 21, Maven 3.10.1, Spring Boot **4.2.0** as the current stable line. Use Spring Web, Validation, Data JPA, PostgreSQL, Flyway, and Actuator only where needed for the bootstrap. Do not implement authentication in this increment. Expose only health endpoints and keep details/configuration private. A Maven Wrapper is omitted from the first slice because the environment lacks Maven and Java 21; use the documented Maven prerequisite and reconsider a wrapper after a Java 21 toolchain is available.
 - Frontend: React + TypeScript + Vite, Node.js **26 LTS** and npm with a committed `package-lock.json`. Enable strict TypeScript. Add routing, query, forms, and UI libraries when the first real screen needs them instead of scaffolding unused features.
-- Local database: PostgreSQL using a pinned stable image, Compose health check, named local volume, configurable host port, and development-only credentials. Keep actual `.env` files ignored.
-- CI: GitHub Actions with Java 21 and Node 26, Maven Wrapper, `npm ci`, frontend typecheck/build and backend verification. Start PostgreSQL in CI only when a real integration check requires it; do not report database coverage without such evidence.
+- Local database: PostgreSQL **18.7** using the pinned official image `postgres:18.7-alpine3.23`, Compose health check, named local volume at `/var/lib/postgresql` (the official PostgreSQL 18 image mount point), configurable host port, and development-only credentials. PostgreSQL 19 was released on 2026-11-19; use the established 18.7 line for initial compatibility and revisit the major upgrade separately ([version policy](https://www.postgresql.org/support/versioning/), [18.7 release](https://www.postgresql.org/about/news/postgresql-187-1712-1616-1520-1425-and-19-rc-2-released-3442/), [official image volume change](https://github.com/docker-library/docs/blob/master/postgres/content.md#pgdata)). Keep actual `.env` files ignored.
+- CI: GitHub Actions with Java 21 and Node 26, Maven, `npm ci`, frontend typecheck/build and backend verification. Start PostgreSQL in CI only when a real integration check requires it; do not report database coverage without such evidence.
 - README: document prerequisites, copy/configure local env, start/stop database and apps, and the exact commands available. Include Windows PowerShell-friendly commands alongside portable npm/Maven commands where they differ.
 
-Version basis checked on 2026-11-22: Spring Boot system requirements list 4.2.0 and support for Java 17–27, which includes Java 21 ([official requirements](https://docs.spring.io/spring-boot/system-requirements.html)); Node lists 26 as LTS and 26.13.1 as a current LTS release ([release schedule](https://nodejs.org/en/about/previous-releases), [release announcement](https://nodejs.org/en/blog/release/v26.13.0)). Recheck supported patch versions when implementing the bootstrap; use security-patched patch releases without changing the selected major line.
+Version basis checked on 2026-11-22: Spring Boot 4.2.0 is available and supports Java 21 ([release](https://spring.io/blog/2026/11/19/spring-boot-4-2-0-available-now/), [requirements](https://docs.spring.io/spring-boot/system-requirements.html)); Node 26 is LTS and 26.13.1 is a current LTS release ([schedule](https://nodejs.org/en/about/previous-releases), [release announcement](https://nodejs.org/en/blog/release/v26.13.0)); Vite 8.3 is the current supported line ([Vite releases](https://vite.dev/releases.html)). Recheck supported patch versions when implementing the bootstrap; use security-patched patch releases without changing the selected major line.
 
 ### Independent judgment
 
@@ -66,7 +66,7 @@ This standard does not weaken the required financial invariants, tenant isolatio
 
 ## Acceptance criteria
 
-1. A clean checkout can build backend and frontend using only committed wrappers/lockfiles and documented runtimes.
+1. A clean checkout can build backend and frontend using the documented Maven/Node runtimes and committed npm lockfile.
 2. Compose starts a healthy local PostgreSQL instance with no dependency on a pre-existing database and no production credentials.
 3. Backend starts and returns a minimal health response; the response exposes no environment, secrets, PII, or database credentials.
 4. Frontend starts and produces a production build; TypeScript strict checks run through a documented command.
@@ -77,8 +77,14 @@ This standard does not weaken the required financial invariants, tenant isolatio
 
 ## Open implementation details
 
-The exact PostgreSQL patch tag, generated starter layout, and compatible dependency patch versions are implementation choices. Keep them pinned and documented after checking current official releases. Do not decide product contracts (roles, money transport, opening balance semantics, tenant timezone, CSV dialect, or idempotency conflict response) in the bootstrap; resolve each before its dependent feature.
+The generated starter layout and compatible dependency patch versions are implementation choices. Keep them pinned and documented after checking current official releases. Do not decide product contracts (roles, money transport, opening balance semantics, tenant timezone, CSV dialect, or idempotency conflict response) in the bootstrap; resolve each before its dependent feature.
 
-## After approval
+## Implementation evidence and limits
 
-Prepare a short task plan for this bootstrap, implement it incrementally, validate only commands that exist and are authorized, then update README and roadmap with real commands and evidence.
+- Frontend was generated from the official Vite React/TypeScript starter; dependencies are recorded in `frontend/package-lock.json`.
+- Local database credentials are isolated to the Spring `local` profile; the default profile requires explicit datasource environment variables.
+- `npm ci`, `npm run typecheck`, `npm run lint`, and `npm run build` passed using Node.js 24.18.0 and npm 11.16.0. A local HTTP smoke check returned 200 and confirmed the UTF-8 page title.
+- `mvn -f backend/pom.xml verify` passed with Maven 3.10.1 and the JDK 25 found in `JAVA_HOME`; Maven compiled the application with `--release 21`. There are no Java test sources yet (`No tests to run`).
+- `node scripts/validate-agent-assets.mjs` passed after the documentation updates.
+- Docker Compose and PostgreSQL startup were not run because Docker is unavailable in the current environment.
+- These checks do not verify browser rendering, Spring application startup/health, Compose health, database persistence, or production deployment.

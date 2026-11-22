@@ -6,6 +6,11 @@ Este conjunto traduz as [Master Project Instructions](FLOWPAY_MASTER_PROJECT_INS
 
 ```text
 AGENTS.md                           # Caminhos relativos à raiz do repositório
+README.md                           # Pré-requisitos e comandos reais do bootstrap
+compose.yaml                        # PostgreSQL local de desenvolvimento
+.github/workflows/ci.yml            # Verificações iniciais de backend e frontend
+backend/                            # API Java/Spring Boot
+frontend/                           # SPA React/TypeScript/Vite
 docs/
   DEVELOPMENT_AGENTS.md
   FLOWPAY_MASTER_PROJECT_INSTRUCTIONS.md
@@ -34,6 +39,10 @@ scripts/
 ```
 
 `AGENTS.md` fornece o contexto comum. Cada agente tem uma responsabilidade e critérios de entrega. Skills são procedimentos que podem ser usados tanto pelo agente principal quanto pelos especialistas; não é necessário abrir vários agentes para uma tarefa pequena.
+
+## Padrão de desenvolvimento
+
+O agente avalia pedidos com independência, explica discordâncias com evidências e diferencia requisitos documentados de decisões novas. A entrega padrão é uma fatia pequena e demonstrável, com validação proporcional ao risco. ADRs, planejamento extenso, delegação paralela, auditorias completas e E2E entram quando o custo ou risco da mudança justificar; não são burocracia obrigatória para toda tarefa. No fim, informe mudanças, verificações realizadas e limitações.
 
 ## Usar no Codex
 

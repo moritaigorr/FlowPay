@@ -55,8 +55,8 @@ Registrar decisão curta ou ADR para:
 - Escopo da importação de CSV no MVP: limites de arquivo, formatos de data, colunas suportadas, política de duplicidade entre arquivos, retenção e storage privado. Os números de 10 MB/50 mil linhas e 90 dias são hipóteses, não compromissos.
 - Contratos API: prefixo/versionamento, paginação, filtro, formatos de dinheiro/datas, erro público, códigos HTTP, CSRF e resposta a repetição com chave idempotente.
 - Decisão de implementação para exclusão/cancelamento de cadastros, retenção/auditoria e fuso horário empresarial.
-- Gerenciador e versão do Node, estratégia de lockfile e compatibilidade de versões de dependências. Java 21 e Maven já foram escolhidos.
-- Idioma dos documentos novos: Master prefere inglês para documentação pública; a comunicação e UI inicial são pt-BR. Definir idioma do README e do OpenAPI.
+- Java 21/Maven já estavam definidos; o bootstrap decidiu Node 26 LTS com npm e lockfile, Spring Boot 4.2.0, Vite 8.3 e README em inglês. Ver versões e comandos atuais no README antes de atualizações.
+- Idioma dos documentos novos: Master prefere inglês para documentação pública; comunicação e UI inicial são pt-BR. Definir idioma do OpenAPI quando esse contrato existir.
 
 - **Aceite:** decisões têm responsável, consequência e estado (definida/pendente); escopo do MVP exclui funções posteriores.
 
@@ -78,28 +78,28 @@ Registrar decisão curta ou ADR para:
 
 ### 1.2 Criar backend mínimo
 
-- Maven, Java 21 e Spring Boot numa versão compatível e suportada, Spring Web, Validation, Data JPA, Security e driver PostgreSQL/Flyway conforme a fatia habilitar cada camada.
+- Maven, Java 21 e Spring Boot 4.2.0, Spring MVC, Validation, Data JPA, Actuator e driver PostgreSQL/Flyway conforme a fatia habilitar cada camada. Segurança de login entra na etapa de identidade.
 - Criar pacote raiz `com.flowpay` e módulos iniciais sem criar código vazio para fases futuras.
-- Adicionar endpoint de saúde que não exponha configuração nem dados sensíveis.
-- **Aceite:** `./mvnw verify` funciona em clone limpo com Java 21, se Maven Wrapper for escolhido; nenhuma funcionalidade empresarial é declarada pronta.
+- Expor somente o health check do Actuator, sem detalhes de ambiente.
+- **Aceite:** `mvn -f backend/pom.xml verify` funciona com Java 21 e Maven; nenhuma funcionalidade empresarial é declarada pronta.
 
 ### 1.3 Criar frontend mínimo
 
-- Vite, React e TypeScript; escolher gerenciador de pacotes, fixar versão e commitar lockfile.
-- Configurar React Router e estrutura inicial `app`, `design-system`, `features`, `shared` quando houver primeira tela.
-- Comandos reais para instalação, desenvolvimento, teste, lint/typecheck e build.
+- Node 26 LTS, npm, Vite 8.3, React e TypeScript; runtime e lockfile ficam fixados no repositório.
+- Adicionar React Router, query, forms e estrutura de features quando a primeira tela real precisar deles.
+- Comandos reais para instalação, desenvolvimento, lint/typecheck e build constam no README.
 - **Aceite:** instalação limpa e build de produção passam usando apenas o lockfile e runtime documentados.
 
 ### 1.4 Ambiente local
 
-- Docker Compose para PostgreSQL e serviços locais necessários; health check, volume local ignorado pelo Git, porta configurável, credenciais apenas de desenvolvimento.
-- Documentar subir, esperar readiness, migrar, executar aplicações e encerrar.
+- Docker Compose usa PostgreSQL 18.7, health check, volume local, porta configurável e credenciais somente de desenvolvimento.
+- README documenta subir/parar banco e executar aplicações; migrations entram quando a primeira mudança de persistência for criada.
 - **Aceite:** pessoa nova sobe o ambiente a partir do README sem banco previamente instalado; nada aponta para produção.
 
 ### 1.5 CI inicial
 
-- GitHub Actions com Java 21 e Node escolhidos, cache derivado de lockfiles, compilação/typecheck/lint/testes e migrations aplicáveis.
-- A pipeline deve falhar em teste quebrado e não mascarar ausência de serviços necessários.
+- GitHub Actions com Java 21 e Node 26, cache de Maven/npm, compilação, typecheck e lint.
+- A pipeline deve falhar quando um comando obrigatório falhar; PostgreSQL entra no CI quando testes de integração o exigirem.
 - **Aceite:** workflow valida o mesmo conjunto essencial da máquina local e falha deliberadamente se um comando obrigatório falhar.
 
 ## Portão 2 — definir contratos e persistência compartilhada
@@ -128,12 +128,16 @@ Regras de banco:
 
 ### 2.3 Contexto de tenant e transações
 
+**Andamento (22/11/2026):** o contexto atual é resolvido pela membership da sessão autenticada e falha quando não há membership ou há mais de uma. A primeira tela carrega o nome da empresa. Seletor para múltiplas empresas permanece pendente.
+
 - Derivar tenant ativo de membership autenticado, não confiar em header/body do cliente.
 - Tornar acesso ao contexto explícito e falhar fechado se não houver contexto empresarial em caso de uso que o exige.
 - Testar consulta, leitura, escrita, contagem, exportação e jobs com dois tenants.
 - **Aceite:** ID válido de outra empresa não revela registros e não cria efeito; FK composta protege contra bug de filtro no serviço.
 
 ## Portão 3 — identidade e empresas
+
+**Andamento (22/11/2026):** a primeira fatia cria conta e empresa com membership `OWNER`, e oferece login por sessão com CSRF da SPA. Isso não fecha o portão: carregamento/troca do tenant ativo, permissões por papel, limitação de abuso, verificação de e-mail e recuperação de senha continuam pendentes. Cadastro aberto não deve ser exposto antes de controles contra abuso.
 
 ### 3.1 Autenticação local segura
 
@@ -173,6 +177,8 @@ Regras de banco:
 
 ### 4.3 Clientes e fornecedores
 
+**Andamento (22/11/2026):** a primeira fatia implementa criar, listar/paginar, buscar, detalhar e editar contatos com papel combinável de cliente/fornecedor. Exclusão fica adiada até a regra de vínculo com fatos financeiros ser definida; mutations atuais exigem membership `OWNER`.
+
 - Começar por Contact com classificação cliente/fornecedor ou dois papéis combináveis, decisão explícita do domínio.
 - CRUD necessário: criar, listar, pesquisar, ver detalhes e editar; exclusão/cancelamento e duplicidade precisam regra definida.
 - Campos mínimos: nome, tipo, e-mail/telefone opcionais e observação restrita; CPF/CNPJ só se uso e proteção estiverem definidos.
@@ -182,38 +188,48 @@ Regras de banco:
 
 ### 5.1 Contas financeiras
 
-- CRUD conta de controle: nome, tipo/categoria, saldo inicial em centavos, data de referência e estado ativo.
-- Definir se saldo inicial é fato imutável separado ou atributo editável até primeira movimentação. Preferir histórico explícito de ajuste após existir uso.
+**Andamento (22/11/2026):** fatia vertical implementada para cadastrar, listar, detalhar, renomear e arquivar/reativar contas por empresa. O saldo de abertura é gravado como movimento `OPENING_BALANCE` imutável; o saldo controlado é calculado pela soma dos movimentos, e a data de abertura usa `DATE`. A criação recebe chave de idempotência por tenant e hash do payload: repetição igual devolve a conta existente; conteúdo diferente retorna conflito. Valores trafegam em centavos como string decimal e a interface formata em pt-BR sem ponto flutuante. Tipos iniciais: bancária, caixa e outra; moeda fixa em BRL. A edição não altera tipo nem saldo de abertura; exclusão não é oferecida.
+
+- Conta de controle: nome, tipo, saldo inicial em centavos, data de referência e estado ativo/arquivado.
+- Decisão desta fatia: saldo de abertura é fato imutável no histórico; ajuste posterior exigirá movimento explícito com motivo e trilha auditável.
 - **Aceite:** saldo inicial aparece como saldo controlado com data de referência; não é apresentado como consulta bancária.
 
 ### 5.2 Categorias
 
-- Receitas/despesas, categorias padrão do tenant ou globais imutáveis, arquivamento e regra para categorias em uso.
-- **Aceite:** listagens e relatórios filtram por categoria sem misturar empresas.
+**Andamento (22/11/2026):** fatia vertical implementada para criar, listar, detalhar, renomear e arquivar categorias pertencentes ao tenant. Cada categoria classifica entrada ou saída; nomes não diferenciam maiúsculas/minúsculas dentro da mesma direção. Escritas concorrentes por tenant/direção são serializadas no PostgreSQL e o índice único preserva a regra no banco. Categoria arquivada permanece no histórico e pode ser reativada; não há exclusão. Categorias globais não entram nesta fatia.
+
+- Categorias próprias do tenant, associadas à direção (entrada/saída), com arquivamento para preservar referências futuras.
+- **Aceite:** listagens filtram por empresa; futuras listagens e relatórios de títulos usarão categoria do mesmo tenant.
 
 ### 5.3 Recebíveis e pagáveis
 
-- Campos: descrição, contato, valor original em centavos, vencimento, categoria, conta prevista se definida, observação, status calculado e datas de criação/alteração.
-- Estados de negócio: em aberto, parcialmente baixado, quitado, vencido calculado por data e saldo remanescente; cancelamento/reversão separado de pagamento.
-- Definir edição após baixa: preservar histórico, impedir alterações que invalidem somas ou exigir fluxo de ajuste.
-- **Aceite:** filtro por status/pessoa/vencimento, detalhe e edição válida; valor zero/negativo e tenant alheio são rejeitados.
+**Andamento (22/11/2026):** fatia vertical implementada para criar, listar/paginar, buscar, detalhar, editar e cancelar títulos, além de registrar baixas parciais/totais e reversões auditáveis parciais/totais com motivo. Cada título exige contato com papel correspondente, categoria ativa da direção correta e pode apontar para conta ativa prevista. O vencimento é `LocalDate`; a API informa `asOf` e deriva `OVERDUE` no fuso `America/Sao_Paulo` até existir configuração de fuso por empresa. Valores trafegam como centavos em strings. Criação, baixa e reversão usam chaves idempotentes por tenant/operação, e payload diferente com a mesma chave conflita. Títulos com baixa não podem ser editados ou cancelados nesta fatia. Criar/editar previsão não cria `CashTransaction`; baixa confirmada grava movimento e liquidação atomicamente.
 
+- Campos implementados: descrição, contato, valor original em centavos, vencimento, categoria, conta prevista opcional e observação.
+- Estados desta fatia: em aberto, vencido derivado por data de referência, parcialmente baixado, quitado e cancelado com motivo.
+- **Aceite desta fatia:** tenant alheio não lê o título; incompatibilidade entre tipo de título, papel do contato e direção da categoria é rejeitada; título previsto não altera caixa.
 ### 5.4 Páginas de títulos
 
-- Listas de contas a receber e pagar com pendente, vencimento, status e ações.
-- Formulário com validação pt-BR, MoneyField exato, prevenção de submissão dupla e recuperação após erro.
-- **Aceite:** mesma API alimenta lista e detalhe; valores persistidos são exibidos exatamente em pt-BR.
+**Andamento (22/11/2026):** as telas iniciais “A receber” e “A pagar” compartilham a API, listam valores previstos, contato, categoria, vencimento e estado, com busca, paginação, edição e cancelamento com motivo. O formulário valida dinheiro em pt-BR sem ponto flutuante e a criação preserva chave idempotente em caso de falha.
 
+- Próximos itens: filtros por estado/pessoa/período e jornada visual de cancelamento sem prompt do navegador.
+- **Aceite desta fatia:** API alimenta listas e detalhe; valores persistidos são exibidos exatamente em pt-BR; previsão é identificada como não realizada.
 ## Portão 6 — caixa e baixas
+
+**Andamento (22/11/2026):** fatias de movimento manual, baixa e reversão codificadas. `MANUAL` representa entrada/saída avulsa já realizada, categorizada e idempotente; não quita título. `TITLE_SETTLEMENT` é um `CashTransaction` de entrada para recebível e saída para pagável; a baixa cria movimento e liquidação atomicamente. Reversão parcial/total exige motivo, cria movimento de direção oposta e preserva a baixa original. As telas listam movimentos e baixas. Backend compilado para Java 21 e cinco testes unitários de valores passaram; migrations V6–V8 foram aplicadas e validadas em PostgreSQL 16.15 local. Smoke autenticado com tenant sintético cobriu idempotência, baixa, excesso, movimento manual, reversão e saldos. Testes de integração PostgreSQL com Testcontainers agora cobrem concorrência de baixas e rollback planejado; compilam, mas foram ignorados na execução local porque o daemon Docker não está disponível. A verificação concorrente contra PostgreSQL real segue pendente.
 
 ### 6.1 CashTransaction
 
+**Andamento:** saldo controlado continua calculado pela soma de `CashTransaction`, incluindo abertura, movimentos manuais, liquidações e reversões. API e tela paginada de histórico incluem origem, conta, categoria, direção, data e valor para movimentos existentes.
+
 - Movimento é a fonte de verdade para saldo controlado: tenant, conta, direção, amount_minor, moeda, instante/data contábil acordada, descrição, origem e estado.
-- Definir lançamentos manuais diretos vs. lançamentos que nascem de baixa, evitando criar duas transações para a mesma ocorrência.
+- Movimento manual avulso usa origem `MANUAL`, categoria ativa da direção correta e chave idempotente. Baixas de título usam origem própria; nenhum movimento é criado duas vezes pela mesma operação.
 - Saldo projetado por soma sobre movimentos confirmados e saldo inicial, ou read model simples; não cachear sem estratégia de invalidação.
 - **Aceite:** receita aumenta e despesa reduz conta conforme direção, com histórico identificável.
 
 ### 6.2 Baixa parcial e total
+
+**Andamento:** baixa parcial/total, liquidação idempotente e reversão parcial/total com motivo foram implementadas. Reversões também são idempotentes e preservam os fatos originais. Smoke local cobriu parcial, replay, excesso e saldo. Foram adicionados testes Testcontainers para disputa concorrente e rollback; sua execução aguarda Docker ativo. O teste de concorrência exige duas solicitações de R$70 para título de R$100 e confere estado persistido após commit.
 
 - API registra recebimento/pagamento realizado fora do FlowPay e cria alocação + movimento atomicamente, ou aloca movimento existente segundo caso de uso.
 - Bloquear título em disputa, validar soma de baixas ≤ título, soma de alocações ≤ movimento, tenant e conta autorizados.
@@ -233,12 +249,16 @@ Regras de banco:
 
 ### 7.1 Indicadores
 
+**Andamento (22/11/2026):** criada `GET /api/dashboard` autenticada e tenant-scoped. A resposta inclui período inclusivo, fuso IANA e `asOf`; o período aceita até 366 dias e, sem datas, assume o mês atual no fuso informado. Decisão de implementação: saldo controlado soma todos os movimentos com data efetiva até `to`, incluindo saldo inicial; entradas/saídas do período excluem o movimento de abertura. Previsões e vencidos usam saldo restante de títulos abertos, considerando baixas e reversões com data efetiva até `asOf`. A resposta inclui os cinco próximos vencimentos após `asOf` (até 30 dias) e cinco movimentos recentes dentro do período. O smoke autenticado no PostgreSQL local confirmou saldo R$ 70,00, entrada realizada R$ 70,00 e previsão restante R$ 30,00 após baixa parcial de um título de R$ 100,00.
+
 - Saldo controlado, receber, pagar e vencidos; período, timezone e `as_of` explícitos.
 - Previsto por vencimentos separado do realizado por movimentos confirmados.
 - Consultas agregadas por tenant, com índices e limites verificados; considerar montantes negativos/estornos conforme regra definida.
 - **Aceite:** KPIs coincidem com consultas de movimentos/títulos na massa de referência.
 
 ### 7.2 Dashboard responsivo
+
+**Andamento (22/11/2026):** a área autenticada abre em “Visão geral”, com filtro por datas, timezone do navegador, KPIs de saldo controlado, previsto, realizado e vencido, além de listas de próximos vencimentos e movimentos recentes. Estados de carregamento, erro, período inválido e listas vazias foram implementados; o layout adapta de quatro colunas a uma coluna em telas menores. Typecheck, lint e build frontend passaram; a tela ainda precisa de inspeção visual em navegador desktop/mobile.
 
 - Cabeçalho de período e “Novo lançamento”; KPIs; fluxo previsto × realizado; próximos vencimentos; movimentos recentes e pendências de conciliação.
 - Se houver saldo importado, exibir separado com data e diferença a conciliar.

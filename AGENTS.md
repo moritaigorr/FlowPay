@@ -14,7 +14,7 @@ Leia as fontes conforme a tarefa:
 | [Design System](docs/FLOWPAY_DESIGN_SYSTEM.md) | Tokens, componentes, telas, linguagem e acessibilidade |
 | [Plano de implementação](docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md) | Etapas, dependências, decisões abertas e critérios de aceite |
 
-Os documentos descrevem requisitos e propostas, não comprovam implementação. Inspecione o checkout atual antes de afirmar que uma funcionalidade existe ou falta. Na criação destas instruções havia apenas os três documentos originais; a estrutura inicial de código mencionada na visão e o PRD v3.0 citado no System Design não estavam presentes. Reavalie essa lacuna quando relevante; não invente conteúdo ou comandos executáveis.
+Os documentos descrevem requisitos e propostas, não comprovam implementação. Inspecione o checkout atual antes de afirmar que uma funcionalidade existe ou falta. O repositório começou somente com documentação; o bootstrap acrescentou a base React/Vite, Spring Boot, PostgreSQL local e CI, mas ainda não implementa funcionalidades financeiras. A estrutura inicial de código mencionada na visão e o PRD v3.0 citado no System Design não estavam presentes; reavalie essa lacuna quando relevante e não invente conteúdo ou comandos executáveis.
 
 Pedidos explícitos do usuário orientam a tarefa. As Master Project Instructions são a referência mais recente fornecida pelo responsável; suas escolhas explícitas substituem opções ainda abertas nas propostas anteriores. Havendo outras divergências documentais, identifique as fontes, preserve as invariantes abaixo e registre a decisão; esclareça apenas o que impedir o trabalho. Detalhes novos de contrato devem ser apresentados como decisões de implementação, não como requisitos já documentados.
 
@@ -26,7 +26,7 @@ Pedidos explícitos do usuário orientam a tarefa. As Master Project Instruction
 - Módulos se comunicam por interfaces/DTOs públicos; entidades JPA e repositories são internos. Evite ciclos e DTOs que exponham entidades.
 - Priorize fundação → financeiro → CSV/conciliação → relatórios e jornada demonstrável. Billing, contratos, assinaturas, OFX e sandbox são fases posteriores, salvo pedido explícito.
 - Workers internos e outbox PostgreSQL precedem brokers. Microsserviços, Kafka, Kubernetes, Redis, CQRS e event sourcing não são requisitos do MVP.
-- Java 21 e Maven estão definidos. Versões compatíveis das demais ferramentas e gerenciador de pacotes frontend ainda precisam ser escolhidos no bootstrap. Depois dele, documente comandos reais de execução e validação no repositório.
+- Java 21 e Maven estão definidos. O bootstrap fixou Spring Boot 4.2.0, Node 26 LTS/npm, Vite 8.3 e PostgreSQL 18.7 no Compose. Os comandos reais estão no README; atualize-os ao mudar ferramentas ou versões. Recursos de produto entram conforme o recorte; a stack escolhida não comprova funcionalidades implementadas.
 - Testes previstos: JUnit 5, Mockito, AssertJ, Testcontainers, WireMock, Vitest, React Testing Library e Playwright; use cada ferramenta quando pertinente. Infraestrutura: Docker/Compose, GitHub Actions e OpenAPI/Swagger. Observabilidade: logs estruturados, Micrometer, OpenTelemetry, Prometheus e Grafana, introduzidos quando a entrega justificar seu custo.
 
 Os módulos mais detalhados sugeridos no master podem ser subdomínios dos módulos iniciais; não crie todos como pacotes independentes de uma vez. Justifique fronteiras e abstrações com regras e casos de uso concretos. A fase avançada aprofunda idempotência, concorrência e outbox no laboratório; essas garantias continuam necessárias no núcleo financeiro desde as operações que delas dependem.
@@ -65,6 +65,14 @@ Leia o `SKILL.md` relevante antes de aplicar seu fluxo. Em tarefas pequenas, tra
 Skills complementares, somente quando relevantes e disponíveis: `superpowers:brainstorming` e `superpowers:writing-plans` para desenho/planejamento; `superpowers:subagent-driven-development` para implementação delegada autorizada; `superpowers:test-driven-development` para testes; `superpowers:systematic-debugging` para diagnóstico; `superpowers:verification-before-completion` para comprovar conclusão; `build-web-apps:react-best-practices` para React; `product-design:audit` para auditoria de experiência solicitada; `codex-security:threat-model` e `codex-security:security-scan` para modelagem e auditoria de segurança pertinentes. Não declare uso de skill indisponível nem transforme toda alteração em auditoria completa.
 
 ## Fluxo de entregas
+
+### Julgamento independente e ritmo de desenvolvimento
+
+- Analise cada pedido à luz do produto, arquitetura, evidência e riscos; não concorde automaticamente. Quando houver conflito ou risco concreto, explique por quê e recomende um caminho viável.
+- Separe fatos documentados de inferências e decisões de implementação. Faça perguntas somente quando uma resposta mudar materialmente o resultado ou evitar risco relevante; em escolhas reversíveis, declare a suposição e siga.
+- Prefira uma entrega vertical pequena e demonstrável. Para mudanças simples, implemente diretamente e faça a verificação mais rápida pertinente. Para regras financeiras, tenancy, segurança ou concorrência, use a evidência e os testes específicos ao risco afetado.
+- Planejamento, ADR, agentes paralelos, auditoria ampla e E2E não são etapas obrigatórias para toda alteração. Use-os quando a complexidade, durabilidade da decisão ou independência do trabalho justificar o custo.
+- Termine com resumo do que mudou, verificações executadas e limitações. Atualize documentação quando uma decisão, dependência ou comando real mudar.
 
 Ao delegar uma tarefa autorizada, forneça objetivo, arquivos sob responsabilidade, contrato compartilhado e critérios de aceite. O especialista devolve: resultado, arquivos alterados, decisões de contrato, verificações executadas e pendências. Informe se cada verificação passou, falhou ou não pôde ser executada. Um bloqueio não autoriza ampliar escopo, trocar stack ou sobrescrever trabalho de outro agente. O responsável integra mudanças dependentes e verifica a jornada após a integração.
 
