@@ -55,6 +55,10 @@ Skills em `.agents/skills/`:
 | Importar CSV, deduplicar e conciliar | `flowpay-reconciliation` |
 | Implementar telas e componentes | `flowpay-ui` |
 | Verificar comportamento e revisar uma entrega | `flowpay-verify` |
+| Alterar schema, migrations ou consultas PostgreSQL | `flowpay-postgres` |
+| Criar ou diagnosticar testes Java/Spring | `flowpay-backend-testing` |
+| Avaliar controles de segurança da aplicação | `flowpay-security` |
+| Criar ou executar jornadas browser E2E | `flowpay-e2e` |
 
 Leia o `SKILL.md` relevante antes de aplicar seu fluxo. Em tarefas pequenas, trabalhe diretamente. Quando houver delegação solicitada ou prevista pelas instruções aplicáveis, prefira implementação e revisão independentes, delimite arquivos e contratos por agente; tarefas que alteram os mesmos arquivos devem ser sequenciais. O agente principal integra os resultados, resolve achados importantes e relata evidências. Uma revisão sem defeitos encontrados deve apresentar a cobertura verificada, sem inventar achados.
 

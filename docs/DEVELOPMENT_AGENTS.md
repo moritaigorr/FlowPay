@@ -27,6 +27,10 @@ scripts/
   flowpay-reconciliation/SKILL.md     # Importar e conciliar
   flowpay-ui/SKILL.md                 # Construir telas
   flowpay-verify/SKILL.md             # Validar comportamento
+  flowpay-postgres/SKILL.md           # Schema, migrations e consultas PostgreSQL
+  flowpay-backend-testing/SKILL.md    # Testes Java/Spring por camada
+  flowpay-security/SKILL.md           # Revisão de controles da aplicação
+  flowpay-e2e/SKILL.md                # Jornadas browser com Playwright
 ```
 
 `AGENTS.md` fornece o contexto comum. Cada agente tem uma responsabilidade e critérios de entrega. Skills são procedimentos que podem ser usados tanto pelo agente principal quanto pelos especialistas; não é necessário abrir vários agentes para uma tarefa pequena.
