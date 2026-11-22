@@ -12,6 +12,7 @@ Leia as fontes conforme a tarefa:
 | [Visão do produto](docs/FLOWPAY_VISAO_DO_PROJETO.md) | Público, jornada, escopo do MVP e fases futuras |
 | [System Design](docs/FLOWPAY_SYSTEM_DESIGN.md) | Módulos, persistência, consistência, segurança e operação |
 | [Design System](docs/FLOWPAY_DESIGN_SYSTEM.md) | Tokens, componentes, telas, linguagem e acessibilidade |
+| [Plano de implementação](docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md) | Etapas, dependências, decisões abertas e critérios de aceite |
 
 Os documentos descrevem requisitos e propostas, não comprovam implementação. Inspecione o checkout atual antes de afirmar que uma funcionalidade existe ou falta. Na criação destas instruções havia apenas os três documentos originais; a estrutura inicial de código mencionada na visão e o PRD v3.0 citado no System Design não estavam presentes. Reavalie essa lacuna quando relevante; não invente conteúdo ou comandos executáveis.
 

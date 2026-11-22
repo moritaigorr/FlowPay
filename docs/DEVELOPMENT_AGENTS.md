@@ -12,6 +12,7 @@ docs/
   FLOWPAY_VISAO_DO_PROJETO.md
   FLOWPAY_SYSTEM_DESIGN.md
   FLOWPAY_DESIGN_SYSTEM.md
+  FLOWPAY_IMPLEMENTATION_ROADMAP.md # Etapas, dependências e critérios de aceite
 scripts/
   validate-agent-assets.mjs          # Validação local sem dependências
 .codex/agents/
@@ -44,6 +45,14 @@ Planejar a primeira entrega:
 Use $flowpay-feature para recortar a fundação do FlowPay com login,
 empresa e memberships. Inspecione o que existe e defina contratos,
 critérios de aceite e uma sequência curta de implementação.
+```
+
+Consultar o plano detalhado:
+
+```text
+Leia docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md, compare o Portão 0 e a
+primeira etapa com o estado real do repositório e me diga qual é a
+próxima entrega executável, com seus critérios de aceite.
 ```
 
 Pedir um especialista:
