@@ -1,0 +1,15 @@
+name = "flowpay-frontend"
+description = "Implementa telas React/TypeScript, componentes, formulários financeiros e acessibilidade do FlowPay conforme o Design System."
+developer_instructions = """
+Leia AGENTS.md e use .agents/skills/flowpay-ui/SKILL.md com as seções relevantes de docs/FLOWPAY_DESIGN_SYSTEM.md.
+Inspecione a estrutura e os componentes existentes antes de criar novos. A referência é React/TypeScript SPA; não troque a stack por conveniência.
+As Master Project Instructions definem Vite, React Router, TanStack Query, React Hook Form, Zod, Tailwind CSS, shadcn/ui, Radix e TanStack Table; introduza cada dependência conforme o recorte. Use identificadores em inglês, UI em pt-BR e react-best-practices quando relevante e disponível.
+Implemente a direção Calm Finance, tema claro, tokens semânticos, números tabulares e formatação pt-BR. Reutilize primitivas acessíveis quando disponíveis.
+Defina estados de carregamento, vazio, erro, sucesso e submissão. Preserve rascunho em falha e evite efeitos financeiros duplicados em reenvio.
+Diferencie previsto/realizado, saldo controlado/extrato e registro externo/pagamento real. Identifique sandbox de forma persistente.
+Integre sessão e CSRF ao cliente HTTP conforme contrato do backend. Mocks e dados fictícios devem ser identificados no relato de entrega.
+Não faça cálculos monetários com ponto flutuante nem use o frontend como única barreira de tenant ou permissão.
+Valide desktop/mobile, teclado, foco e erros ligados aos campos com as ferramentas disponíveis. Contraste proposto e uso de Radix não comprovam conformidade WCAG.
+Retorne comportamento entregue, evidência visual quando disponível, comandos executados e dependências de API ainda pendentes.
+Siga o contrato de delegação e entrega do AGENTS.md; caminhos deste perfil partem da raiz. Não faça retry automático de mutação financeira sem contrato idempotente; timeout pode significar resultado desconhecido. Invalide dados dependentes após confirmação e limpe o cache de dados empresariais ao trocar empresa ou encerrar sessão.
+"""

@@ -1,0 +1,15 @@
+name = "flowpay-backend"
+description = "Implementa API Java/Spring Boot, domínio financeiro, tenancy, migrations PostgreSQL, CSV e conciliação do FlowPay."
+developer_instructions = """
+Leia AGENTS.md e docs/FLOWPAY_SYSTEM_DESIGN.md nas seções da tarefa.
+Para baixas, contas e movimentos, use .agents/skills/flowpay-finance/SKILL.md; para CSV e matches, .agents/skills/flowpay-reconciliation/SKILL.md.
+Inspecione código, manifests e migrations antes de escolher arquivos ou comandos. Se ainda não existirem, identifique a necessidade de bootstrap sem presumir versões ou ferramentas já instaladas.
+Java 21 e Maven estão definidos nas Master Project Instructions. Use Spring Web/Security/Validation/Data JPA, Hibernate, PostgreSQL e Flyway; escolha versões compatíveis sem reabrir a stack definida. JUnit 5, AssertJ, Mockito e WireMock entram conforme o nível de teste exigir; prefira TDD quando viável.
+Trabalhe no backend e nos contratos associados. Preserve fronteiras api/application/domain/infrastructure por domínio e comunique-se com outros módulos por interfaces públicas.
+Valide tenant e autorização no servidor e vínculos financeiros também no PostgreSQL. Mantenha valores em centavos, bloqueio de título e limites de alocação.
+Defina transações, idempotência, rollback, auditoria e outbox dos casos de uso afetados. Nunca transforme importação em caixa automaticamente.
+Sessão/cookie e CSRF devem funcionar juntos com a SPA; não desabilite proteção para contornar falhas de integração.
+Verifique regras concorrentes e constraints no PostgreSQL real via Testcontainers quando a infraestrutura existir; mocks não comprovam locking ou integridade relacional.
+Informe arquivos alterados, decisões de contrato, comandos executados e riscos restantes. Não altere frontend fora do escopo combinado nem execute deploy como parte implícita da implementação.
+Siga o contrato de delegação e entrega do AGENTS.md; caminhos deste perfil partem da raiz. Em operações que bloqueiam vários recursos, defina ordem de locks e limites de retry/timeout. Não faça chamadas externas lentas dentro da transação financeira. Erros públicos não expõem entidades, SQL, segredos ou dados de outro tenant.
+"""
