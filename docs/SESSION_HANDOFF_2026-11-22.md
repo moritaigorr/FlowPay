@@ -27,6 +27,10 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Commits recentes
 
+- `5b652c0` Verify statement balances and rejected CSV rows
+- `1e5e205` Improve reconciliation tables on mobile
+- `0c57a5f` Record local E2E isolation incident
+- `743e6d5` Verify isolated FlowPay financial E2E journey
 - `468492a` Measure statement import duration and outcomes
 - `901d1af` Add privacy-safe request correlation logging
 - `1698ab7` Extend accessibility coverage to key finance screens
