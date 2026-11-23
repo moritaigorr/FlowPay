@@ -18,16 +18,29 @@ async function expectAutomaticallyAccessible(page: import('@playwright/test').Pa
   expect(violations, `${screen} accessibility findings`).toEqual([])
 }
 
+async function tabUntilFocused(page: import('@playwright/test').Page, locator: import('@playwright/test').Locator) {
+  for (let attempt = 0; attempt < 12; attempt += 1) {
+    if (await locator.evaluate((element) => element === document.activeElement)) return
+    await page.keyboard.press('Tab')
+  }
+  throw new Error('The control was not reachable with Tab.')
+}
+
 test('demo owner signs in and sees the seeded financial workspace', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'Crie sua empresa' })).toBeVisible()
-  await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+  const switchToLogin = page.getByRole('button', { name: 'Entrar', exact: true })
+  await tabUntilFocused(page, switchToLogin)
+  await switchToLogin.press('Enter')
   await expect(page.getByRole('heading', { name: 'Acesse sua conta' })).toBeVisible()
   await expectAutomaticallyAccessible(page, 'demo login')
 
-  await page.getByLabel('E-mail').fill('demo@flowpay.local')
-  await page.getByLabel('Senha').fill(demoPassword!)
-  await page.getByRole('button', { name: 'Entrar', exact: true }).click()
+  const email = page.getByLabel('E-mail')
+  const password = page.getByLabel('Senha')
+  await tabUntilFocused(page, email)
+  await email.fill('demo@flowpay.local')
+  await password.fill(demoPassword!)
+  await password.press('Enter')
 
   await expect(page.getByText('Ambiente de demonstração', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
