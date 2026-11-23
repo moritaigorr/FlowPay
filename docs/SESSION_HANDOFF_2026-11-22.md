@@ -28,6 +28,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - `9ae34c5` Run demo Playwright journey in CI
 - `7c904a1` Add isolated financial settlement E2E
 - `be95e27` Verify statement import screen accessibly
+- `63fefd0` Cover statement reconciliation in E2E
 - 3006df0 Cover keyboard login in browser journey
 - `1ea50d6` Document automated accessibility coverage
 - `1eedaa5` Add automated demo accessibility scans
