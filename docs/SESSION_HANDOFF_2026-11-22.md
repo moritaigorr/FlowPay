@@ -24,6 +24,12 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Commits recentes
 
+- `839ec25` Document verified demo browser journey
+- `5f895e9` Add FlowPay demo browser smoke journey
+- `0febdb0` Record demo tenant isolation verification
+- `aee5211` Verify demo login and tenant isolation
+- `7ec19fa` Record demo seed integration verification
+- `35d96d2` Test demo seed idempotency
 - `cb379b2` Document verified reconciliation balance flow
 - `eb508aa` Validate statement balances and tenant line access
 - `686b938` Record reconciliation verification status
@@ -68,5 +74,5 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Frontend: typecheck, lint sem avisos e build passaram.
 - Backend (23/11): `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com JDK 25/Maven 3.9.16. Foram 42 testes sem falhas nem skips, incluindo 15 testes Testcontainers em PostgreSQL 16.16. V14, calculos, replay, caixa, login/CSRF e isolamento de leitura/alteracao foram exercitados; seed aplicado em schema vazio e reexecutado sem duplicacao.
 - V14, replay de metadados, calculos com saldos positivo/negativo e isolamento foram verificados. O Portao 9.4 segue parcial ate revisar a jornada no browser; Portoes 10 e 11 ainda pedem E2E e acessibilidade.
-- Previa isolada ativa: Vite em `http://127.0.0.1:5173`, API em `http://127.0.0.1:8080`, banco PostgreSQL descartavel em tmpfs. O seed demo foi carregado. O helper visual nao conectou (pipe nativo indisponivel); inspecao manual continua pendente e os dados desaparecem quando o container parar.
-- Proximo passo: inspecionar a previa, concluir verificacao visual/teclado e avancar a jornada demo/E2E do Portao 10.
+- Previa isolada estava ativa no checkpoint: Vite em `http://127.0.0.1:5173`, API em `http://127.0.0.1:8080` e banco descartavel em tmpfs. Chrome via Playwright agora confirmou login, dashboard, contatos, conta e titulos em desktop/mobile; o helper visual nativo continua indisponivel.
+- Proximo passo: ampliar a jornada Playwright para baixa e CSV/conciliação em ambiente E2E isolado; revisar a tela 9.4 e completar teclado/acessibilidade.
