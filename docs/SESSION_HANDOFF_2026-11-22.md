@@ -10,6 +10,9 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Estado do roadmap
 
+- Atualizacao de 23/11: DemoSeedPostgresIntegrationTest executa o seed em PostgreSQL 16 descartavel desde schema vazio, confere os registros conhecidos, membership OWNER e hash da senha, e reexecuta o runner sem duplicacoes. As 14 migrations foram aplicadas; login HTTP e isolamento de leitura entre tenants continuam pendentes.
+- Portao 10.2 permanece parcial: dados seed e idempotencia estao cobertos; falta validar isolamento pela aplicacao e completar jornada visual/E2E.
+
 - Portao 9.3 implementado: revisao de linha (PENDING, REVIEWED, IGNORED), motivo, autor, evento append-only e idempotencia por tenant. Linhas ignoradas nao recebem sugestoes nem podem ser conciliadas ate reabrir.
 - Desfazer vinculo mantem o movimento de caixa. Estornar o movimento e uma operacao separada. Ignorar/restaurar candidato nao altera caixa nem afeta outras linhas.
 - Portao 9.4 parcial: formulario, migration V14 e calculos foram validados por 12 integracoes em PostgreSQL 16.16 via Testcontainers. Resumo separa atividade, saldo final do extrato vs caixa controlado e roll-forward; revisao no browser pendente.
@@ -39,17 +42,16 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Verificacoes e limites
 
-- Backend: `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com JDK 25/Maven 3.9.16. Foram 39 testes sem falhas nem skips, incluindo 12 integracoes em PostgreSQL 16.16. V14 foi aplicada desde schema vazio e calculos positivo/negativo, replay, caixa e isolamento foram exercitados.
+- Backend (23/11): `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com JDK 25/Maven 3.9.16. Foram 40 testes sem falhas nem skips, incluindo 13 integracoes em PostgreSQL 16.16. V14, calculos, replay, caixa e isolamento foram exercitados; o seed foi aplicado em schema vazio e reexecutado sem duplicacao.
 - Frontend: `npm.cmd run typecheck`, `npm.cmd run lint -- --deny-warnings` e `npm.cmd run build` passaram apos a gestao de foco dos fluxos principais.
 - Docker Desktop foi iniciado para os testes; Testcontainers criou e encerrou containers descartaveis. O banco PostgreSQL local permanente nao foi alterado. Compose fixa PostgreSQL 18.7; integracoes locais usaram 16.16.
-- Nenhuma execucao real do perfil `demo` foi feita. A compilacao completa do backend passou apos forcar a recompilacao da classe alterada. Build nao comprova SQL, migrations, reexecucao idempotente ou login.
+- O teste com perfis `local,demo` confirmou seed e reexecucao em banco descartavel, mas nao validou autenticacao HTTP nem acesso cruzado com outra identidade/tenant.
 - A tela ainda nao foi revisada no browser em mobile/acessibilidade.
 
 ## Proximos passos
 
-1. Quando Docker estiver disponivel, subir o banco Compose, ativar `local,demo` com senha fornecida pelo ambiente, confirmar login, dados conhecidos e segunda inicializacao idempotente.
-2. Validar isolamento do tenant demo e executar migrations/testes de integracao.
-3. Revisar no browser o rótulo demo e jornadas de dashboard/contatos/contas/titulos; executar verificacoes de teclado e mobile.
+1. Validar login HTTP do demo e isolamento de leitura por outro tenant.
+2. Revisar no browser o rotulo demo e jornadas principais; executar verificacoes de teclado e mobile.
 4. Revisar no browser a jornada 9.4: ausencia/presenca de saldos, replay e exibicao dos tres tipos de diferenca.
 5. Continuar Portoes 10 e 11 com uma jornada E2E completa, acessibilidade e seguranca/operacao proporcionais ao uso demo.
 
@@ -64,7 +66,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - A confirmacao do CSV aceita saldos opcionais de abertura/fechamento com datas. Migration V14 persiste metadados. O resumo separa atividade, saldo final do extrato vs caixa controlado e roll-forward.
 - Decisao: valores de fim do dia; fechamento posterior a abertura; linhas aceitas apos a abertura e ate o fechamento; saldo negativo permitido. Reenvio do checksum preserva a primeira importacao.
 - Frontend: typecheck, lint sem avisos e build passaram.
-- Backend: compilacao Maven offline com JDK 25 passou. A suite rodou 39 testes sem falhas nem skips; 12 integracoes usaram PostgreSQL 16.16 descartavel.
+- Backend (23/11): `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com JDK 25/Maven 3.9.16. Foram 40 testes sem falhas nem skips, incluindo 13 integracoes em PostgreSQL 16.16. V14, calculos, replay, caixa e isolamento foram exercitados; o seed foi aplicado em schema vazio e reexecutado sem duplicacao.
 - V14, replay de metadados, calculos com saldos positivo/negativo e isolamento foram verificados. O Portao 9.4 segue parcial ate revisar a jornada no browser; Portoes 10 e 11 ainda pedem E2E e acessibilidade.
 - Previa isolada ativa: Vite em `http://127.0.0.1:5173`, API em `http://127.0.0.1:8080`, banco PostgreSQL descartavel em tmpfs. O seed demo foi carregado. O helper visual nao conectou (pipe nativo indisponivel); inspecao manual continua pendente e os dados desaparecem quando o container parar.
 - Proximo passo: inspecionar a previa, concluir verificacao visual/teclado e avancar a jornada demo/E2E do Portao 10.
