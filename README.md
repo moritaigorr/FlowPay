@@ -79,7 +79,7 @@ The Playwright smoke journey uses the local `local,demo` API and synthetic datab
 npm.cmd run test:e2e
 ```
 
-Google Chrome must be installed. The test signs in and reads the dashboard, contacts, account, and open titles; it does not mutate financial data. Failure screenshots and traces are written under the ignored `frontend/test-results/` directory. `FLOWPAY_E2E_BASE_URL` can override the default Vite URL.
+Google Chrome must be installed. The test signs in and reads the dashboard, contacts, account, and open titles; it does not mutate financial data. Axe scans login, dashboard, and contacts against WCAG 2.1 A/AA rules, but automated scans do not establish WCAG conformance. Failure screenshots and traces are written under the ignored `frontend/test-results/` directory. `FLOWPAY_E2E_BASE_URL` can override the default Vite URL.
 
 ## Validation commands
 

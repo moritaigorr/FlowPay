@@ -370,9 +370,10 @@ Regras de banco:
 ### 10.3 Usabilidade e acessibilidade
 
 - Parcial: a jornada seed foi exercitada em Chrome desktop e mobile; no viewport de 390 px não há rolagem horizontal. Isso não substitui auditoria de teclado, contraste, zoom ou leitor de tela.
+- Parcial: scans automatizados do axe-core com tags WCAG 2.1 A/AA passaram nas telas de login, dashboard e contatos. O scan encontrou uma divergência entre o nome ARIA e o texto visível da marca; o rótulo redundante foi removido e os scans passaram após a correção. Isto não comprova conformidade WCAG.
 
 - Parcial: ao salvar ou cancelar os formulários de contatos, contas, categorias, títulos, movimentos avulsos, baixas/reversões e confirmação de conciliação, o foco retorna a um título da seção; campos de valor recebem foco ao abrir baixa/reversão.
-- Pendente: conferir o comportamento no browser; auditar teclado, zoom, contraste, leitor de tela e viewport móvel em toda a jornada.
+- Pendente: auditar manualmente teclado, zoom, contraste, leitor de tela e fluxos além do demo em toda a jornada.
 - Testar teclado, leitores de tela nos fluxos principais, foco/modal, erros, zoom 200%, contraste e viewport móvel.
 - Conferir linguagem não técnica, status não comunicado só por cor, valores negativos e datas no fuso definido.
 - **Aceite:** relatório de auditoria documenta critérios verificados e questões abertas; não reivindicar conformidade ampla sem avaliação.
