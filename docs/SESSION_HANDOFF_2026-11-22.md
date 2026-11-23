@@ -22,6 +22,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Pendencias restantes do demo: revisar a apresentacao visual completa; o acesso HTTP e isolamento entre tenants estao cobertos.
 - Portao 10.1 agora inclui na mesma jornada Playwright a empresa, contato, conta, categoria, titulo, baixa parcial, importacao CSV, vinculo com o movimento existente e reimportacao do checksum; afirma saldo de R$ 1.200,00 sobre abertura de R$ 1.000,00 sem dupla contagem. A escrita exige `FLOWPAY_E2E_ALLOW_WRITES=true`, fica desabilitada no uso local padrao e o CI a habilita contra PostgreSQL descartavel do job. O percurso de escrita ainda precisa ser executado em banco descartavel; nao rodar na previa local ativa sem confirmar isolamento.
 - Portoes 10.1 e 10.3 seguem parciais ate a jornada de escrita passar no CI e os estados de resumo/linhas da conciliacao receberem revisao visual. Portao 11 ainda pede auditoria e operacao.
+- Portao 11.2: criado `FLOWPAY_SECURITY_REVIEW.md` com modelo parcial (ativos, atores, fronteiras, controles e lacunas; ASVS 5.0.0 como referencia, sem claim de conformidade). `DemoSeedPostgresIntegrationTest` ganhou casos para CSRF multipart, conta de outro tenant com sessao/CSRF validos e arquivo acima de 10 MB sem persistencia. Nao foi possivel compilar/executar: `mvn` e `mvnw` nao estao disponiveis neste checkout/ambiente; os testes aguardam CI.
 
 ## Commits recentes
 
@@ -30,6 +31,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - `be95e27` Verify statement import screen accessibly
 - `63fefd0` Cover statement reconciliation in E2E
 - `753ef81` Make reconciliation E2E assertions resilient
+- Proximo commit registrara os testes negativos de upload e o modelo parcial de seguranca.
 - 3006df0 Cover keyboard login in browser journey
 - `1ea50d6` Document automated accessibility coverage
 - `1eedaa5` Add automated demo accessibility scans
@@ -68,9 +70,9 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Proximos passos
 
-1. Ampliar a jornada Playwright com baixa realizada fora do FlowPay, importacao/reconciliacao CSV e verificacao do caixa/resultados persistidos em ambiente E2E isolado.
-2. Revisar no browser a jornada 9.4: ausencia/presenca de saldos, replay e exibicao dos tres tipos de diferenca.
-3. Continuar Portoes 10 e 11 com uma jornada E2E completa, acessibilidade e seguranca/operacao proporcionais ao uso demo.
+1. Executar os testes Java e a jornada Playwright com escrita num CI real e PostgreSQL descartavel; a jornada financeira ainda nao foi exercitada.
+2. Revisar no browser o resumo e as linhas/matches da jornada 9.4, incluindo saldos opcionais, replay e os tres tipos de diferenca.
+3. Completar Portoes 10 e 11 com auditoria manual de teclado/zoom/contraste/leitor de tela, abuso de login/cadastro, retenção de extratos e verificações de operação proporcionais ao demo.
 
 ## Arquivos de referencia
 

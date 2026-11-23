@@ -2,6 +2,7 @@ package com.flowpay.demo;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -19,6 +20,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -79,7 +81,7 @@ class DemoSeedPostgresIntegrationTest {
     }
 
     @Test
-    void authenticatedDifferentTenantCannotReadDemoContactsOrCash() throws Exception {
+    void authenticatedDifferentTenantCannotReadOrMutateDemoData() throws Exception {
         UUID otherUserId = UUID.randomUUID();
         UUID otherTenantId = UUID.randomUUID();
         jdbc.update("INSERT INTO app_user(id, email, password_hash) VALUES (?, ?, ?)", otherUserId,
@@ -107,11 +109,61 @@ class DemoSeedPostgresIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Alterado por outro tenant\",\"roles\":[\"CUSTOMER\"]}"))
                 .andExpect(status().isNotFound());
+        MockMultipartFile foreignAccountCsv = new MockMultipartFile("file", "statement.csv", "text/csv",
+                "data;descricao;valor;direcao\n23/11/2026;Recebimento;10,00;ENTRADA\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        mockMvc.perform(multipart("/api/statement-imports/preview")
+                        .file(foreignAccountCsv)
+                        .param("accountId", demoAccountId().toString())
+                        .session(session)
+                        .cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token()))
+                .andExpect(status().isNotFound());
         assertThat(jdbc.queryForObject("SELECT name FROM contact WHERE id = ?", String.class, demoContactId))
                 .isEqualTo("Cliente Exemplo Ltda.");
+        assertThat(count("SELECT count(*) FROM statement_import WHERE tenant_id = (SELECT id FROM tenant WHERE name = 'FlowPay DemonstraÃ§Ã£o')"))
+                .isZero();
         mockMvc.perform(get("/api/dashboard").param("timezone", "UTC").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.controlledBalanceMinor").value("0"));
+    }
+
+    @Test
+    void authenticatedStatementPreviewRequiresCsrfAndDoesNotPersistWithoutIt() throws Exception {
+        UUID accountId = demoAccountId();
+        CsrfState csrf = csrfState();
+        MockHttpSession session = login("demo@flowpay.local", DEMO_PASSWORD, csrf);
+        MockMultipartFile csv = new MockMultipartFile("file", "statement.csv", "text/csv",
+                "data;descricao;valor;direcao\n23/11/2026;Recebimento;10,00;ENTRADA\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+
+        mockMvc.perform(multipart("/api/statement-imports/preview")
+                        .file(csv)
+                        .param("accountId", accountId.toString())
+                        .session(session)
+                        .cookie(csrf.cookie()))
+                .andExpect(status().isForbidden());
+
+        assertThat(count("SELECT count(*) FROM statement_import WHERE tenant_id = (SELECT id FROM tenant WHERE name = 'FlowPay DemonstraÃ§Ã£o')"))
+                .isZero();
+    }
+
+    @Test
+    void authenticatedStatementPreviewRejectsFilesAboveTheConfiguredLimit() throws Exception {
+        UUID accountId = demoAccountId();
+        CsrfState csrf = csrfState();
+        MockHttpSession session = login("demo@flowpay.local", DEMO_PASSWORD, csrf);
+        byte[] oversizedCsv = new byte[10 * 1024 * 1024 + 1];
+        MockMultipartFile csv = new MockMultipartFile("file", "statement.csv", "text/csv", oversizedCsv);
+
+        mockMvc.perform(multipart("/api/statement-imports/preview")
+                        .file(csv)
+                        .param("accountId", accountId.toString())
+                        .session(session)
+                        .cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token()))
+                .andExpect(status().isBadRequest());
+
+        assertThat(count("SELECT count(*) FROM statement_import WHERE tenant_id = (SELECT id FROM tenant WHERE name = 'FlowPay DemonstraÃ§Ã£o')"))
+                .isZero();
     }
 
     @Test
@@ -152,6 +204,14 @@ class DemoSeedPostgresIntegrationTest {
 
     private long count(String query) {
         return jdbc.queryForObject(query, Long.class);
+    }
+
+    private UUID demoAccountId() {
+        return jdbc.queryForObject("""
+                SELECT a.id FROM financial_account a
+                JOIN tenant t ON t.id = a.tenant_id
+                WHERE t.name = 'FlowPay DemonstraÃ§Ã£o'
+                """, UUID.class);
     }
 
     private CsrfState csrfState() throws Exception {

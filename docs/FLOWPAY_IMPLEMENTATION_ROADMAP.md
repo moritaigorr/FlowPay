@@ -396,8 +396,11 @@ Regras de banco:
 ### 11.2 Modelagem de segurança e privacidade
 
 - Mapear ativos, papéis, limites de confiança, ameaças IDOR/CSRF/XSS/SQLi/upload/abuso e controles com referência OWASP ASVS.
+- Parcial (23/11/2026): a [revisão de segurança](FLOWPAY_SECURITY_REVIEW.md) registra ativos, atores, fronteiras e controles observados com referência à versão estável ASVS 5.0.0. É revisão de código parcial, não declaração de conformidade nem de prontidão para produção.
+- Adicionados testes MockMvc com sessão válida para rejeitar CSRF ausente no upload multipart, impedir prévia de conta pertencente a outro tenant mesmo com CSRF válido e rejeitar arquivo acima de 10 MB sem persistir importação. Ainda não executados: esta máquina não tem Maven nem wrapper Maven; o CI compilará/executará pela verificação backend quando os commits forem publicados.
 - Limitar dados pessoais coletados; política de acesso/download/retention/exclusão segura de extratos definida antes de aceitar dados sensíveis.
 - Redação de logs; segredos só em configuração local/gerenciador; dependências verificadas e atualizadas.
+- Aberto antes de exposição pública: definir controle de abuso para login/cadastro junto ao modelo de proxy/implantação, retenção/exclusão de extratos e verificações do ambiente publicado.
 - **Aceite:** testes negativos de autorização, upload e CSRF; plano de correção de achados, sem prometer segurança absoluta.
 
 ### 11.3 Observabilidade
