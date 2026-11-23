@@ -20,12 +20,17 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Portao 10.3 parcial: fluxo demo em desktop/mobile, scans axe e alternador/envio do login via Tab/Enter passaram; gestao de foco tambem esta validada por build/lint/typecheck. Auditoria manual de teclado nos outros fluxos, contraste, zoom e leitor de tela continua pendente.
 - Seed implementa empresa, login `demo@flowpay.local`, dois contatos, conta com saldo inicial ficticio, categorias e titulos em aberto. Nao apaga registros nem cria baixas/importacoes. Protecao adicional: so executa com perfil `local` e URL PostgreSQL loopback para o banco `flowpay`.
 - Pendencias restantes do demo: revisar a apresentacao visual completa; o acesso HTTP e isolamento entre tenants estao cobertos.
-- Portao 10.1 agora inclui na mesma jornada Playwright a empresa, contato, conta, categoria, titulo, baixa parcial, importacao CSV, vinculo com o movimento existente e reimportacao do checksum; afirma saldo de R$ 1.200,00 sobre abertura de R$ 1.000,00 sem dupla contagem. A escrita exige `FLOWPAY_E2E_ALLOW_WRITES=true`, fica desabilitada no uso local padrao e o CI a habilita contra PostgreSQL descartavel do job. O percurso de escrita ainda precisa ser executado em banco descartavel; nao rodar na previa local ativa sem confirmar isolamento.
+- Portao 10.1: jornada Playwright opt-in agora cobre empresa/tenant sintético, contato cliente/fornecedor, conta, categorias de entrada/saída, recebimento parcial e pagamento de despesa realizados fora do FlowPay, CSV conciliado com movimento existente, replay do arquivo e relatório mensal. Verifica saldo final de R$ 1.150,00 (abertura R$ 1.000,00 + entrada R$ 200,00 - saída R$ 50,00), diferença líquida do extrato e vínculos. A escrita continua aguardando execução observada no PostgreSQL descartável do CI.
 - Portoes 10.1 e 10.3 seguem parciais ate a jornada de escrita passar no CI e os estados de resumo/linhas da conciliacao receberem revisao visual. Portao 11 ainda pede auditoria e operacao.
-- Portao 11.2: criado `FLOWPAY_SECURITY_REVIEW.md` com modelo parcial (ativos, atores, fronteiras, controles e lacunas; ASVS 5.0.0 como referencia, sem claim de conformidade). `DemoSeedPostgresIntegrationTest` ganhou casos para CSRF multipart, conta de outro tenant com sessao/CSRF validos e arquivo acima de 10 MB sem persistencia. Nao foi possivel compilar/executar: `mvn` e `mvnw` nao estao disponiveis neste checkout/ambiente; os testes aguardam CI.
+- Portao 11.2: revisão parcial em `FLOWPAY_SECURITY_REVIEW.md`; testes MockMvc de multipart CSRF, acesso a conta de outro tenant e limite de 10 MB passaram no `mvn verify` local. Sem declaração de conformidade ASVS.
 
 ## Commits recentes
 
+- `468492a` Measure statement import duration and outcomes
+- `901d1af` Add privacy-safe request correlation logging
+- `1698ab7` Extend accessibility coverage to key finance screens
+- `f90d055` Expand financial demo journey coverage
+- `9b12ecb` Assert reconciliation summary in financial E2E
 - `9ae34c5` Run demo Playwright journey in CI
 - `7c904a1` Add isolated financial settlement E2E
 - `be95e27` Verify statement import screen accessibly
@@ -59,7 +64,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Verificacoes e limites
 
-- Backend (23/11): `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com JDK 25/Maven 3.9.16. Foram 42 testes sem falhas nem skips, incluindo 15 testes Testcontainers em PostgreSQL 16.16. V14, calculos, replay, caixa, login/CSRF e isolamento de leitura/alteracao foram exercitados; seed aplicado em schema vazio e reexecutado sem duplicacao.
+- Backend (23/11): `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com Maven 3.9.16/JDK 25 (compilação `--release 21`): 46 testes, 0 falhas, 0 erros, 0 skips; 17 integrações Testcontainers em PostgreSQL 16. Migration V14, seed, cálculos/replay de saldos, caixa, CSRF, isolamento, filtros de correlação e métricas de criação/replay foram exercitados; JAR Spring Boot empacotado.
 - Frontend: `npm.cmd run typecheck`, `npm.cmd run lint -- --deny-warnings` e `npm.cmd run build` passaram apos a gestao de foco dos fluxos principais.
 - Frontend E2E (23/11): login demo com Tab/Enter, dashboard, contatos, conta e titulos passaram em Chrome; viewport 1440x1000 e mobile 390x844 sem overflow horizontal. Axe/WCAG 2.1 A/AA automatizado passou em login, dashboard e contatos apos remover aria-label redundante do link da marca. Resultado automatizado nao atesta conformidade; teclado nos demais fluxos, contraste manual e leitor de tela pendentes.
 - Tela inicial de extratos revisada em Chrome 1440x1000 e 390x844. E2E autenticado confirma heading/labels, texto que informa que a previa nao altera caixa, axe WCAG 2.1 A/AA sem violacoes e largura de documento <=390. Revisao visual nao cobre resumo de conciliacao nem linhas/matches salvos.
@@ -70,7 +75,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Proximos passos
 
-1. Executar os testes Java e a jornada Playwright com escrita num CI real e PostgreSQL descartavel; a jornada financeira ainda nao foi exercitada.
+1. Observar o workflow e a jornada Playwright com escrita no GitHub Actions; o backend já passou localmente no PostgreSQL Testcontainers.
 2. Revisar no browser o resumo e as linhas/matches da jornada 9.4, incluindo saldos opcionais, replay e os tres tipos de diferenca.
 3. Completar Portoes 10 e 11 com auditoria manual de teclado/zoom/contraste/leitor de tela, abuso de login/cadastro, retenção de extratos e verificações de operação proporcionais ao demo.
 
@@ -85,7 +90,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - A confirmacao do CSV aceita saldos opcionais de abertura/fechamento com datas. Migration V14 persiste metadados. O resumo separa atividade, saldo final do extrato vs caixa controlado e roll-forward.
 - Decisao: valores de fim do dia; fechamento posterior a abertura; linhas aceitas apos a abertura e ate o fechamento; saldo negativo permitido. Reenvio do checksum preserva a primeira importacao.
 - Frontend: typecheck, lint sem avisos e build passaram.
-- Backend (23/11): `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com JDK 25/Maven 3.9.16. Foram 42 testes sem falhas nem skips, incluindo 15 testes Testcontainers em PostgreSQL 16.16. V14, calculos, replay, caixa, login/CSRF e isolamento de leitura/alteracao foram exercitados; seed aplicado em schema vazio e reexecutado sem duplicacao.
+- Backend (23/11): `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com Maven 3.9.16/JDK 25 (compilação `--release 21`): 46 testes, 0 falhas, 0 erros, 0 skips; 17 integrações Testcontainers em PostgreSQL 16. Migration V14, seed, cálculos/replay de saldos, caixa, CSRF, isolamento, filtros de correlação e métricas de criação/replay foram exercitados; JAR Spring Boot empacotado.
 - V14, replay de metadados, calculos com saldos positivo/negativo e isolamento foram verificados. O Portao 9.4 segue parcial ate revisar a jornada no browser; Portoes 10 e 11 ainda pedem E2E e acessibilidade.
 - Previa isolada estava ativa no checkpoint: Vite em `http://127.0.0.1:5173`, API em `http://127.0.0.1:8080` e banco descartavel em tmpfs. Chrome via Playwright agora confirmou login, dashboard, contatos, conta e titulos em desktop/mobile; o helper visual nativo continua indisponivel.
-- Proximo passo: rodar `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` e a jornada Playwright no PostgreSQL descartável. Nesta máquina Maven/wrapper e JDK 21 não estão disponíveis (Java no PATH é 8); verificar filtro de correlação e métricas de importação, depois revisar visualmente conciliação e completar teclado/acessibilidade.
+- Proximo passo: executar/observar a jornada financeira Playwright no PostgreSQL descartável do CI; ela agora inclui acessibilidade axe para pagamento, linhas/resumo de conciliação e relatório mensal. Depois revisar visualmente conciliação e completar teclado/zoom/contraste/leitor de tela. Backend `mvn verify` local já passou (46/46; JDK 25/Maven 3.9.16).

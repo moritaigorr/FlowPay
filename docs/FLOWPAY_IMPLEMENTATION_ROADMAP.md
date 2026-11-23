@@ -397,7 +397,7 @@ Regras de banco:
 
 - Mapear ativos, papéis, limites de confiança, ameaças IDOR/CSRF/XSS/SQLi/upload/abuso e controles com referência OWASP ASVS.
 - Parcial (23/11/2026): a [revisão de segurança](FLOWPAY_SECURITY_REVIEW.md) registra ativos, atores, fronteiras e controles observados com referência à versão estável ASVS 5.0.0. É revisão de código parcial, não declaração de conformidade nem de prontidão para produção.
-- Adicionados testes MockMvc com sessão válida para rejeitar CSRF ausente no upload multipart, impedir prévia de conta pertencente a outro tenant mesmo com CSRF válido e rejeitar arquivo acima de 10 MB sem persistir importação. Ainda não executados: esta máquina não tem Maven nem wrapper Maven; o CI compilará/executará pela verificação backend quando os commits forem publicados.
+- Verificado no `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify`: testes MockMvc com sessão válida rejeitam CSRF ausente no upload multipart, impedem prévia de conta de outro tenant com CSRF válido e rejeitam arquivo acima de 10 MB sem persistência.
 - Limitar dados pessoais coletados; política de acesso/download/retention/exclusão segura de extratos definida antes de aceitar dados sensíveis.
 - Redação de logs; segredos só em configuração local/gerenciador; dependências verificadas e atualizadas.
 - Aberto antes de exposição pública: definir controle de abuso para login/cadastro junto ao modelo de proxy/implantação, retenção/exclusão de extratos e verificações do ambiente publicado.
@@ -405,7 +405,7 @@ Regras de banco:
 
 ### 11.3 Observabilidade
 
-- Parcial: `RequestCorrelationFilter` cria um UUID por requisição, devolve `X-Request-Id`, mantém `request_id` no MDC durante o processamento e registra método, status, resultado e duração. O cliente não escolhe o ID; rota, query string, tenant, identidade, corpo, CSV e tokens não são incluídos nesse log. O MDC está no padrão de console do Spring Boot. A importação de extratos registra duração em `flowpay.statement.operation.duration`, com `operation` (`preview`/`confirm`) e `outcome` (`success`/`error`/`created`/`replay`), sem labels empresariais. O endpoint de métricas fica exposto somente no perfil `local`, protegido pela sessão. Testes unitários foram adicionados, mas ainda não executados neste ambiente.
+- Parcial: `RequestCorrelationFilter` cria um UUID por requisição, devolve `X-Request-Id`, mantém `request_id` no MDC durante o processamento e registra método, status, resultado e duração. O cliente não escolhe o ID; rota, query string, tenant, identidade, corpo, CSV e tokens não são incluídos nesse log. O MDC está no padrão de console do Spring Boot. A importação de extratos registra duração em `flowpay.statement.operation.duration`, com `operation` (`preview`/`confirm`) e `outcome` (`success`/`error`/`created`/`replay`), sem labels empresariais. O endpoint de métricas fica exposto somente no perfil `local`, protegido pela sessão. O `mvn verify` passou com testes unitários e integração para sucesso, erro, criação e replay; métricas de jobs/outbox e lock contention seguem abertas.
 - Métricas de latência/erro, duração de importação, falhas de job/outbox e lock contention sem labels de alta cardinalidade.
 - Micrometer primeiro; OpenTelemetry/Prometheus/Grafana conforme necessidade de visualização e demonstração.
 - **Aceite:** falha de API/job pode ser localizada e correlacionada sem expor valores sensíveis.

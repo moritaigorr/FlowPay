@@ -120,7 +120,7 @@ class DemoSeedPostgresIntegrationTest {
                 .andExpect(status().isNotFound());
         assertThat(jdbc.queryForObject("SELECT name FROM contact WHERE id = ?", String.class, demoContactId))
                 .isEqualTo("Cliente Exemplo Ltda.");
-        assertThat(count("SELECT count(*) FROM statement_import WHERE tenant_id = (SELECT id FROM tenant WHERE name = 'FlowPay DemonstraÃ§Ã£o')"))
+        assertThat(count("SELECT count(*) FROM statement_import WHERE tenant_id = (SELECT id FROM tenant WHERE name = 'FlowPay Demonstração')"))
                 .isZero();
         mockMvc.perform(get("/api/dashboard").param("timezone", "UTC").session(session))
                 .andExpect(status().isOk())
@@ -142,7 +142,7 @@ class DemoSeedPostgresIntegrationTest {
                         .cookie(csrf.cookie()))
                 .andExpect(status().isForbidden());
 
-        assertThat(count("SELECT count(*) FROM statement_import WHERE tenant_id = (SELECT id FROM tenant WHERE name = 'FlowPay DemonstraÃ§Ã£o')"))
+        assertThat(count("SELECT count(*) FROM statement_import WHERE tenant_id = (SELECT id FROM tenant WHERE name = 'FlowPay Demonstração')"))
                 .isZero();
     }
 
@@ -162,7 +162,7 @@ class DemoSeedPostgresIntegrationTest {
                         .header("X-XSRF-TOKEN", csrf.token()))
                 .andExpect(status().isBadRequest());
 
-        assertThat(count("SELECT count(*) FROM statement_import WHERE tenant_id = (SELECT id FROM tenant WHERE name = 'FlowPay DemonstraÃ§Ã£o')"))
+        assertThat(count("SELECT count(*) FROM statement_import WHERE tenant_id = (SELECT id FROM tenant WHERE name = 'FlowPay Demonstração')"))
                 .isZero();
     }
 
@@ -210,7 +210,7 @@ class DemoSeedPostgresIntegrationTest {
         return jdbc.queryForObject("""
                 SELECT a.id FROM financial_account a
                 JOIN tenant t ON t.id = a.tenant_id
-                WHERE t.name = 'FlowPay DemonstraÃ§Ã£o'
+                WHERE t.name = 'FlowPay Demonstração'
                 """, UUID.class);
     }
 
