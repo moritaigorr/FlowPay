@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('new company records a partial off-platform receipt once', async ({ page }) => {
+test('new company imports a settled receipt and links without duplicating cash', async ({ page }) => {
   test.skip(
     process.env.FLOWPAY_E2E_ALLOW_WRITES !== 'true',
     'This journey writes financial data and runs only against an isolated E2E database.',
@@ -74,5 +74,43 @@ test('new company records a partial off-platform receipt once', async ({ page })
 
   await page.getByRole('button', { name: 'Contas financeiras', exact: true }).click()
   const persistedAccount = page.locator('article').filter({ has: page.getByRole('heading', { name: 'Conta E2E' }) })
+  await expect(persistedAccount).toContainText('R$ 1.200,00')
+
+  await page.getByRole('button', { name: 'Extratos', exact: true }).click()
+  await page.getByLabel('Conta financeira').selectOption({ label: 'Conta E2E' })
+  const [year, month, day] = today.split('-')
+  const statementCsv = `data;descricao;valor;direcao\n${day}/${month}/${year};Recebimento: Servico ${id};200,00;ENTRADA\n`
+  await page.getByLabel('Arquivo CSV').setInputFiles({
+    name: `extrato-${id}.csv`,
+    mimeType: 'text/csv',
+    buffer: Buffer.from(statementCsv, 'utf-8'),
+  })
+  await page.getByRole('button', { name: 'Gerar prévia' }).click()
+  await expect(page.getByRole('heading', { name: 'Resultado da prévia' })).toBeVisible()
+  await expect(page.getByText(/1 aceitas/)).toBeVisible()
+  await page.getByRole('button', { name: 'Confirmar importação' }).click()
+  await expect(page.getByRole('status')).toContainText('O caixa não foi alterado.')
+
+  await page.getByRole('button', { name: 'Ver linhas', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Linhas salvas' })).toBeVisible()
+  await page.getByRole('button', { name: 'Sugerir movimento', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Sugestões de movimento' })).toBeVisible()
+  const linkCandidate = page.getByRole('button', { name: 'Vincular', exact: true })
+  await expect(linkCandidate).toBeVisible()
+  await linkCandidate.click()
+  const matchConfirmation = page.getByRole('group', { name: 'Confirmar conciliação' })
+  await expect(matchConfirmation).toContainText('O caixa não será alterado.')
+  await matchConfirmation.getByRole('button', { name: 'Confirmar vínculo', exact: true }).click()
+  await expect(page.getByRole('status')).toContainText('O caixa não foi alterado.')
+  await expect(page.getByText('Conciliada', { exact: true })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Gerar prévia' }).click()
+  await expect(page.getByRole('heading', { name: 'Resultado da prévia' })).toBeVisible()
+  await page.getByRole('button', { name: 'Confirmar importação' }).click()
+  await expect(page.getByRole('status')).toContainText('Este arquivo já estava salvo')
+  await expect(page.getByText('1 importação', { exact: true })).toBeVisible()
+  await expect(page.getByText('Conciliada', { exact: true })).toBeVisible()
+
+  await page.getByRole('button', { name: 'Contas financeiras', exact: true }).click()
   await expect(persistedAccount).toContainText('R$ 1.200,00')
 })
