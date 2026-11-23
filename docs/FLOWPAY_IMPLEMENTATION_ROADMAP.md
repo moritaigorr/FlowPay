@@ -332,7 +332,7 @@ Regras de banco:
 
 ### 9.4 UI da conciliação
 
-- Implementado parcialmente: resumo por importação separa totais de atividade, caixa controlado e vínculos ativos. O formulário de confirmação agora aceita saldo de abertura/fechamento com datas opcionais, e o schema tem migration para persistir esses metadados.
+- Implementado parcialmente: resumo por importação separa totais de atividade, caixa controlado e vínculos ativos. O E2E financeiro agora verifica saldo controlado, entradas, diferença líquida e contagem de vínculos antes e depois da conciliação. Essa jornada ainda depende de execução observada no CI para contar como verificada.
 - Verificação de interface (23/11/2026): em Chrome, a primeira tela de importação foi revisada em 1440×1000 e 390×844; o smoke autenticado verifica labels, mensagem de prévia sem efeito no caixa, axe WCAG 2.1 A/AA e ausência de overflow horizontal no viewport móvel. Os estados de resumo, linhas salvas e conciliação ainda não receberam revisão visual completa.
 - Decisão de implementação: os saldos representam o fechamento do dia indicado; a data de fechamento precisa ser posterior à de abertura; linhas válidas precisam estar após a data de abertura e até a data de fechamento. Valores negativos são permitidos para contas com saldo devedor. O checksum continua identificando o arquivo: uma repetição devolve a importação existente e preserva os metadados gravados originalmente.
 - A tela distingue diferença líquida de movimentação, diferença do saldo final do extrato contra o saldo controlado até a mesma data e diferença de roll-forward (saldo final menos saldo inicial e movimentos aceitos). Importar ou vincular não altera o caixa; somente a decisão explícita de criar movimento o faz.

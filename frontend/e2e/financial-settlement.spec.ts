@@ -93,6 +93,12 @@ test('new company imports a settled receipt and links without duplicating cash',
 
   await page.getByRole('button', { name: 'Ver linhas', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Linhas salvas' })).toBeVisible()
+  const reconciliationSummary = page.getByRole('region', { name: /Resumo da/ })
+  await expect(reconciliationSummary).toBeVisible()
+  await expect(reconciliationSummary).toContainText('R$ 1.200,00')
+  await expect(reconciliationSummary).toContainText('R$ 200,00')
+  await expect(reconciliationSummary).toContainText('R$ 0,00')
+  await expect(reconciliationSummary).toContainText('0 de 1 linhas')
   await page.getByRole('button', { name: 'Sugerir movimento', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Sugestões de movimento' })).toBeVisible()
   const linkCandidate = page.getByRole('button', { name: 'Vincular', exact: true })
@@ -103,7 +109,7 @@ test('new company imports a settled receipt and links without duplicating cash',
   await matchConfirmation.getByRole('button', { name: 'Confirmar vínculo', exact: true }).click()
   await expect(page.getByText(/O caixa não foi alterado\./)).toBeVisible()
   await expect(page.getByText('Conciliada', { exact: true })).toBeVisible()
-
+  await expect(reconciliationSummary).toContainText('1 de 1 linhas')
   await page.getByRole('button', { name: 'Gerar prévia' }).click()
   await expect(page.getByRole('heading', { name: 'Resultado da prévia' })).toBeVisible()
   await page.getByRole('button', { name: 'Confirmar importação' }).click()
