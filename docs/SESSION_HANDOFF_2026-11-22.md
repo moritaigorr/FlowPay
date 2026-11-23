@@ -21,6 +21,8 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Commits recentes
 
+- `cb379b2` Document verified reconciliation balance flow
+- `eb508aa` Validate statement balances and tenant line access
 - `686b938` Record reconciliation verification status
 - `74094db` Test statement balance import rules
 - `3bbbcd9` Refresh FlowPay reconciliation docs
@@ -37,7 +39,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Verificacoes e limites
 
-- Backend: compilacao Maven offline com JDK 25 passou. `mvn -o -f backend/pom.xml test` rodou 39 testes sem falhas nem skips, incluindo 12 integracoes em PostgreSQL 16.16. V14 foi aplicada desde schema vazio e calculos positivo/negativo, replay, caixa e isolamento foram exercitados.
+- Backend: `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com JDK 25/Maven 3.9.16. Foram 39 testes sem falhas nem skips, incluindo 12 integracoes em PostgreSQL 16.16. V14 foi aplicada desde schema vazio e calculos positivo/negativo, replay, caixa e isolamento foram exercitados.
 - Frontend: `npm.cmd run typecheck`, `npm.cmd run lint -- --deny-warnings` e `npm.cmd run build` passaram apos a gestao de foco dos fluxos principais.
 - Docker Desktop foi iniciado para os testes; Testcontainers criou e encerrou containers descartaveis. O banco PostgreSQL local permanente nao foi alterado. Compose fixa PostgreSQL 18.7; integracoes locais usaram 16.16.
 - Nenhuma execucao real do perfil `demo` foi feita. A compilacao completa do backend passou apos forcar a recompilacao da classe alterada. Build nao comprova SQL, migrations, reexecucao idempotente ou login.
@@ -64,4 +66,5 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Frontend: typecheck, lint sem avisos e build passaram.
 - Backend: compilacao Maven offline com JDK 25 passou. A suite rodou 39 testes sem falhas nem skips; 12 integracoes usaram PostgreSQL 16.16 descartavel.
 - V14, replay de metadados, calculos com saldos positivo/negativo e isolamento foram verificados. O Portao 9.4 segue parcial ate revisar a jornada no browser; Portoes 10 e 11 ainda pedem E2E e acessibilidade.
-- Proximo passo: validar V14 em PostgreSQL isolado e cobrir os casos de saldo negativo, limites, replay e jornada browser.
+- Previa isolada ativa: Vite em `http://127.0.0.1:5173`, API em `http://127.0.0.1:8080`, banco PostgreSQL descartavel em tmpfs. O seed demo foi carregado. O helper visual nao conectou (pipe nativo indisponivel); inspecao manual continua pendente e os dados desaparecem quando o container parar.
+- Proximo passo: inspecionar a previa, concluir verificacao visual/teclado e avancar a jornada demo/E2E do Portao 10.
