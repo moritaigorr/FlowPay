@@ -210,9 +210,9 @@ Regras de banco:
 - **Aceite desta fatia:** tenant alheio não lê o título; incompatibilidade entre tipo de título, papel do contato e direção da categoria é rejeitada; título previsto não altera caixa.
 ### 5.4 Páginas de títulos
 
-**Andamento (22/11/2026):** as telas iniciais “A receber” e “A pagar” compartilham a API, listam valores previstos, contato, categoria, vencimento e estado, com busca, paginação, edição e cancelamento com motivo. O formulário valida dinheiro em pt-BR sem ponto flutuante e a criação preserva chave idempotente em caso de falha.
+**Andamento (23/11/2026):** as telas iniciais “A receber” e “A pagar” compartilham a API, listam valores previstos, contato, categoria, vencimento e estado, com busca, paginação, edição e cancelamento com motivo. O formulário valida dinheiro em pt-BR sem ponto flutuante e a criação preserva chave idempotente em caso de falha. O cancelamento agora usa formulário inline acessível com motivo obrigatório limitado a 500 caracteres, foco inicial/restaurado e mensagem de que não cria movimento de caixa. A jornada E2E financeira cobre o cancelamento e a exibição do motivo. Lint e build do frontend passaram; a jornada browser/PostgreSQL não foi reexecutada nesta sessão.
 
-- Próximos itens: filtros por estado/pessoa/período e jornada visual de cancelamento sem prompt do navegador.
+- Próximos itens: filtros por estado/pessoa/período.
 - **Aceite desta fatia:** API alimenta listas e detalhe; valores persistidos são exibidos exatamente em pt-BR; previsão é identificada como não realizada.
 ## Portão 6 — caixa e baixas
 

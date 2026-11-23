@@ -2,6 +2,12 @@
 
 Atualizado: 23/11/2026
 
+## Continuação registrada em 23/11/2026
+
+- Etapa 5.4: substituído `window.prompt` do cancelamento de título por formulário inline acessível, com motivo obrigatório, limite de 500 caracteres, foco no campo e retorno do foco ao cabeçalho ao fechar/enviar. O texto informa que cancelar não cria movimento de caixa. Rascunho é limpo em troca de sessão/logout.
+- A jornada financeira E2E agora cria e cancela um título e confirma a persistência do motivo. `npm.cmd run lint` e `npm.cmd run build` passaram. A jornada completa com API/PostgreSQL não foi executada novamente nesta sessão.
+- Próxima fatia: filtros de títulos por estado, pessoa e período (roadmap 5.4), começando por conferir contrato existente e definir o menor filtro vertical útil. Não ampliar para outros domínios antes de verificar esse contrato.
+
 Este arquivo registra onde retomar a jornada ativa do MVP.
 
 ## Objetivo
