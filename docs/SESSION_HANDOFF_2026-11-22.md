@@ -1,56 +1,41 @@
-# FlowPay — checkpoint de implementação
+# FlowPay - checkpoint de implementacao
 
-Data: 22/11/2026
+Atualizado: 23/11/2026
 
-Este checkpoint registra o estado da jornada pausada para que possa ser retomada daqui.
+Este arquivo registra onde retomar a jornada ativa do MVP.
 
-## Objetivo ativo
+## Objetivo
 
-Implementar os estágios restantes do roadmap MVP em incrementos pequenos e verificados, preservando as invariantes de finanças, tenancy, segurança e experiência documentadas.
+Implementar os estagios restantes do roadmap em incrementos verificados, mantendo as invariantes de financas, tenancy, seguranca e UX.
 
-## Avanços feitos nesta sessão
+## Trabalho registrado
 
-- Portão 9.3: revisão de linha de extrato (`PENDING`, `REVIEWED`, `IGNORED`), motivo, autor, histórico append-only e idempotência por tenant.
-- Linhas ignoradas não recebem sugestões nem podem ser conciliadas até serem reabertas.
-- Desfazer vínculo registra motivo, autor e idempotência e preserva o movimento de caixa. Estorno do movimento continua sendo uma operação separada.
-- Candidatos individuais podem ser ignorados/restaurados por linha, com motivo e autoria persistidos. A supressão não altera o movimento nem o oculta de outras linhas; há limite de 100 candidatos ignorados por linha.
-- Portão 9.4 parcial: resumo da importação mostra período e `asOf`, saldo controlado específico da conta, atividade de entradas/saídas do extrato e do caixa, diferença líquida de movimentação e vínculos ativos.
-- A interface explica que o CSV atual contém movimentos, mas não saldo bancário inicial/final. A diferença apresentada é de movimentação, não uma diferença entre saldos.
-- Roadmap atualizado para documentar esse limite do contrato CSV e a necessidade de definir como fornecer saldo inicial/final antes de calcular diferença de saldos.
-- Adicionados testes unitários de autorização/validação e casos Testcontainers para revisão, supressão/restauração, desfazer vínculo e resumo por conta.
+- Portao 9.3: revisao de linha (PENDING, REVIEWED, IGNORED), motivo, autor, evento append-only e idempotencia por tenant.
+- Linhas ignoradas nao recebem sugestoes nem podem ser conciliadas ate reabrir.
+- Desfazer vinculo mantem o movimento de caixa. Estornar esse movimento e uma operacao separada.
+- Candidatos podem ser ignorados/restaurados por linha, com motivo e autoria. Isso nao muda o caixa e nao afeta outras linhas.
+- Portao 9.4 parcial: resumo da importacao mostra periodo, fuso, asOf, saldo controlado da conta, totais de atividade do extrato/caixa e diferencas de movimentacao.
+- O CSV atual nao fornece saldo bancario inicial/final. A tela nao chama diferenca de movimentacao de diferenca entre saldos.
+- Codigo e testes associados estao no commit `1a0cc50` (mensagem original: `Update`).
+- A correcao de estado de carregamento da tela esta no commit `81c3f8f` (`Fix reconciliation summary loading state`).
 
-## Arquivos principais deste incremento
+## Verificacoes
 
-- `backend/src/main/resources/db/migration/V12__reconciliation_review_and_unlink.sql`
-- `backend/src/main/resources/db/migration/V13__reconciliation_candidate_suppressions.sql`
-- `backend/src/main/java/com/flowpay/statements/application/StatementLineReviewService.java`
-- `backend/src/main/java/com/flowpay/statements/application/StatementReconciliationSummaryService.java`
-- `backend/src/main/java/com/flowpay/reconciliation/application/ReconciliationCandidateIgnoreService.java`
-- `backend/src/main/java/com/flowpay/reconciliation/application/ReconciliationMatchService.java`
-- `backend/src/main/java/com/flowpay/reconciliation/application/ReconciliationSuggestionService.java`
-- `frontend/src/statements/StatementImportPreview.tsx`
-- `docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md`
-- `backend/src/test/java/com/flowpay/finance/application/FinancialTitlePostgresIntegrationTest.java`
+- Frontend: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd run build` passaram sem avisos.
+- Backend: Maven 3.9.16 offline com JDK 25 compilou com `--release 21`; 35 testes executados, 0 falhas/erros, 11 Testcontainers ignorados.
+- A primeira compilacao apontou argumento faltante no DTO quando a importacao nao tem linhas aceitas. Corrigido em `StatementReconciliationSummaryService`; a segunda execucao Maven passou. A correcao sera incluida neste commit.
+- O Docker daemon nao foi encontrado. As migrations V12/V13 e os 11 cenarios de integracao ainda nao foram executados contra PostgreSQL.
+- `git diff --check` passou; permanecem avisos de conversao CRLF preexistentes.
+- Ainda falta revisar a tela no browser, incluindo mobile e acessibilidade.
 
-Há também alterações preexistentes de incrementos anteriores no worktree. Não as reverta; inspecione `git status --short` antes de editar ou integrar.
+## Proximos passos
 
-## Verificações e limites
+1. Criar um commit para a correcao do resumo sem linhas e esta atualizacao do checkpoint.
+2. Quando Docker estiver disponivel, executar os 11 cenarios Testcontainers e validar migration desde banco vazio e desde V11.
+3. Revisar a jornada no browser: resumo, ignorar/restaurar candidato, revisar/reabrir linha e desfazer vinculo mantendo o movimento no saldo.
+4. Completar o Portao 9.4 decidindo como o CSV/documento vai informar saldo bancario inicial/final; nao inferir esses valores das linhas atuais.
+5. Seguir os Portoes 10 e 11 do roadmap. O MVP completo ainda nao esta concluido.
 
-- Frontend: `npm.cmd run typecheck` passou.
-- Frontend: `npm.cmd run lint` terminou com aviso `react(set-state-in-effect)` em `frontend/src/statements/StatementImportPreview.tsx`, linha 136, por atualizar `reconciliationSummary` dentro do efeito de carregamento. Corrigir ao retomar.
-- Frontend: `npm.cmd run build` passou.
-- `git diff --check` passou, com avisos de conversão de fim de linha preexistentes.
-- Backend e Testcontainers não foram executados. O ambiente disponível tem somente Java 8; Maven, JDK 21, Docker e PostgreSQL local não foram encontrados. Por isso V12/V13 e o código Java ainda não têm validação de execução nesta máquina.
-- Não foi feita revisão visual da tela no browser após este incremento.
+## Estado
 
-## Próximos passos ao retomar
-
-1. Corrigir o aviso de lint movendo o reset do resumo para o evento que seleciona importação ou evitando `setState` síncrono no efeito; manter loading/error/result corretos e impedir resposta obsoleta.
-2. Revisar Java, SQL e os testes adicionados; executar backend quando Maven + JDK 21 e Docker/PostgreSQL estiverem disponíveis. Validar migração de banco vazio e atualização desde V11.
-3. Testar a jornada no browser: selecionar importação, ver resumo; ignorar/restaurar candidato; revisar/reabrir linha; desfazer vínculo e confirmar visualmente que o movimento continua no saldo.
-4. Continuar o Portão 9.4: decidir/documentar um contrato explícito para saldo inicial/final de extrato. Não inferir saldo bancário a partir das linhas CSV atuais.
-5. Depois seguir Portões 10 e 11 do `docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md` (jornada demonstrável, demo, acessibilidade, validação abrangente, segurança, observabilidade, backup e deploy), consultando o checkout antes de declarar qualquer item pronto.
-
-## Estado da jornada
-
-O objetivo completo continua em andamento e pausado a pedido do responsável. O Portão 9.3 foi implementado; o 9.4 está parcial e sem verificação de backend. Não declarar o MVP concluído.
+A jornada foi retomada em 23/11/2026. O Portao 9.3 esta implementado; o Portao 9.4 esta parcial. Backend unitario passou, mas integracao PostgreSQL/migrations e validacao visual continuam pendentes.

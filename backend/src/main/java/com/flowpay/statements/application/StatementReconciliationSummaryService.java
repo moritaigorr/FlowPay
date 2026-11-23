@@ -57,7 +57,7 @@ public class StatementReconciliationSummaryService {
         if (source.periodFrom() == null || source.periodTo() == null) {
             return new Summary(importId, source.accountId(), null, null, zone.getId(), null, 0, source.rejectedCount(),
                     source.duplicateCount(), source.matchedCount(), source.statementInflows(), source.statementOutflows(),
-                    "0", "0", null, null, null, false);
+                    "0", "0", null, null, null, null, false);
         }
         var cash = finance.accountCashSummary(tenant.id(), source.accountId(), source.periodFrom(), source.periodTo(), source.periodTo());
         var statementNet = new BigInteger(source.statementInflows()).subtract(new BigInteger(source.statementOutflows()));
