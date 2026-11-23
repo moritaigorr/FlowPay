@@ -363,7 +363,7 @@ Regras de banco:
 
 ### 10.3 Usabilidade e acessibilidade
 
-- Parcial: ao salvar ou cancelar o formulário de contato, o foco retorna ao título da seção em vez de permanecer em um controle que foi removido.
+- Parcial: ao salvar ou cancelar os formulários de contatos e títulos, o foco retorna ao título da seção em vez de permanecer em um controle que foi removido.
 - Pendente: conferir o comportamento no browser e estender a gestão de foco aos outros formulários; auditar teclado, zoom, contraste, leitor de tela e viewport móvel.
 - Testar teclado, leitores de tela nos fluxos principais, foco/modal, erros, zoom 200%, contraste e viewport móvel.
 - Conferir linguagem não técnica, status não comunicado só por cor, valores negativos e datas no fuso definido.
