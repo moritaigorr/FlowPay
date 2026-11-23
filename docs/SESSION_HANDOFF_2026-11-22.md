@@ -16,11 +16,11 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Portao 9.3 implementado: revisao de linha (PENDING, REVIEWED, IGNORED), motivo, autor, evento append-only e idempotencia por tenant. Linhas ignoradas nao recebem sugestoes nem podem ser conciliadas ate reabrir.
 - Desfazer vinculo mantem o movimento de caixa. Estornar o movimento e uma operacao separada. Ignorar/restaurar candidato nao altera caixa nem afeta outras linhas.
 - Portao 9.4 parcial: formulario, migration V14 e calculos foram validados por 12 integracoes em PostgreSQL 16.16 via Testcontainers. Resumo separa atividade, saldo final do extrato vs caixa controlado e roll-forward; revisao no browser pendente.
-- Portao 10.2 parcial: perfil Spring `demo` adiciona seed sintetico, transacional e idempotente com identificadores estaveis. Exige `FLOWPAY_DEMO_PASSWORD`, sem senha fixa. O cabecalho mostra `Ambiente de demonstracao` para o tenant seed.
-- Portao 10.3 parcial: salvar ou cancelar os formularios de contatos, contas, categorias, titulos, movimentos avulsos, baixas/reversoes e decisao de conciliacao retorna o foco a um titulo da secao. Baixa e reversao focam o campo de valor ao abrir. Typecheck, lint sem avisos e build passaram; comportamento ainda nao foi conferido no browser/leitor de tela.
+- Portao 10.2 backend verificado: seed, reexecucao idempotente, login/CSRF e isolamento de leitura/alteracao por outro tenant. A apresentacao visual ainda aguarda revisao mais ampla.
+- Portao 10.3 parcial: gestao de foco foi implementada e verificada por typecheck/lint/build; Playwright navegou o demo em desktop e mobile sem overflow horizontal. Auditoria de teclado, contraste, zoom e leitor de tela segue pendente.
 - Seed implementa empresa, login `demo@flowpay.local`, dois contatos, conta com saldo inicial ficticio, categorias e titulos em aberto. Nao apaga registros nem cria baixas/importacoes. Protecao adicional: so executa com perfil `local` e URL PostgreSQL loopback para o banco `flowpay`.
-- Pendencias do seed: executar em PostgreSQL limpo e confirmar reexecucao/estado resultante; validar isolamento por tenant. O reset descrito no README apaga o volume inteiro do Compose e so serve para dados descartaveis deste checkout.
-- Portoes 10.1, 10.3 e 11 ainda nao foram aceitos. Ainda falta uma jornada E2E demonstrada, auditoria de acessibilidade, revisao de seguranca/operacao e validacao visual completa.
+- Pendencias restantes do demo: revisar a apresentacao visual completa; o acesso HTTP e isolamento entre tenants estao cobertos.
+- Portoes 10.1 e 10.3 seguem parciais: a jornada E2E cobre login, dashboard, contatos, conta e titulos, mas ainda nao baixa titulos nem importa/concilia CSV. Portao 11 ainda pede auditoria e operacao.
 
 ## Commits recentes
 
@@ -44,13 +44,14 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 - Backend (23/11): `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com JDK 25/Maven 3.9.16. Foram 42 testes sem falhas nem skips, incluindo 15 testes Testcontainers em PostgreSQL 16.16. V14, calculos, replay, caixa, login/CSRF e isolamento de leitura/alteracao foram exercitados; seed aplicado em schema vazio e reexecutado sem duplicacao.
 - Frontend: `npm.cmd run typecheck`, `npm.cmd run lint -- --deny-warnings` e `npm.cmd run build` passaram apos a gestao de foco dos fluxos principais.
+- Frontend E2E (23/11): `npm.cmd run test:e2e -- --reporter=line` passou em Chrome com login demo, dashboard, contatos, conta e titulos. Viewport 1440x1000 e mobile 390x844; scrollWidth mobile ficou dentro da viewport. Senha vem de FLOWPAY_E2E_DEMO_PASSWORD, fora do repositorio.
 - Docker Desktop foi iniciado para os testes; Testcontainers criou e encerrou containers descartaveis. O banco PostgreSQL local permanente nao foi alterado. Compose fixa PostgreSQL 18.7; integracoes locais usaram 16.16.
 - O perfil `local,demo` foi exercitado com banco descartavel; autenticacao HTTP e acesso cruzado por outro tenant agora estao cobertos por integracao MockMvc.
-- A tela ainda nao foi revisada no browser em mobile/acessibilidade.
+- Revisao browser limitada a Chrome desktop 1440x1000 e mobile 390x844; auditoria de acessibilidade e outros fluxos visuais permanecem pendentes.
 
 ## Proximos passos
 
-1. Revisar no browser o rotulo demo e jornadas principais; executar verificacoes de teclado e mobile.
+1. Ampliar a jornada Playwright com baixa realizada fora do FlowPay, importacao/reconciliacao CSV e verificacao do caixa/resultados persistidos em ambiente E2E isolado.
 2. Revisar no browser a jornada 9.4: ausencia/presenca de saldos, replay e exibicao dos tres tipos de diferenca.
 3. Continuar Portoes 10 e 11 com uma jornada E2E completa, acessibilidade e seguranca/operacao proporcionais ao uso demo.
 

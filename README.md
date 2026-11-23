@@ -71,6 +71,16 @@ The password must be 12–72 UTF-8 bytes. The demo email is `demo@flowpay.local`
 
 The seed uses stable identifiers and fails startup if its demo user or company identifiers already belong to a different record. For a full reset, stop the app and remove the Compose database volume only when it contains disposable data for this checkout; `docker compose down --volumes` erases the local database for this project. Do not point the demo profile at a shared, personal, staging, or production database.
 
+### Browser E2E
+
+The Playwright smoke journey uses the local `local,demo` API and synthetic database. Keep PostgreSQL and the API running; Playwright starts Vite if it is not already available. Set `FLOWPAY_E2E_DEMO_PASSWORD` in the frontend process environment, then run from `frontend/`:
+
+```powershell
+npm.cmd run test:e2e
+```
+
+Google Chrome must be installed. The test signs in and reads the dashboard, contacts, account, and open titles; it does not mutate financial data. Failure screenshots and traces are written under the ignored `frontend/test-results/` directory. `FLOWPAY_E2E_BASE_URL` can override the default Vite URL.
+
 ## Validation commands
 
 From the repository root:

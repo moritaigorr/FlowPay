@@ -343,6 +343,8 @@ Regras de banco:
 
 ### 10.1 Jornada completa
 
+- Parcial: Playwright valida login do owner demo, dashboard com saldo seed, contatos, conta e títulos a receber/pagar. A tela também foi conferida em Chrome desktop (1440 px) e o viewport mobile (390 px) não apresenta overflow horizontal.
+
 1. Proprietário cria conta e empresa.
 2. Cadastra cliente e fornecedor.
 3. Cadastra conta financeira com saldo inicial.
@@ -366,6 +368,8 @@ Regras de banco:
 - **Aceite:** ambiente pode ser recriado em banco limpo com resultado conhecido; nenhum segredo seed é reutilizado fora do dev/demo isolado.
 
 ### 10.3 Usabilidade e acessibilidade
+
+- Parcial: a jornada seed foi exercitada em Chrome desktop e mobile; no viewport de 390 px não há rolagem horizontal. Isso não substitui auditoria de teclado, contraste, zoom ou leitor de tela.
 
 - Parcial: ao salvar ou cancelar os formulários de contatos, contas, categorias, títulos, movimentos avulsos, baixas/reversões e confirmação de conciliação, o foco retorna a um título da seção; campos de valor recebem foco ao abrir baixa/reversão.
 - Pendente: conferir o comportamento no browser; auditar teclado, zoom, contraste, leitor de tela e viewport móvel em toda a jornada.
