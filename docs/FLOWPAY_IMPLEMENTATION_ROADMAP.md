@@ -345,7 +345,7 @@ Regras de banco:
 ### 10.1 Jornada completa
 
 - Parcial: Playwright valida login do owner demo, dashboard com saldo seed, contatos, conta e títulos a receber/pagar. A tela também foi conferida em Chrome desktop (1440 px) e o viewport mobile (390 px) não apresenta overflow horizontal.
-- Em implementação: uma jornada de escrita cria empresa/tenant sintético, contato, conta com saldo inicial, categoria e título a receber; registra baixa parcial realizada fora do FlowPay; importa uma linha correspondente, vincula ao movimento existente e reimporta o mesmo CSV. Após reload, confere o saldo em aberto, caixa controlado, vínculo e replay sem duplicação. Fica opt-in local (`FLOWPAY_E2E_ALLOW_WRITES=true`) e o CI ativa a escrita somente no PostgreSQL descartável do job. A jornada ainda depende de execução observada para contar como verificada.
+- Em implementação: uma jornada de escrita cria tenant sintético, contato cliente/fornecedor, conta, categorias de entrada/saída e títulos a receber/pagar; registra recebimento parcial e pagamento realizado fora do FlowPay; importa CSV correspondente ao recebimento, vincula ao movimento existente, reimporta o arquivo e consulta o relatório mensal. Confere valores em aberto, saldo controlado, vínculos e totais por tipo. O cenário é opt-in local (`FLOWPAY_E2E_ALLOW_WRITES=true`) e o CI ativa escrita apenas no PostgreSQL descartável do job; ainda depende de execução observada para contar como verificado.
 
 1. Proprietário cria conta e empresa.
 2. Cadastra cliente e fornecedor.

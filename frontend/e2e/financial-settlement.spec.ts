@@ -7,8 +7,15 @@ test('new company imports a settled receipt and links without duplicating cash',
   )
 
   const id = crypto.randomUUID()
-  const today = new Date().toISOString().slice(0, 10)
-  const dueDate = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+  const today = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date())
+  const dueDateValue = new Date(`${today}T12:00:00Z`)
+  dueDateValue.setUTCDate(dueDateValue.getUTCDate() + 10)
+  const dueDate = dueDateValue.toISOString().slice(0, 10)
 
   await page.goto('/')
   await page.getByLabel('Nome da empresa').fill(`E2E ${id}`)
@@ -22,6 +29,7 @@ test('new company imports a settled receipt and links without duplicating cash',
   const contactForm = page.locator('form').filter({ has: page.getByLabel('Nome', { exact: true }) })
   await contactForm.getByLabel('Nome', { exact: true }).fill(`Cliente ${id}`)
   await contactForm.getByLabel('Cliente', { exact: true }).check()
+  await contactForm.getByLabel('Fornecedor', { exact: true }).check()
   await contactForm.getByRole('button', { name: 'Cadastrar contato', exact: true }).click()
   await expect(page.getByRole('heading', { name: `Cliente ${id}` })).toBeVisible()
 
@@ -43,6 +51,13 @@ test('new company imports a settled receipt and links without duplicating cash',
   await categoryForm.locator('[name="direction"]').selectOption('INFLOW')
   await categoryForm.getByRole('button', { name: 'Salvar categoria', exact: true }).click()
   await expect(page.getByText(`Receita ${id}`, { exact: true })).toBeVisible()
+
+  await page.getByRole('button', { name: /Nova categoria|Criar primeira categoria/ }).click()
+  const expenseCategoryForm = page.locator('form').filter({ has: page.getByLabel('Nome', { exact: true }) })
+  await expenseCategoryForm.getByLabel('Nome', { exact: true }).fill(`Despesa ${id}`)
+  await expenseCategoryForm.locator('[name="direction"]').selectOption('OUTFLOW')
+  await expenseCategoryForm.getByRole('button', { name: 'Salvar categoria', exact: true }).click()
+  await expect(page.getByText(`Despesa ${id}`, { exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'A receber', exact: true }).click()
   await page.getByRole('button', { name: /Novo t|Cadastrar primeiro t/ }).click()
@@ -72,9 +87,29 @@ test('new company imports a settled receipt and links without duplicating cash',
   await expect(persistedTitle).toContainText('R$ 1.034,56 em aberto')
   await expect(persistedTitle).toContainText('Parcialmente pago')
 
+  await page.getByRole('button', { name: 'A pagar', exact: true }).click()
+  await page.getByRole('button', { name: /Novo título|Cadastrar primeiro título/ }).click()
+  const payableForm = page.locator('form').filter({ has: page.locator('[name="description"]') })
+  await payableForm.locator('[name="description"]').fill(`Despesa ${id}`)
+  await payableForm.locator('[name="contactId"]').selectOption({ label: `Cliente ${id}` })
+  await payableForm.locator('[name="categoryId"]').selectOption({ label: `Despesa ${id}` })
+  await payableForm.locator('[name="amount"]').fill('50,00')
+  await payableForm.locator('[name="dueDate"]').fill(dueDate)
+  await payableForm.locator('[name="plannedAccountId"]').selectOption({ label: 'Conta E2E' })
+  await payableForm.locator('button[type="submit"]').click()
+  const payable = page.locator('article').filter({ has: page.getByRole('heading', { name: `Despesa ${id}` }) })
+  await expect(payable).toContainText('R$ 50,00 em aberto')
+  await payable.getByRole('button', { name: 'Registrar pagamento', exact: true }).click()
+  const paymentForm = payable.locator('form')
+  await paymentForm.getByLabel('Valor em reais').fill('50,00')
+  await paymentForm.getByLabel('Conta').selectOption({ label: 'Conta E2E' })
+  await paymentForm.getByLabel('Data realizada').fill(today)
+  await paymentForm.getByRole('button', { name: 'Confirmar pagamento', exact: true }).click()
+  await expect(payable).toContainText('Quitado')
+
   await page.getByRole('button', { name: 'Contas financeiras', exact: true }).click()
   const persistedAccount = page.locator('article').filter({ has: page.getByRole('heading', { name: 'Conta E2E' }) })
-  await expect(persistedAccount).toContainText('R$ 1.200,00')
+  await expect(persistedAccount).toContainText('R$ 1.150,00')
 
   await page.getByRole('button', { name: 'Extratos', exact: true }).click()
   await page.getByLabel('Conta financeira').selectOption({ label: 'Conta E2E' })
@@ -95,9 +130,9 @@ test('new company imports a settled receipt and links without duplicating cash',
   await expect(page.getByRole('heading', { name: 'Linhas salvas' })).toBeVisible()
   const reconciliationSummary = page.getByRole('region', { name: /Resumo da/ })
   await expect(reconciliationSummary).toBeVisible()
-  await expect(reconciliationSummary).toContainText('R$ 1.200,00')
+  await expect(reconciliationSummary).toContainText('R$ 1.150,00')
   await expect(reconciliationSummary).toContainText('R$ 200,00')
-  await expect(reconciliationSummary).toContainText('R$ 0,00')
+  await expect(reconciliationSummary).toContainText('R$ 50,00')
   await expect(reconciliationSummary).toContainText('0 de 1 linhas')
   await page.getByRole('button', { name: 'Sugerir movimento', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Sugestões de movimento' })).toBeVisible()
@@ -118,5 +153,13 @@ test('new company imports a settled receipt and links without duplicating cash',
   await expect(page.getByText('Conciliada', { exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'Contas financeiras', exact: true }).click()
-  await expect(persistedAccount).toContainText('R$ 1.200,00')
+  await expect(persistedAccount).toContainText('R$ 1.150,00')
+
+  await page.getByRole('button', { name: 'Relatório mensal', exact: true }).click()
+  const monthlyReport = page.getByRole('region', { name: /Relatório mensal/ })
+  await expect(monthlyReport).toBeVisible()
+  await expect(monthlyReport).toContainText('Entradas realizadas')
+  await expect(monthlyReport).toContainText('Saídas realizadas')
+  await expect(monthlyReport).toContainText('R$ 200,00')
+  await expect(monthlyReport).toContainText('R$ 50,00')
 })
