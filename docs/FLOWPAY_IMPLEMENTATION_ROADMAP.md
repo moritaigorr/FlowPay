@@ -405,7 +405,7 @@ Regras de banco:
 
 ### 11.3 Observabilidade
 
-- Logs estruturados com request ID e IDs opacos, sem PII, conteúdo CSV ou token.
+- Parcial: `RequestCorrelationFilter` cria um UUID por requisição, devolve `X-Request-Id`, mantém `request_id` no MDC durante o processamento e registra método, status, resultado e duração. O cliente não escolhe o ID; rota, query string, tenant, identidade, corpo, CSV e tokens não são incluídos nesse log. O MDC está no padrão de console do Spring Boot. O teste unitário foi adicionado, mas ainda não executado neste ambiente.
 - Métricas de latência/erro, duração de importação, falhas de job/outbox e lock contention sem labels de alta cardinalidade.
 - Micrometer primeiro; OpenTelemetry/Prometheus/Grafana conforme necessidade de visualização e demonstração.
 - **Aceite:** falha de API/job pode ser localizada e correlacionada sem expor valores sensíveis.
