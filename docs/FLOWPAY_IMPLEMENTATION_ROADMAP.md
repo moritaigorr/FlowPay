@@ -363,8 +363,8 @@ Regras de banco:
 
 ### 10.3 Usabilidade e acessibilidade
 
-- Parcial: ao salvar ou cancelar os formulários de contatos e títulos, o foco retorna ao título da seção em vez de permanecer em um controle que foi removido.
-- Pendente: conferir o comportamento no browser e estender a gestão de foco aos outros formulários; auditar teclado, zoom, contraste, leitor de tela e viewport móvel.
+- Parcial: ao salvar ou cancelar os formulários de contatos, contas, categorias, títulos e movimentos avulsos, o foco retorna ao título da seção em vez de permanecer em um controle que foi removido.
+- Pendente: conferir o comportamento no browser e estender a gestão de foco às baixas/reversões e à importação; auditar teclado, zoom, contraste, leitor de tela e viewport móvel.
 - Testar teclado, leitores de tela nos fluxos principais, foco/modal, erros, zoom 200%, contraste e viewport móvel.
 - Conferir linguagem não técnica, status não comunicado só por cor, valores negativos e datas no fuso definido.
 - **Aceite:** relatório de auditoria documenta critérios verificados e questões abertas; não reivindicar conformidade ampla sem avaliação.
