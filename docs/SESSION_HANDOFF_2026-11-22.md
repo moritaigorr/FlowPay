@@ -26,7 +26,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 ## Commits recentes
 
 - `9ae34c5` Run demo Playwright journey in CI
-- Proximo commit planejado: jornada Playwright de baixa parcial em PostgreSQL isolado e documentacao do opt-in.
+- `7c904a1` Add isolated financial settlement E2E
 - 3006df0 Cover keyboard login in browser journey
 - `1ea50d6` Document automated accessibility coverage
 - `1eedaa5` Add automated demo accessibility scans
