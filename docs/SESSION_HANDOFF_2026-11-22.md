@@ -6,36 +6,43 @@ Este arquivo registra onde retomar a jornada ativa do MVP.
 
 ## Objetivo
 
-Implementar os estagios restantes do roadmap em incrementos verificados, mantendo as invariantes de financas, tenancy, seguranca e UX.
+Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo as invariantes de financas, tenancy, seguranca e UX. O MVP ainda nao esta concluido.
 
-## Trabalho registrado
+## Estado do roadmap
 
-- Portao 9.3: revisao de linha (PENDING, REVIEWED, IGNORED), motivo, autor, evento append-only e idempotencia por tenant.
-- Linhas ignoradas nao recebem sugestoes nem podem ser conciliadas ate reabrir.
-- Desfazer vinculo mantem o movimento de caixa. Estornar esse movimento e uma operacao separada.
-- Candidatos podem ser ignorados/restaurados por linha, com motivo e autoria. Isso nao muda o caixa e nao afeta outras linhas.
-- Portao 9.4 parcial: resumo da importacao mostra periodo, fuso, asOf, saldo controlado da conta, totais de atividade do extrato/caixa e diferencas de movimentacao.
-- O CSV atual nao fornece saldo bancario inicial/final. A tela nao chama diferenca de movimentacao de diferenca entre saldos.
-- Codigo e testes associados estao no commit `1a0cc50` (mensagem original: `Update`).
-- A correcao de estado de carregamento da tela esta no commit `81c3f8f` (`Fix reconciliation summary loading state`).
+- Portao 9.3 implementado: revisao de linha (PENDING, REVIEWED, IGNORED), motivo, autor, evento append-only e idempotencia por tenant. Linhas ignoradas nao recebem sugestoes nem podem ser conciliadas ate reabrir.
+- Desfazer vinculo mantem o movimento de caixa. Estornar o movimento e uma operacao separada. Ignorar/restaurar candidato nao altera caixa nem afeta outras linhas.
+- Portao 9.4 parcial: resumo da importacao mostra periodo, fuso, `asOf`, saldo controlado da conta, totais de atividade do extrato/caixa e diferencas de movimentacao. O CSV atual nao informa saldos inicial/final, portanto a tela nao calcula diferenca entre saldos bancarios.
+- Portao 10.2 parcial: perfil Spring `demo` adiciona seed sintetico, transacional e idempotente com identificadores estaveis. Exige `FLOWPAY_DEMO_PASSWORD`, sem senha fixa. O cabecalho mostra `Ambiente de demonstracao` para o tenant seed.
+- Seed implementa empresa, login `demo@flowpay.local`, dois contatos, conta com saldo inicial ficticio, categorias e titulos em aberto. Nao apaga registros nem cria baixas/importacoes.
+- Pendencias do seed: executar em PostgreSQL limpo e confirmar reexecucao/estado resultante; validar isolamento por tenant. O reset descrito no README apaga o volume inteiro do Compose e so serve para dados descartaveis deste checkout.
+- Portoes 10.1, 10.3 e 11 ainda nao foram aceitos. Ainda falta uma jornada E2E demonstrada, auditoria de acessibilidade, revisao de seguranca/operacao e validacao visual completa.
 
-## Verificacoes
+## Commits recentes
 
-- Frontend: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd run build` passaram sem avisos.
-- Backend: Maven 3.9.16 offline com JDK 25 compilou com `--release 21`; 35 testes executados, 0 falhas/erros, 11 Testcontainers ignorados.
-- A primeira compilacao apontou argumento faltante no DTO quando a importacao nao tem linhas aceitas. Corrigido em `StatementReconciliationSummaryService`; a segunda execucao Maven passou. A correcao sera incluida neste commit.
-- O Docker daemon nao foi encontrado. Ha um servico local PostgreSQL 16 aceitando conexoes, mas o psql exige senha e nao havia credenciais locais fornecidas; o Compose do projeto fixa PostgreSQL 18.7. As migrations V12/V13 e os 11 cenarios de integracao ainda nao foram executados contra PostgreSQL.
-- `git diff --check` passou; permanecem avisos de conversao CRLF preexistentes.
-- Ainda falta revisar a tela no browser, incluindo mobile e acessibilidade.
+- `f015023` Document current FlowPay feature coverage
+- `9b663ac` Add isolated deterministic demo data seed
+- `b27abb1` Label the isolated demo workspace
+- Trabalho anterior: `1a0cc50`, `81c3f8f`, `5c6c9a5` e `6a2c90a`.
+
+## Verificacoes e limites
+
+- Backend: Maven 3.9.16 offline + JDK 25 compilou com `--release 21` apos adicionar o seed. O build de compilacao passou; os testes nao foram repetidos nesta etapa.
+- Frontend: `npm.cmd run typecheck`, `npm.cmd run lint` e `npm.cmd run build` passaram apos o rotulo do ambiente demo.
+- Docker daemon indisponivel; os testes Testcontainers e migrations ainda precisam ser executados contra PostgreSQL. O PostgreSQL 16 local exige senha nao fornecida; o Compose fixa PostgreSQL 18.7.
+- Nenhuma execucao real do perfil `demo` foi feita. Build nao comprova SQL, migrations, reexecucao idempotente ou login.
+- A tela ainda nao foi revisada no browser em mobile/acessibilidade.
 
 ## Proximos passos
 
-1. Criar um commit para a correcao do resumo sem linhas e esta atualizacao do checkpoint.
-2. Quando Docker estiver disponivel, executar os 11 cenarios Testcontainers e validar migration desde banco vazio e desde V11.
-3. Revisar a jornada no browser: resumo, ignorar/restaurar candidato, revisar/reabrir linha e desfazer vinculo mantendo o movimento no saldo.
-4. Completar o Portao 9.4 decidindo como o CSV/documento vai informar saldo bancario inicial/final; nao inferir esses valores das linhas atuais.
-5. Seguir os Portoes 10 e 11 do roadmap. O MVP completo ainda nao esta concluido.
+1. Quando Docker estiver disponivel, subir o banco Compose, ativar `local,demo` com senha fornecida pelo ambiente, confirmar login, dados conhecidos e segunda inicializacao idempotente.
+2. Validar isolamento do tenant demo e executar migrations/testes de integracao.
+3. Revisar no browser o rótulo demo e jornadas de dashboard/contatos/contas/titulos; executar verificacoes de teclado e mobile.
+4. Retomar Portao 9.4 decidindo como representar saldo inicial/final do extrato; nao inferir esses valores das linhas CSV atuais.
+5. Continuar Portoes 10 e 11 com uma jornada E2E completa, acessibilidade e seguranca/operacao proporcionais ao uso demo.
 
-## Estado
+## Arquivos de referencia
 
-A jornada foi retomada em 23/11/2026. O Portao 9.3 esta implementado; o Portao 9.4 esta parcial. Backend unitario passou, mas integracao PostgreSQL/migrations e validacao visual continuam pendentes.
+- [Roadmap](FLOWPAY_IMPLEMENTATION_ROADMAP.md)
+- [README e comandos locais](../README.md)
+- [Instrucoes de desenvolvimento](../AGENTS.md)
