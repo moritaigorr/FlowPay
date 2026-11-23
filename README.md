@@ -4,9 +4,11 @@ FlowPay is a financial management SaaS for small Brazilian service businesses. T
 
 ## Current state
 
-The repository contains the React frontend, Spring Boot API, local PostgreSQL configuration, and CI workflow. Registration creates a user, a company, and an initial `OWNER` membership; login uses a server session and the SPA has CSRF protection. Passwords use BCrypt, and the session cookie is `HttpOnly`/`SameSite=Lax` and `Secure` outside the local profile.
+The repository includes a React frontend, Spring Boot API, PostgreSQL schema, and CI workflow. Registration creates a user, a company, and an initial `OWNER` membership; login uses a server session and the SPA has CSRF protection. Passwords use BCrypt, and the session cookie is `HttpOnly`/`SameSite=Lax` and `Secure` outside the local profile.
 
-After login, the workspace loads the member's company and provides tenant-scoped contact creation, search, detail, and editing for customers and suppliers. A contact can be both. Contact deletion, switching between multiple companies, and permissions beyond the initial owner remain future work. Invitations, email verification, password recovery, and abuse rate limiting are also not implemented. Do not expose public registration before adding controls against abuse. See the [implementation roadmap](docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md).
+The authenticated workspace currently supports tenant-scoped contacts, financial accounts and categories, receivable/payable titles, cash transactions, title settlements and reversals, dashboard/monthly reporting, CSV statement import, and reconciliation review and matching. Imported statement lines do not change controlled cash; matching links an existing cash transaction or creates one according to the selected reconciliation action. Reconciliation summaries compare activity over the selected period. The current CSV format does not include opening/closing statement balances, so it cannot report an actual bank-balance difference.
+
+The product records financial activity completed outside FlowPay; it does not move money or connect to banks. Contact deletion, switching between multiple companies, invitations, email verification, password recovery, and abuse rate limiting are not implemented. Public registration should not be exposed beyond controlled local/demo use until abuse controls are added. A reproducible demo seed and the remaining Portao 10 acceptance criteria are still pending. See the [implementation roadmap](docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md) for status and scope.
 
 ## Prerequisites
 
