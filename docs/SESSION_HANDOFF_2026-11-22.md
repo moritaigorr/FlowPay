@@ -24,7 +24,7 @@ Implementar os estagios restantes do roadmap em incrementos verificados, mantend
 - Frontend: `npm.cmd run typecheck`, `npm.cmd run lint`, `npm.cmd run build` passaram sem avisos.
 - Backend: Maven 3.9.16 offline com JDK 25 compilou com `--release 21`; 35 testes executados, 0 falhas/erros, 11 Testcontainers ignorados.
 - A primeira compilacao apontou argumento faltante no DTO quando a importacao nao tem linhas aceitas. Corrigido em `StatementReconciliationSummaryService`; a segunda execucao Maven passou. A correcao sera incluida neste commit.
-- O Docker daemon nao foi encontrado. As migrations V12/V13 e os 11 cenarios de integracao ainda nao foram executados contra PostgreSQL.
+- O Docker daemon nao foi encontrado. Ha um servico local PostgreSQL 16 aceitando conexoes, mas o psql exige senha e nao havia credenciais locais fornecidas; o Compose do projeto fixa PostgreSQL 18.7. As migrations V12/V13 e os 11 cenarios de integracao ainda nao foram executados contra PostgreSQL.
 - `git diff --check` passou; permanecem avisos de conversao CRLF preexistentes.
 - Ainda falta revisar a tela no browser, incluindo mobile e acessibilidade.
 
