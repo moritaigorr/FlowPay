@@ -108,3 +108,11 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Verificacoes: frontend lint/build passaram; Playwright Chrome com PostgreSQL Testcontainers descartavel passou 2/2 com duas workers. GitHub Actions ainda nao foi observado.
 - Ambiente E2E usou Vite 5174, API 8081 e PostgreSQL 16 descartavel. Nao usar API preexistente em 8080 nem reutilizar o tenant sintetico antigo descrito anteriormente.
 - Proximo passo: acompanhar um run do CI no GitHub Actions; depois completar a revisao manual de acessibilidade/operacao e seguir para os proximos itens do roadmap MVP.
+
+## Retomada de 23/11/2026 - Diagnostico do GitHub Actions
+
+- Consulta read-only ao Actions encontrou o run CI #5, SHA remoto `def2abfb87df4956bb074d20a79b6bdc8383d346` (run ID `45257072993`). Frontend checks passou; Backend build falhou em `FinancialTitlePostgresIntegrationTest`.
+- Causa raiz nos logs: `webEnvironment=NONE` deixa de registrar `AuthenticationConfiguration`, requerido pelo bean de autenticação da aplicação; os 11 erros são a falha do mesmo contexto repetida pelo limite do Spring.
+- O checkout local já corrige essa classe com `webEnvironment=MOCK` no commit `eb508aa`; `backend/target/surefire-reports` registra 12 testes PostgreSQL desse teste, 0 falhas/erros/skips. O SHA remoto do run não contém essa correção. A execução do GitHub nao valida o checkout atual.
+- A tentativa de `mvn verify` nesta retomada não foi iniciada: `mvn` não está no PATH, e este checkout não tem Maven Wrapper. O relatório local preexistente comprova somente aquela classe de integração, não um verify completo nesta sessão.
+- Próximo passo: observar um run da revisão atual quando os commits locais forem sincronizados com o remoto. Não foi feito push.
