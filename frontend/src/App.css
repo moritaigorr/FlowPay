@@ -412,6 +412,13 @@ h1 {
 .report-table-wrap:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: -3px; }
 .reconciliation-summary-panel > .account-hint { margin: 12px 18px 0; line-height: 1.5; }
 .reconciliation-summary-panel > .account-hint:last-child { margin-bottom: 18px; }
+.statement-balance-summary { margin: 16px 18px 0; padding: 16px; border: 1px solid var(--border); border-radius: 9px; background: var(--background); }
+.statement-balance-summary h3 { margin: 0 0 12px; font-size: 14px; }
+.statement-balance-summary-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.statement-balance-summary-grid article { display: grid; align-content: start; gap: 8px; min-width: 0; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); }
+.statement-balance-summary-grid span { color: var(--muted-foreground); font-size: 12px; line-height: 1.45; }
+.statement-balance-summary-grid strong { font-size: 16px; font-variant-numeric: tabular-nums; }
+.statement-balance-summary > .account-hint { margin: 12px 0 0; font-size: 12px; line-height: 1.5; }
 .report-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .report-table th, .report-table td { padding: 13px 18px; border-bottom: 1px solid var(--border); text-align: left; }
 .report-table thead th { color: var(--muted-foreground); background: #f7f9fa; font-size: 11px; font-weight: 650; }
@@ -433,6 +440,7 @@ h1 {
   .dashboard-lists { grid-template-columns: 1fr; }
   .settlement-history-row, .cash-transaction-row { grid-template-columns: minmax(0, 1fr) auto; }
   .settlement-history-row > span:nth-child(2), .cash-transaction-row .contact-badge { grid-column: 1 / -1; }
+  .statement-balance-summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 .title-cancel-reason { grid-column: 1 / -1; margin: 0; }
 @media (max-width: 640px) {

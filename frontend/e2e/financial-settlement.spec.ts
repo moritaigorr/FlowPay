@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 import { expectAutomaticallyAccessible } from './accessibility'
 
-test('new company imports a settled receipt and links without duplicating cash', async ({ page }) => {
+test('new company imports a settled receipt without duplicating cash and reports statement balances', async ({ page }) => {
   test.skip(
     process.env.FLOWPAY_E2E_ALLOW_WRITES !== 'true',
     'This journey writes financial data and runs only against an isolated E2E database.',
@@ -17,6 +17,12 @@ test('new company imports a settled receipt and links without duplicating cash',
   const dueDateValue = new Date(`${today}T12:00:00Z`)
   dueDateValue.setUTCDate(dueDateValue.getUTCDate() + 10)
   const dueDate = dueDateValue.toISOString().slice(0, 10)
+  const openingDateValue = new Date(`${today}T12:00:00Z`)
+  openingDateValue.setUTCDate(openingDateValue.getUTCDate() - 1)
+  const openingDate = openingDateValue.toISOString().slice(0, 10)
+  const closingDateValue = new Date(`${today}T12:00:00Z`)
+  closingDateValue.setUTCDate(closingDateValue.getUTCDate() + 1)
+  const closingDate = closingDateValue.toISOString().slice(0, 10)
 
   await page.goto('/')
   await page.getByLabel('Nome da empresa').fill(`E2E ${id}`)
@@ -115,8 +121,15 @@ test('new company imports a settled receipt and links without duplicating cash',
 
   await page.getByRole('button', { name: 'Extratos', exact: true }).click()
   await page.getByLabel('Conta financeira').selectOption({ label: 'Conta E2E' })
+  await page.getByRole('textbox', { name: 'Saldo de abertura', exact: true }).fill('1.000,00')
+  await page.getByLabel('Data do saldo de abertura').fill(openingDate)
+  await page.getByRole('textbox', { name: 'Saldo de fechamento', exact: true }).fill('1.150,00')
+  await page.getByLabel('Data do saldo de fechamento').fill(closingDate)
   const [year, month, day] = today.split('-')
-  const statementCsv = `data;descricao;valor;direcao\n${day}/${month}/${year};Recebimento: Servico ${id};200,00;ENTRADA\n`
+  const receiptLine = `${day}/${month}/${year};Recebimento: Servico ${id};200,00;ENTRADA`
+  const payableLine = `${day}/${month}/${year};Pagamento: Licenca ${id};50,00;SAIDA`
+  const invalidLine = `31/02/${year};Linha com data inválida ${id};15,00;ENTRADA`
+  const statementCsv = `data;descricao;valor;direcao\n${receiptLine}\n${receiptLine}\n${payableLine}\n${invalidLine}\n`
   await page.getByLabel('Arquivo CSV').setInputFiles({
     name: `extrato-${id}.csv`,
     mimeType: 'text/csv',
@@ -124,20 +137,40 @@ test('new company imports a settled receipt and links without duplicating cash',
   })
   await page.getByRole('button', { name: 'Gerar prévia' }).click()
   await expect(page.getByRole('heading', { name: 'Resultado da prévia' })).toBeVisible()
-  await expect(page.getByText(/1 aceita · 0 rejeitadas/)).toBeVisible()
+  await expect(page.getByText(/2 aceitas · 1 rejeitada · 1 repetida no arquivo/)).toBeVisible()
   await page.getByRole('button', { name: 'Confirmar importação' }).click()
-  await expect(page.getByText(/O caixa não foi alterado\./)).toBeVisible()
+  await expect(page.getByRole('status')).toContainText('Arquivo e linhas salvos.')
+  await expect(page.getByRole('status')).toContainText('O caixa não foi alterado.')
 
   await page.getByRole('button', { name: 'Ver linhas', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Linhas salvas' })).toBeVisible()
+  const savedLinesSection = page.getByRole('region', { name: 'Linhas salvas', exact: true })
+  const savedLinesTable = page.getByRole('region', { name: 'Tabela rolável: Linhas salvas' })
+  await expect(savedLinesSection).toContainText('4 registros')
+  await expect(savedLinesTable.getByRole('row')).toHaveCount(5)
+  await expect(savedLinesTable).toContainText('Repetida no arquivo')
+  await expect(savedLinesTable).toContainText('Use uma data válida')
   const reconciliationSummary = page.getByRole('region', { name: /Resumo da/ })
   await expect(reconciliationSummary).toBeVisible()
   await expect(reconciliationSummary).toContainText('R$ 1.150,00')
   await expect(reconciliationSummary).toContainText('R$ 200,00')
   await expect(reconciliationSummary).toContainText('R$ 50,00')
-  await expect(reconciliationSummary).toContainText('0 de 1 linha tem vínculo ativo.')
+  await expect(reconciliationSummary).toContainText('2 linhas válidas')
+  await expect(reconciliationSummary).toContainText('1 linha rejeitada')
+  await expect(reconciliationSummary).toContainText('1 linha repetida')
+  await expect(reconciliationSummary).toContainText('0 de 2 linhas têm vínculo ativo.')
+  await expect(reconciliationSummary.getByRole('article').filter({ hasText: 'Diferença líquida de movimentação' })).toContainText('R$ 0,00')
+  const statementBalances = page.getByRole('region', { name: 'Saldos informados no extrato' })
+  const reportedBalances = statementBalances.getByRole('article')
+  await expect(reportedBalances).toHaveCount(4)
+  await expect(reportedBalances.nth(0)).toContainText('R$ 1.000,00')
+  await expect(reportedBalances.nth(1)).toContainText('R$ 1.150,00')
+  await expect(reportedBalances.nth(2)).toContainText('R$ 1.150,00')
+  await expect(reportedBalances.nth(3)).toContainText('R$ 0,00')
+  await expect(statementBalances).toContainText('Conferência do período: saldo de fechamento menos saldo de abertura e movimentações válidas do extrato = R$ 0,00.')
   await expectAutomaticallyAccessible(page, 'saved statement lines and reconciliation summary')
-  await page.getByRole('button', { name: 'Sugerir movimento', exact: true }).click()
+  const receiptRow = savedLinesTable.getByRole('row').filter({ hasText: `Recebimento: Servico ${id}` }).filter({ hasText: 'Aceita' })
+  await receiptRow.getByRole('button', { name: 'Sugerir movimento', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Sugestões de movimento' })).toBeVisible()
   const linkCandidate = page.getByRole('button', { name: 'Vincular', exact: true })
   await expect(linkCandidate).toBeVisible()
@@ -145,9 +178,10 @@ test('new company imports a settled receipt and links without duplicating cash',
   const matchConfirmation = page.getByRole('group', { name: 'Confirmar conciliação' })
   await expect(matchConfirmation).toContainText('O caixa não será alterado.')
   await matchConfirmation.getByRole('button', { name: 'Confirmar vínculo', exact: true }).click()
-  await expect(page.getByText(/O caixa não foi alterado\./)).toBeVisible()
+  await expect(page.getByRole('alert')).toContainText('Linha vinculada ao movimento existente.')
+  await expect(page.getByRole('alert')).toContainText('O caixa não foi alterado.')
   await expect(page.getByText('Conciliada', { exact: true })).toBeVisible()
-  await expect(reconciliationSummary).toContainText('1 de 1 linha tem vínculo ativo.')
+  await expect(reconciliationSummary).toContainText('1 de 2 linhas têm vínculo ativo.')
   await expectAutomaticallyAccessible(page, 'reconciled statement lines and summary')
   await page.screenshot({ path: 'test-results/reconciliation-desktop.png', fullPage: true })
   await page.setViewportSize({ width: 390, height: 844 })

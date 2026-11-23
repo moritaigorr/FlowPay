@@ -15,14 +15,14 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 - Portao 9.3 implementado: revisao de linha (PENDING, REVIEWED, IGNORED), motivo, autor, evento append-only e idempotencia por tenant. Linhas ignoradas nao recebem sugestoes nem podem ser conciliadas ate reabrir.
 - Desfazer vinculo mantem o movimento de caixa. Estornar o movimento e uma operacao separada. Ignorar/restaurar candidato nao altera caixa nem afeta outras linhas.
-- Portão 9.4: revisão visual do resumo e das linhas salvas passou em Chrome desktop/mobile. Corrigidos espaçamento e pluralização dos indicadores e navegação de teclado para tabelas roláveis. Axe passou no estado conciliado em 390 px e desktop; documento sem overflow horizontal em 390 px.
+- Portão 9.4: revisão visual desktop/mobile concluída para a jornada coberta. Corrigidas tabelas roláveis sem foco, espaçamento/pluralização e apresentação dos saldos informados. E2E agora cobre CSV com duas linhas aceitas, uma duplicada, uma rejeitada, abertura R$ 1.000, fechamento R$ 1.150, diferenças de saldo/roll-forward R$ 0, vínculo sem duplicidade e replay. Chrome + PostgreSQL descartável: suíte completa 2/2 passou.
 - Portao 10.2 backend verificado: seed, reexecucao idempotente, login/CSRF e isolamento de leitura/alteracao por outro tenant. A apresentacao visual ainda aguarda revisao mais ampla.
 - Portao 10.3 parcial: fluxo demo em desktop/mobile, scans axe e alternador/envio do login via Tab/Enter passaram; gestao de foco tambem esta validada por build/lint/typecheck. Auditoria manual de teclado nos outros fluxos, contraste, zoom e leitor de tela continua pendente.
 - Seed implementa empresa, login `demo@flowpay.local`, dois contatos, conta com saldo inicial ficticio, categorias e titulos em aberto. Nao apaga registros nem cria baixas/importacoes. Protecao adicional: so executa com perfil `local` e URL PostgreSQL loopback para o banco `flowpay`.
 - Pendencias restantes do demo: revisar a apresentacao visual completa; o acesso HTTP e isolamento entre tenants estao cobertos.
-- Portão 10.1: jornada Playwright opt-in validada localmente em Chrome com tenant e PostgreSQL descartáveis: login demo e cenário financeiro passaram (2/2). Cobertura inclui tenant sintético, contato cliente/fornecedor, conta, categorias, recebimento parcial, pagamento externo, CSV conciliado com movimento existente, replay e relatório mensal. Confirma saldo final de R$ 1.150,00 (abertura R$ 1.000,00 + entrada R$ 200,00 - saída R$ 50,00), diferença líquida do extrato e vínculos sem duplicidade.
+- Portão 10.1: jornada Playwright opt-in validada localmente em Chrome com tenant e PostgreSQL descartáveis. Além do fluxo financeiro, verifica rejeição de data inválida, duplicata em arquivo, saldo de abertura/fechamento, roll-forward, saldo R$ 1.150,00, conciliação sem duplicar caixa e replay. Suíte completa 2/2 passou.
 - Nota operacional: a primeira tentativa de E2E reutilizou uma Vite já aberta e criou o tenant sintético `E2E fe5ed8ed-9753-4f96-a192-e2a8e8fda94b` na instância local preexistente; não foi removido, pois a aplicação não oferece exclusão segura de tenant. As execuções aprovadas depois usaram API, Vite e PostgreSQL descartáveis em portas exclusivas.
-- Portão 10.1 permanece parcial até observar o CI. Portões 10.3 e 11 seguem parciais pela auditoria manual de acessibilidade e operação; a revisão visual da conciliação foi concluída para os estados cobertos pelo fluxo E2E.
+- Portão 10.1 permanece parcial até observar o CI. Portões 10.3 e 11 seguem parciais pela auditoria manual de acessibilidade e operação; revisão visual dos estados E2E da conciliação está concluída.
 - Portao 11.2: revisão parcial em `FLOWPAY_SECURITY_REVIEW.md`; testes MockMvc de multipart CSRF, acesso a conta de outro tenant e limite de 10 MB passaram no `mvn verify` local. Sem declaração de conformidade ASVS.
 
 ## Commits recentes
@@ -77,7 +77,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 ## Proximos passos
 
 1. Observar o workflow e a jornada Playwright com escrita no GitHub Actions; a mesma jornada passou localmente em Chrome e PostgreSQL descartável.
-2. Completar o browser QA com linhas rejeitadas/repetidas e saldos opcionais; o estado conciliado agora foi revisado em Chrome desktop/mobile.
+2. Observar a suíte no GitHub Actions e conferir no browser estados de saldo incompatível e importação somente com linhas rejeitadas.
 3. Completar Portoes 10 e 11 com auditoria manual de teclado/zoom/contraste/leitor de tela, abuso de login/cadastro, retenção de extratos e verificações de operação proporcionais ao demo.
 
 ## Arquivos de referencia
