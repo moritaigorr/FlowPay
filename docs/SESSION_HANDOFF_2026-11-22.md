@@ -99,3 +99,12 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - V14, replay de metadados, calculos com saldos positivo/negativo e isolamento foram verificados. O Portao 9.4 segue parcial ate revisar a jornada no browser; Portoes 10 e 11 ainda pedem E2E e acessibilidade.
 - Previa isolada estava ativa no checkpoint: Vite em `http://127.0.0.1:5173`, API em `http://127.0.0.1:8080` e banco descartavel em tmpfs. Chrome via Playwright agora confirmou login, dashboard, contatos, conta e titulos em desktop/mobile; o helper visual nativo continua indisponivel.
 - Proximo passo: executar/observar a jornada financeira Playwright no PostgreSQL descartável do CI; ela agora inclui acessibilidade axe para pagamento, linhas/resumo de conciliação e relatório mensal. Depois revisar visualmente conciliação e completar teclado/zoom/contraste/leitor de tela. Backend `mvn verify` local já passou (46/46; JDK 25/Maven 3.9.16).
+
+## Retomada de 23/11/2026 - Importacao rejeitada e saldos divergentes
+
+- Estendido `frontend/e2e/financial-settlement.spec.ts` para importar um segundo CSV com uma unica linha rejeitada e validar historico, motivo de rejeicao, ausencia de acoes de conciliacao, saldo controlado preservado em R$ 1.150, diferenca de fechamento de R$ 150 e roll-forward de R$ 300.
+- A jornada confirma que arquivo sem linhas aceitas nao altera caixa; a conciliacao mostra zero linhas validas e reporta a diferenca entre atividade registrada e extrato.
+- Corrigida a inicializacao CSRF da SPA: GETs concorrentes compartilham a renovacao em andamento, a renovacao inicial fica dentro do tratamento de erro e login/cadastro aguardam CSRF fresco. Isso evitou a falha 403 observada intermitentemente no E2E com duas workers.
+- Verificacoes: frontend lint/build passaram; Playwright Chrome com PostgreSQL Testcontainers descartavel passou 2/2 com duas workers. GitHub Actions ainda nao foi observado.
+- Ambiente E2E usou Vite 5174, API 8081 e PostgreSQL 16 descartavel. Nao usar API preexistente em 8080 nem reutilizar o tenant sintetico antigo descrito anteriormente.
+- Proximo passo: acompanhar um run do CI no GitHub Actions; depois completar a revisao manual de acessibilidade/operacao e seguir para os proximos itens do roadmap MVP.

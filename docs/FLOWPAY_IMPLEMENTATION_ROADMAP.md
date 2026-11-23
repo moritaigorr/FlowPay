@@ -332,19 +332,19 @@ Regras de banco:
 
 ### 9.4 UI da conciliação
 
-- Implementado parcialmente: resumo por importação separa atividade, caixa controlado, vínculos e saldos informados. A jornada Playwright local (2/2) verifica uma linha válida duplicada, outra válida, uma data rejeitada, saldos de abertura/fechamento, roll-forward zerado, vinculação sem duplicar caixa e replay. O workflow GitHub Actions ainda precisa de execução observada.
+- Implementado parcialmente: resumo por importação separa atividade, caixa controlado, vínculos e saldos informados. A jornada Playwright local (2/2) verifica uma linha válida duplicada, outra válida, uma data rejeitada, saldos de abertura/fechamento, roll-forward zerado, vinculação sem duplicar caixa e replay. Em 23/11, o E2E também verificou uma importação somente rejeitada: nenhum movimento do extrato, diferença de saldo controlado de R$ 150 e roll-forward de R$ 300. O workflow GitHub Actions ainda precisa de execução observada.
 - Verificação visual (23/11/2026): resumo, linhas salvas, prévia e saldos informados foram conferidos em Chrome a 1440×1000 e 390×844. A seção de saldos agora usa grade de cartões responsiva; notas têm espaçamento e pluralização corretos; tabelas roláveis são focáveis por teclado com foco visível. Axe WCAG 2.1 A/AA passou no estado conciliado em desktop e mobile; documento sem overflow horizontal a 390 px.
 - Decisão de implementação: os saldos representam o fechamento do dia indicado; a data de fechamento precisa ser posterior à de abertura; linhas válidas precisam estar após a data de abertura e até a data de fechamento. Valores negativos são permitidos para contas com saldo devedor. O checksum continua identificando o arquivo: uma repetição devolve a importação existente e preserva os metadados gravados originalmente.
 - A tela distingue diferença líquida de movimentação, diferença do saldo final do extrato contra o saldo controlado até a mesma data e diferença de roll-forward (saldo final menos saldo inicial e movimentos aceitos). Importar ou vincular não altera o caixa; somente a decisão explícita de criar movimento o faz.
 - Verificação local: backend compilado e empacotado pelo `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` com JDK 25/Maven 3.9.16. A suíte executou 39 testes sem falhas nem skips, incluindo 12 integrações em PostgreSQL 16.16 descartável. A migration V14 foi aplicada desde schema vazio; testes conferem cálculo para saldos positivo e negativo, replay preservando metadados, import sem efeito no caixa e isolamento de linhas por tenant.
 - Testes unitários rejeitam conjunto de campos incompleto, data de fechamento não posterior e linha aceita fora do período. O teste de integração precisou passar a usar contexto web simulado e agora remove membership/usuário antes do tenant; com o teste ativo também foi corrigido o acesso a linhas de importação alheia (404 tenant-scoped) e o total paginado de linhas.
-- Pendências: observar a jornada no CI e conferir visualmente casos adicionais de saldo incompatível e linhas somente rejeitadas. O aceite global também depende dos portões 10 e 11.
+- Pendências: observar a jornada no CI e revisar manualmente como a tela comunica diferenças de saldo incompatíveis. O aceite global também depende dos portões 10 e 11.
 - Critério parcial: contrato e experiência de preenchimento implementados; comportamento persistido e cálculos dependem da validação de integração antes do aceite.
 ## Portão 10 — MVP demonstrável
 
 ### 10.1 Jornada completa
 
-- Verificado localmente em Chrome: Playwright valida login do owner demo, dashboard com saldo seed, contatos, conta, títulos e telas de extrato; a jornada financeira cria tenant sintético, contato cliente/fornecedor, conta, categorias, títulos, baixa parcial, pagamento realizado fora do FlowPay, importa CSV, vincula linha ao movimento existente sem duplicar caixa, repete a importação e consulta o relatório mensal. Executado com API e Vite em portas exclusivas e PostgreSQL 16 descartável: saldo final R$ 1.150,00, diferença líquida do extrato e vínculos confirmados. `npm run test:e2e`: 2 testes passaram. O cenário de escrita segue opt-in local (`FLOWPAY_E2E_ALLOW_WRITES=true`); falta observar o workflow no GitHub Actions.
+- Verificado localmente em Chrome: Playwright valida login do owner demo, dashboard com saldo seed, contatos, conta, títulos e telas de extrato; a jornada financeira cria tenant sintético, contato cliente/fornecedor, conta, categorias, títulos, baixa parcial, pagamento realizado fora do FlowPay, importa CSV, vincula linha ao movimento existente sem duplicar caixa, repete a importação, consulta o relatório mensal e importa um arquivo somente com linha rejeitada para comparar saldos inconsistentes. Executado com API e Vite em portas exclusivas e PostgreSQL 16 descartável: saldo final R$ 1.150,00, diferença líquida do extrato zerada na importação principal, segunda importação rejeitada apresenta diferença de saldo R$ 150 e roll-forward R$ 300. `npm run test:e2e`: 2 testes passaram em 23/11/2026. O cenário de escrita segue opt-in local (`FLOWPAY_E2E_ALLOW_WRITES=true`); falta observar o workflow no GitHub Actions.
 
 1. Proprietário cria conta e empresa.
 2. Cadastra cliente e fornecedor.
@@ -389,7 +389,7 @@ Regras de banco:
 - Concorrência: dupla baixa, chave repetida, checksum repetido e match disputado; sincronização determinística e consulta dos efeitos finais.
 - UI: formulários, cache separado por empresa, erro/retry, tabelas e estados acessíveis.
 - E2E: jornada MVP e isolamento de tenant.
-- Parcial: a suíte Playwright completa (login demo e fluxo financeiro) passou localmente em Chrome com PostgreSQL descartável. CI configura PostgreSQL descartável, inicia API nos perfis `local,demo` e executa Playwright com senha efêmera; a execução real no GitHub Actions ainda precisa ser observada.
+- Parcial: a suíte Playwright completa (login demo e fluxo financeiro) passou localmente em Chrome com PostgreSQL descartável em 23/11/2026. CI configura PostgreSQL descartável, inicia API nos perfis `local,demo` e executa Playwright com senha efêmera; a execução real no GitHub Actions ainda precisa ser observada.
 - **Aceite:** CI executa a suíte necessária; resultados e limitações são reportados.
 
 ### 11.2 Modelagem de segurança e privacidade

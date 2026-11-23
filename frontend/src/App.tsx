@@ -52,8 +52,17 @@ function csrfCookie() {
   return document.cookie.split('; ').find((part) => part.startsWith('XSRF-TOKEN='))?.split('=').slice(1).join('=')
 }
 
-async function refreshCsrf() {
-  await fetch('/api/auth/csrf', { credentials: 'same-origin', cache: 'no-store' })
+let csrfRefreshInFlight: Promise<void> | null = null
+
+function refreshCsrf(): Promise<void> {
+  if (!csrfRefreshInFlight) {
+    csrfRefreshInFlight = fetch('/api/auth/csrf', { credentials: 'same-origin', cache: 'no-store' })
+      .then((response) => {
+        if (!response.ok) throw new Error('Não foi possível preparar a sessão segura.')
+      })
+      .finally(() => { csrfRefreshInFlight = null })
+  }
+  return csrfRefreshInFlight
 }
 
 function App() {
@@ -122,8 +131,8 @@ function App() {
   useEffect(() => {
     let active = true
     void (async () => {
-      await refreshCsrf()
       try {
+        await refreshCsrf()
         const response = await fetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' })
         if (!response.ok) return
         const session = await response.json() as { email: string; companyName: string }
@@ -263,6 +272,7 @@ function App() {
     if (mode === 'register') payload.companyName = String(data.get('companyName') ?? '')
 
     try {
+      await refreshCsrf()
       const response = await fetch(`/api/auth/${mode}`, {
         method: 'POST',
         credentials: 'same-origin',

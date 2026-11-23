@@ -207,4 +207,45 @@ test('new company imports a settled receipt without duplicating cash and reports
   await expect(monthlyReport).toContainText('R$ 200,00')
   await expect(monthlyReport).toContainText('R$ 50,00')
   await expectAutomaticallyAccessible(page, 'monthly report')
+
+  await page.getByRole('button', { name: 'Extratos', exact: true }).click()
+  await page.getByRole('combobox', { name: 'Conta financeira', exact: true }).selectOption({ label: 'Conta E2E' })
+  await page.getByRole('textbox', { name: 'Saldo de abertura', exact: true }).fill('1.000,00')
+  await page.getByRole('textbox', { name: 'Data do saldo de abertura', exact: true }).fill(openingDate)
+  await page.getByRole('textbox', { name: 'Saldo de fechamento', exact: true }).fill('1.300,00')
+  await page.getByRole('textbox', { name: 'Data do saldo de fechamento', exact: true }).fill(closingDate)
+  const rejectedOnlyCsv = `data;descricao;valor;direcao\n31/02/${year};Somente rejeitada ${id};15,00;ENTRADA\n`
+  await page.getByLabel('Arquivo CSV').setInputFiles({
+    name: `somente-rejeitada-${id}.csv`,
+    mimeType: 'text/csv',
+    buffer: Buffer.from(rejectedOnlyCsv, 'utf-8'),
+  })
+  await page.getByRole('button', { name: 'Gerar prévia' }).click()
+  await expect(page.getByRole('heading', { name: 'Resultado da prévia' })).toBeVisible()
+  await expect(page.getByText(/0 aceitas · 1 rejeitada · 0 repetidas no arquivo/)).toBeVisible()
+  await page.getByRole('button', { name: 'Confirmar importação' }).click()
+  await expect(page.getByRole('status')).toContainText('Arquivo e linhas salvos.')
+  await expect(page.getByRole('status')).toContainText('O caixa não foi alterado.')
+
+  const statementHistory = page.getByRole('region', { name: 'Histórico de extratos', exact: true })
+  await expect(statementHistory).toContainText('2 importações')
+  await statementHistory.getByRole('button', { name: 'Ver linhas', exact: true }).first().click()
+  const rejectedLinesSection = page.getByRole('region', { name: 'Linhas salvas', exact: true })
+  const rejectedLinesTable = page.getByRole('region', { name: 'Tabela rolável: Linhas salvas' })
+  await expect(rejectedLinesSection).toContainText('1 registro')
+  await expect(rejectedLinesTable).toContainText('Use uma data válida')
+  const rejectedLine = rejectedLinesTable.getByRole('row').filter({ hasText: `Somente rejeitada ${id}` })
+  await expect(rejectedLine.getByRole('button')).toHaveCount(0)
+
+  const rejectedOnlySummary = page.getByRole('region', { name: /Resumo da/ })
+  await expect(rejectedOnlySummary).toContainText('0 linhas válidas')
+  await expect(rejectedOnlySummary).toContainText('1 linha rejeitada')
+  await expect(rejectedOnlySummary).toContainText('0 de 0 linhas têm vínculo ativo.')
+  const inconsistentBalances = page.getByRole('region', { name: 'Saldos informados no extrato' })
+  const inconsistentBalanceCards = inconsistentBalances.getByRole('article')
+  await expect(inconsistentBalanceCards.nth(0)).toContainText('R$ 1.000,00')
+  await expect(inconsistentBalanceCards.nth(1)).toContainText('R$ 1.300,00')
+  await expect(inconsistentBalanceCards.nth(2)).toContainText('R$ 1.150,00')
+  await expect(inconsistentBalanceCards.nth(3)).toContainText('R$ 150,00')
+  await expect(inconsistentBalances).toContainText('= R$ 300,00.')
 })
