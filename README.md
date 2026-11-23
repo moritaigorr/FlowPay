@@ -59,7 +59,7 @@ docker compose down
 
 ### Demo account and data
 
-The demo seed runs only when the backend starts with the explicit `demo` profile. It creates a synthetic company, contacts, account with a fictitious opening balance, categories, and open titles. Re-running it is idempotent. It does not delete data, create bank statement imports, or record settlements.
+The demo seed runs only when the backend starts with the explicit `demo` profile and verifies that the `local` profile is active with a loopback PostgreSQL URL for the `flowpay` database. It fails startup otherwise. It creates a synthetic company, contacts, account with a fictitious opening balance, categories, and open titles. Re-running it is idempotent. It does not delete data, create bank statement imports, or record settlements.
 
 Set `FLOWPAY_DEMO_PASSWORD` in the backend process environment before starting with both `local` and `demo` profiles. Start the API from the repository root with:
 

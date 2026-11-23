@@ -355,7 +355,7 @@ Regras de banco:
 
 ### 10.2 Dados seed e ambiente demo
 
-- Parcial: o perfil Spring `demo` cria registros sintéticos com IDs estáveis, em transação e de forma idempotente. Exige `FLOWPAY_DEMO_PASSWORD`; não há senha padrão no código.
+- Parcial: o perfil Spring `demo` cria registros sintéticos com IDs estáveis, em transação e de forma idempotente. Exige `FLOWPAY_DEMO_PASSWORD`; não há senha padrão no código. O seed exige também o perfil `local` e URL PostgreSQL loopback para o banco `flowpay`.
 - README documenta o login e o reset somente para o volume descartável deste checkout. O seed não apaga dados e aborta diante de colisões detectadas com outro usuário/empresa.
 - A UI identifica o tenant do seed com o rótulo `Ambiente de demonstração`.
 - Pendente: executar em PostgreSQL limpo, confirmar a reexecução e os dados resultantes e validar isolamento por tenant.

@@ -6,6 +6,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,11 +34,24 @@ class DemoSeedConfiguration {
     @Bean
     ApplicationRunner seedDemoData(JdbcTemplate jdbc, PasswordEncoder passwordEncoder,
                                    TransactionTemplate transactions,
+                                   Environment environment,
+                                   @Value("${spring.datasource.url}") String datasourceUrl,
                                    @Value("${FLOWPAY_DEMO_PASSWORD:}") String demoPassword) {
         return args -> {
+            requireLocalDemoDatasource(environment, datasourceUrl);
             requireDemoPassword(demoPassword);
             transactions.executeWithoutResult(status -> seed(jdbc, passwordEncoder, demoPassword));
         };
+    }
+
+    private static void requireLocalDemoDatasource(Environment environment, String datasourceUrl) {
+        boolean localProfile = environment.acceptsProfiles(Profiles.of("local"));
+        boolean loopbackFlowPayDatabase = datasourceUrl.matches(
+                "(?i)^jdbc:postgresql://(?:localhost|127\\.0\\.0\\.1|\\[::1\\])(?::[0-9]+)?/flowpay(?:\\?.*)?$");
+        if (!localProfile || !loopbackFlowPayDatabase) {
+            throw new IllegalStateException(
+                    "The demo seed requires the local profile and a loopback PostgreSQL database named flowpay.");
+        }
     }
 
     private static void requireDemoPassword(String password) {
