@@ -21,6 +21,8 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Commits recentes
 
+- 74094db Test statement balance import rules
+- 3bbbcd9 Refresh FlowPay reconciliation docs
 - `def2abf` Add statement balance reconciliation
 - `f015023` Document current FlowPay feature coverage
 - `9b663ac` Add isolated deterministic demo data seed
@@ -34,7 +36,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Verificacoes e limites
 
-- Backend nesta retomada: compilacao pendente; o JDK 25 indicado anteriormente nao esta mais instalado no caminho verificado (so Java 8 localizado). Docker indisponivel; migration V14 e calculos 9.4 nao foram validados em PostgreSQL.
+- Backend: compilacao Maven offline com JDK 25 passou, incluindo recompilacao das 44 classes Java. A suite rodou 38 testes sem falha; 11 testes Testcontainers foram ignorados porque Docker nao esta disponivel. Migration V14 e calculos 9.4 continuam sem validacao PostgreSQL.
 - Frontend: `npm.cmd run typecheck`, `npm.cmd run lint -- --deny-warnings` e `npm.cmd run build` passaram apos a gestao de foco dos fluxos principais.
 - Comando `docker` nao encontrado no ambiente; os testes Testcontainers e migrations ainda precisam ser executados contra PostgreSQL. O PostgreSQL 16 local exige senha nao fornecida; o Compose fixa PostgreSQL 18.7.
 - Nenhuma execucao real do perfil `demo` foi feita. A compilacao completa do backend passou apos forcar a recompilacao da classe alterada. Build nao comprova SQL, migrations, reexecucao idempotente ou login.
@@ -54,10 +56,11 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - [README e comandos locais](../README.md)
 - [Instrucoes de desenvolvimento](../AGENTS.md)
 
-## Retomada de 23/11/2026 — Portão 9.4
+## Retomada de 23/11/2026 - Portao 9.4
 
-- Implementei campos opcionais para saldo de abertura/fechamento do extrato e suas datas na confirmação da importação, persistência proposta na migration `V14__statement_balances.sql` e cálculo separado de atividade, diferença entre saldo final do extrato e caixa controlado, e diferença de roll-forward.
-- Contrato desta fatia: saldos representam fim do dia; fechamento posterior à abertura; linhas aceitas após a abertura e até o fechamento; saldo negativo permitido. Reenvio do mesmo checksum retorna a importação original, sem sobrescrever metadados.
-- Frontend passou em `npm.cmd run typecheck`, `npm.cmd run lint -- --deny-warnings` e `npm.cmd run build`.
-- Backend não compilado: Maven existe, mas o JDK indicado anteriormente não está no caminho; só foi localizado Java 8. Docker também segue indisponível, portanto migration e cálculo não foram verificados no PostgreSQL. Não considerar Portão 9.4 aceito até validar integração e replay.
-- Próximo passo: restaurar JDK compatível e Docker/PostgreSQL, compilar, validar a migration e exercitar saldos positivos/negativos, datas e reenvio do checksum; depois revisar a jornada no navegador.
+- A confirmacao do CSV aceita saldos opcionais de abertura/fechamento com datas. Migration V14 persiste metadados. O resumo separa atividade, saldo final do extrato vs caixa controlado e roll-forward.
+- Decisao: valores de fim do dia; fechamento posterior a abertura; linhas aceitas apos a abertura e ate o fechamento; saldo negativo permitido. Reenvio do checksum preserva a primeira importacao.
+- Frontend: typecheck, lint sem avisos e build passaram.
+- Backend: compilacao Maven offline com JDK 25 passou. A suite reportou 38 testes, sem falhas; 11 integracoes Testcontainers foram puladas por falta de Docker.
+- Migration V14, calculos persistidos, replay no PostgreSQL e jornada browser continuam pendentes. O Portao 9.4 nao esta aceito.
+- Proximo passo: validar V14 em PostgreSQL isolado e cobrir os casos de saldo negativo, limites, replay e jornada browser.
