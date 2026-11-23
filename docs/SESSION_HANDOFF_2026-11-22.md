@@ -20,11 +20,13 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Portao 10.3 parcial: fluxo demo em desktop/mobile, scans axe e alternador/envio do login via Tab/Enter passaram; gestao de foco tambem esta validada por build/lint/typecheck. Auditoria manual de teclado nos outros fluxos, contraste, zoom e leitor de tela continua pendente.
 - Seed implementa empresa, login `demo@flowpay.local`, dois contatos, conta com saldo inicial ficticio, categorias e titulos em aberto. Nao apaga registros nem cria baixas/importacoes. Protecao adicional: so executa com perfil `local` e URL PostgreSQL loopback para o banco `flowpay`.
 - Pendencias restantes do demo: revisar a apresentacao visual completa; o acesso HTTP e isolamento entre tenants estao cobertos.
-- Portoes 10.1 e 10.3 seguem parciais: a jornada E2E cobre login, dashboard, contatos, conta e titulos, mas ainda nao baixa titulos nem importa/concilia CSV. Portao 11 ainda pede auditoria e operacao.
+- Portao 10.1 ganhou uma jornada Playwright adicional para registrar empresa, contato, conta, categoria, titulo e baixa parcial; apos reload, confere saldo restante e caixa de R$ 1.200,00 sobre abertura de R$ 1.000,00. A escrita exige `FLOWPAY_E2E_ALLOW_WRITES=true`, fica desabilitada no uso local padrao e o CI a habilita contra o PostgreSQL descartavel do job. O teste ainda precisa ser executado em um banco descartavel; nao foi executado na previa local ativa porque Docker nao estava disponivel para confirmar isolamento.
+- Portoes 10.1 e 10.3 seguem parciais: a jornada de baixa ainda nao foi executada; E2E de importacao/conciliação CSV ainda falta. Portao 11 ainda pede auditoria e operacao.
 
 ## Commits recentes
 
 - `9ae34c5` Run demo Playwright journey in CI
+- Proximo commit planejado: jornada Playwright de baixa parcial em PostgreSQL isolado e documentacao do opt-in.
 - 3006df0 Cover keyboard login in browser journey
 - `1ea50d6` Document automated accessibility coverage
 - `1eedaa5` Add automated demo accessibility scans

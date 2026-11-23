@@ -92,4 +92,5 @@ jobs:
             exit 1
           fi
           cd frontend
+          export FLOWPAY_E2E_ALLOW_WRITES=true
           npm run test:e2e
