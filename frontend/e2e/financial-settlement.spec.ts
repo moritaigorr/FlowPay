@@ -89,7 +89,7 @@ test('new company imports a settled receipt and links without duplicating cash',
   await expect(page.getByRole('heading', { name: 'Resultado da prévia' })).toBeVisible()
   await expect(page.getByText(/1 aceitas/)).toBeVisible()
   await page.getByRole('button', { name: 'Confirmar importação' }).click()
-  await expect(page.getByRole('status')).toContainText('O caixa não foi alterado.')
+  await expect(page.getByText(/O caixa não foi alterado\./)).toBeVisible()
 
   await page.getByRole('button', { name: 'Ver linhas', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Linhas salvas' })).toBeVisible()
@@ -101,13 +101,13 @@ test('new company imports a settled receipt and links without duplicating cash',
   const matchConfirmation = page.getByRole('group', { name: 'Confirmar conciliação' })
   await expect(matchConfirmation).toContainText('O caixa não será alterado.')
   await matchConfirmation.getByRole('button', { name: 'Confirmar vínculo', exact: true }).click()
-  await expect(page.getByRole('status')).toContainText('O caixa não foi alterado.')
+  await expect(page.getByText(/O caixa não foi alterado\./)).toBeVisible()
   await expect(page.getByText('Conciliada', { exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'Gerar prévia' }).click()
   await expect(page.getByRole('heading', { name: 'Resultado da prévia' })).toBeVisible()
   await page.getByRole('button', { name: 'Confirmar importação' }).click()
-  await expect(page.getByRole('status')).toContainText('Este arquivo já estava salvo')
+  await expect(page.getByText(/Este arquivo já estava salvo/)).toBeVisible()
   await expect(page.getByText('1 importação', { exact: true })).toBeVisible()
   await expect(page.getByText('Conciliada', { exact: true })).toBeVisible()
 
