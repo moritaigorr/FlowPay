@@ -1,23 +1,10 @@
 import { expect, test } from '@playwright/test'
-import AxeBuilder from '@axe-core/playwright'
+import { expectAutomaticallyAccessible } from './accessibility'
 
 const demoPassword = process.env.FLOWPAY_E2E_DEMO_PASSWORD
 
 if (!demoPassword) {
   throw new Error('Set FLOWPAY_E2E_DEMO_PASSWORD for the isolated local demo environment.')
-}
-
-async function expectAutomaticallyAccessible(page: import('@playwright/test').Page, screen: string) {
-  const results = await new AxeBuilder({ page })
-    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-    .analyze()
-  const violations = results.violations.map(({ id, impact, help, nodes }) => ({
-    id,
-    impact,
-    help,
-    elements: nodes.map(({ target, failureSummary }) => ({ target, failureSummary })),
-  }))
-  expect(violations, `${screen} accessibility findings`).toEqual([])
 }
 
 async function tabUntilFocused(page: import('@playwright/test').Page, locator: import('@playwright/test').Locator) {

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { expectAutomaticallyAccessible } from './accessibility'
 
 test('new company imports a settled receipt and links without duplicating cash', async ({ page }) => {
   test.skip(
@@ -106,6 +107,7 @@ test('new company imports a settled receipt and links without duplicating cash',
   await paymentForm.getByLabel('Data realizada').fill(today)
   await paymentForm.getByRole('button', { name: 'Confirmar pagamento', exact: true }).click()
   await expect(payable).toContainText('Quitado')
+  await expectAutomaticallyAccessible(page, 'payables and payment')
 
   await page.getByRole('button', { name: 'Contas financeiras', exact: true }).click()
   const persistedAccount = page.locator('article').filter({ has: page.getByRole('heading', { name: 'Conta E2E' }) })
@@ -134,6 +136,7 @@ test('new company imports a settled receipt and links without duplicating cash',
   await expect(reconciliationSummary).toContainText('R$ 200,00')
   await expect(reconciliationSummary).toContainText('R$ 50,00')
   await expect(reconciliationSummary).toContainText('0 de 1 linhas')
+  await expectAutomaticallyAccessible(page, 'saved statement lines and reconciliation summary')
   await page.getByRole('button', { name: 'Sugerir movimento', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Sugestões de movimento' })).toBeVisible()
   const linkCandidate = page.getByRole('button', { name: 'Vincular', exact: true })
@@ -162,4 +165,5 @@ test('new company imports a settled receipt and links without duplicating cash',
   await expect(monthlyReport).toContainText('Saídas realizadas')
   await expect(monthlyReport).toContainText('R$ 200,00')
   await expect(monthlyReport).toContainText('R$ 50,00')
+  await expectAutomaticallyAccessible(page, 'monthly report')
 })
