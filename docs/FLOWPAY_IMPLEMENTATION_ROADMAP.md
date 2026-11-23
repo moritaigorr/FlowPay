@@ -249,7 +249,7 @@ Regras de banco:
 
 ### 7.1 Indicadores
 
-**Andamento (22/11/2026):** criada `GET /api/dashboard` autenticada e tenant-scoped. A resposta inclui período inclusivo, fuso IANA e `asOf`; o período aceita até 366 dias e, sem datas, assume o mês atual no fuso informado. Decisão de implementação: saldo controlado soma todos os movimentos com data efetiva até `to`, incluindo saldo inicial; entradas/saídas do período excluem o movimento de abertura. Previsões e vencidos usam saldo restante de títulos abertos, considerando baixas e reversões com data efetiva até `asOf`. A resposta inclui os cinco próximos vencimentos após `asOf` (até 30 dias) e cinco movimentos recentes dentro do período. O smoke autenticado no PostgreSQL local confirmou saldo R$ 70,00, entrada realizada R$ 70,00 e previsão restante R$ 30,00 após baixa parcial de um título de R$ 100,00.
+**Andamento (22/11/2026):** criada `GET /api/dashboard` autenticada e tenant-scoped. A resposta inclui período inclusivo, fuso IANA e `asOf`; o período aceita até 366 dias e, sem datas, assume o mês atual no fuso informado. Decisão de implementação: saldo controlado soma todos os movimentos com data efetiva até `to`, incluindo saldo inicial; entradas/saídas do período excluem o movimento de abertura. Previsões e vencidos usam saldo restante de títulos abertos, considerando baixas e reversões com data efetiva até `asOf`. A resposta inclui os cinco próximos vencimentos após `asOf` (até 30 dias) e cinco movimentos recentes dentro do período. O smoke autenticado no PostgreSQL local confirmou saldo R$ 70,00, entrada realizada R$ 70,00 e previsão restante R$ 30,00 após baixa parcial de um título de R$ 100,00. Consultas de leitura financeira foram movidas para contrato público do módulo `finance`; `reporting` não consulta mais tabelas do financeiro diretamente.
 
 - Saldo controlado, receber, pagar e vencidos; período, timezone e `as_of` explícitos.
 - Previsto por vencimentos separado do realizado por movimentos confirmados.
@@ -266,6 +266,8 @@ Regras de banco:
 
 ### 7.3 Relatório mensal básico
 
+**Andamento (22/11/2026):** criada a API autenticada `GET /api/reports/monthly?month=AAAA-MM&timezone=...`, com resumo de entradas/saídas realizadas por categoria, títulos ainda pendentes e vencidos na posição do fim do mês, e movimentos paginados (máximo 100 por página). Saldo inicial aparece no histórico, mas não infla os totais realizados. O intervalo é o mês civil no fuso IANA solicitado; a faixa de ano aceita é 1900–9999. Uma tela mensal foi adicionada à navegação, com loading/erro/vazio, totais, categorias e movimentos. O relatório compartilha um contrato de leitura público de Finance, e baixas/reversões passam a manter a categoria do título no movimento para permitir classificação consistente. As leituras agregadas rodam em uma transação PostgreSQL `REPEATABLE_READ` para totais e listas compartilharem o mesmo snapshot. Typecheck, lint, build e testes unitários passaram; três testes Testcontainers foram ignorados por falta do daemon Docker. Smoke autenticado no PostgreSQL local verificou baixa categorizada de R$70 em título de R$100, saldo pendente de R$30, exclusão do saldo inicial dos totais realizados e paginação dos movimentos.
+
 - Entradas/saídas por período e categoria, contas pendentes, vencidas e movimentos; exportação fica decisão posterior.
 - Definir timezone comercial e limites de período; não fazer consultas cross-tenant.
 - **Aceite:** totais reconciliam com registros para dataset conhecido e filtros têm nomes claros.
@@ -273,6 +275,10 @@ Regras de banco:
 ## Portão 8 — importação CSV
 
 ### 8.1 Contrato e parser
+
+**Decisão de implementação desta etapa:** a primeira prévia aceita UTF-8 (com BOM opcional), separador `;`, cabeçalho exato `data;descricao;valor;direcao`, data estrita `dd/MM/aaaa`, valor positivo BRL em formato `1.234,56` e direção explícita `ENTRADA` ou `SAIDA`. O arquivo é limitado a 10 MB e 50.000 registros. Esses limites são guardrails iniciais de implementação, não capacidade medida. A prévia autentica o usuário, deriva a empresa da sessão/membership e só aceita conta ativa autorizada; não persiste o arquivo/linhas e não altera caixa.
+
+**Incremento entregue em 8.2–8.3:** confirmar salva o original em `BYTEA` no PostgreSQL privado da aplicação e persiste cada linha com estado aceito/rejeitado/repetido. A chave `(tenant, conta, SHA-256 dos bytes originais)` torna repetições atômicas; confirmação idêntica responde à importação existente. O usuário pode consultar histórico e linhas com paginação, sob o tenant autenticado. Como decisão inicial de autorização, `OWNER` e `MANAGER` podem pré-visualizar/confirmar, e membros autenticados podem consultar o histórico do tenant. Isso não evita possíveis linhas iguais em arquivos diferentes. Não existe endpoint de download, match ou movimento de caixa nesta etapa. A retenção de arquivo e linhas ainda precisa ser definida antes de usar extratos reais; o armazenamento em banco é uma decisão inicial para desenvolvimento, adequada ao limite de 10 MB, ainda sem medição de volume operacional.
 
 - Definir dialeto aceito, separador, encoding, cabeçalho, formato de data, decimal/separador de milhar, sinal/direção, tamanho máximo, limite de linhas e erros por coluna.
 - Parser não executa fórmulas/macros; tratar BOM, linhas vazias, aspas, vírgula/ponto e datas ambíguas de forma explícita.
@@ -303,28 +309,34 @@ Regras de banco:
 
 ### 9.1 Sugestões
 
-- Candidatos por valor/direção/moeda, janela de data e texto; regras de scoring explicáveis. Não usar score para aprovar automaticamente caso ambíguo.
-- Revalidar saldo, tenant e estado no momento da confirmação, pois candidatos podem ter mudado.
-- **Aceite:** casos únicos são fáceis de reconhecer; ambiguidades mostram evidências e exigem escolha humana.
+**Decisão de implementação:** a primeira versão só sugere movimentos da mesma conta, com valor e direção exatos, numa janela de até três dias da data do extrato. A pontuação soma valor (50), direção (25), proximidade da data (5–20) e tokens de descrição semelhantes (0–5). A API retorna no máximo dez candidatos, suas evidências e a explicação da ordenação; avalia até cem e sinaliza se houver mais correspondências. Não escolhe nem confirma automaticamente. Movimentos de saldo inicial não são candidatos. As consultas de movimentos ficam atrás do contrato público de Finance.
+
+**Implementado:** `GET /api/statement-lines/{id}/suggestions` e ação de consulta na UI para linhas aceitas. A tela apresenta compatibilidade e evidências sem efetuar vínculo; linhas já conciliadas e movimentos já usados são excluídos da sugestão.
 
 ### 9.2 Confirmar vínculo
 
-- Caminho A: vincular `StatementLine` a movimento/baixa existente sem criar caixa.
-- Caminho B: usuário escolhe criar movimento; registrar movimento e vínculo atomicamente.
-- Match ativo único por linha e decisão tenant/conta validada por FK/serviço.
-- **Aceite:** o mesmo reconhecimento nunca percorre A e B; reenvio não cria novo efeito.
+**Decisão e implementação:** `POST /api/statement-lines/{id}/match` exige `Idempotency-Key`, trava a linha antes de revalidar e salva a decisão com ator e histórico. A chave é escopada por tenant/operação e reutilização com outro payload conflita. Índices parciais impedem duas conciliações ativas por linha ou por movimento; FKs compostas preservam tenant e conta. `LINK_EXISTING` só registra o vínculo. `CREATE_MOVEMENT` requer categoria ativa na mesma direção e grava movimento + match na transação local. A UI explica o efeito de cada ação e pede confirmação explícita. Na etapa 9.3 foram entregues revisão auditada de linhas e remoção explícita do vínculo.
+
+- Candidatos por valor/direção/moeda, janela de data e texto; regras de scoring explicáveis. Não usar score para aprovar automaticamente caso ambíguo.
+- Revalidar valor, direção, moeda, tenant, conta e elegibilidade no momento da confirmação, pois candidatos podem ter mudado.
+- **Aceite:** casos únicos são fáceis de reconhecer; ambiguidades mostram evidências e exigem escolha humana.
+
 
 ### 9.3 Ignorar, desfazer e exceções
 
-- Distinguir ignorar sugestão, marcar linha como revisada e desfazer conciliação. Preservar evidência e motivo da reversão.
-- Sem match parcial ou múltiplas linhas para uma transação no MVP, até definir novo contrato.
-- **Aceite:** desfazer não apaga linha original nem muda saldo indevidamente; estado pode ser auditado.
+- Implementado: estados de revisão `PENDING`, `REVIEWED` e `IGNORED`, com motivo, autor, evento append-only e idempotência por tenant. Linhas ignoradas não recebem sugestões nem podem ser conciliadas até serem reabertas; a interface permite marcar, ignorar e reabrir.
+- Desfazer vínculo registra motivo, autor e idempotência no match histórico, liberando a unicidade ativa da linha/movimento. Remove somente a relação; movimento criado na conciliação permanece no caixa controlado e exige estorno separado.
+- Candidatos individuais também podem ser ignorados e restaurados por linha; ambos os comandos exigem motivo, autoria e chave idempotente. A supressão afeta somente as sugestões daquela linha e não oculta nem modifica o movimento no caixa.
+- Sem match parcial ou múltiplas linhas por transação no MVP até definir novo contrato de valores.
+- Aceite: linha e motivos permanecem auditáveis; desfazer vínculo não altera caixa e ignorar um candidato não altera a operação nem impede seu uso em outra linha.
 
 ### 9.4 UI da conciliação
 
-- Desktop com linha/extrato e candidatos; mobile sequencial; valor/data/descrição/origem e ações Vincular/Criar/Ignorar.
-- **Aceite:** usuário vê saldo controlado, extrato e diferença com referência temporal; ação de alta consequência pede contexto.
-
+- Implementado nesta etapa: resumo por importação com período observado, fuso e `asOf`, saldo controlado da conta específica, totais de entrada/saída do extrato e do caixa, diferença líquida de movimentação e quantidade de vínculos ativos.
+- A tela separa saldo controlado de atividade importada e registrada. Linhas inválidas e repetidas ficam fora dos totais; importar e vincular uma linha não altera o caixa.
+- Limite do contrato atual: o CSV contém movimentos, sem saldo de abertura/fechamento. A diferença apresentada compara atividades no período e não equivale à diferença entre saldos bancários.
+- Pendente para conciliação de saldos: definir e validar como receber saldo inicial/final do extrato, sem adivinhar valores pelo CSV atual.
+- Critério parcial: referências de período/data explícitas e comparações corretamente rotuladas; diferença entre saldos permanece pendente até estender o contrato.
 ## Portão 10 — MVP demonstrável
 
 ### 10.1 Jornada completa

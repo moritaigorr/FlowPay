@@ -3,6 +3,8 @@ import type { FormEvent } from 'react'
 import './App.css'
 import { formatMinor } from './finance/format'
 import { Dashboard } from './reporting/Dashboard'
+import { MonthlyReport } from './reporting/MonthlyReport'
+import { StatementImportPreview } from './statements/StatementImportPreview'
 
 type Mode = 'register' | 'login'
 type ContactRole = 'CUSTOMER' | 'SUPPLIER'
@@ -75,7 +77,7 @@ function App() {
   const [page, setPage] = useState(0)
   const [showContactForm, setShowContactForm] = useState(false)
   const [editing, setEditing] = useState<Contact | null>(null)
-  const [activeSection, setActiveSection] = useState<'dashboard' | 'contacts' | 'accounts' | 'categories' | 'receivables' | 'payables' | 'transactions'>('dashboard')
+  const [activeSection, setActiveSection] = useState<'dashboard' | 'reports' | 'contacts' | 'accounts' | 'categories' | 'receivables' | 'payables' | 'transactions' | 'statements'>('dashboard')
   const [accounts, setAccounts] = useState<AccountPage>({ items: [], total: 0, page: 0, size: 20 })
   const [accountsPage, setAccountsPage] = useState(0)
   const [accountsLoadedKey, setAccountsLoadedKey] = useState('')
@@ -589,14 +591,16 @@ function App() {
           <aside className="sidebar" aria-label="Navegação principal">
             <p className="sidebar-label">Empresa</p>
             <button type="button" className={`nav-link${activeSection === 'dashboard' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'dashboard' ? 'page' : undefined} onClick={() => setActiveSection('dashboard')}>Visão geral</button>
+            <button type="button" className={`nav-link${activeSection === 'reports' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'reports' ? 'page' : undefined} onClick={() => setActiveSection('reports')}>Relatório mensal</button>
             <button type="button" className={`nav-link${activeSection === 'contacts' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'contacts' ? 'page' : undefined} onClick={() => setActiveSection('contacts')}>Contatos</button>
             <button type="button" className={`nav-link${activeSection === 'accounts' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'accounts' ? 'page' : undefined} onClick={() => setActiveSection('accounts')}>Contas financeiras</button>
             <button type="button" className={`nav-link${activeSection === 'categories' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'categories' ? 'page' : undefined} onClick={() => setActiveSection('categories')}>Categorias</button>
             <button type="button" className={`nav-link${activeSection === 'transactions' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'transactions' ? 'page' : undefined} onClick={() => setActiveSection('transactions')}>Movimentos de caixa</button>
+            <button type="button" className={`nav-link${activeSection === 'statements' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'statements' ? 'page' : undefined} onClick={() => setActiveSection('statements')}>Extratos</button>
             <button type="button" className={`nav-link${activeSection === 'receivables' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'receivables' ? 'page' : undefined} onClick={() => { setTitlesPage(0); setActiveSection('receivables') }}>A receber</button>
             <button type="button" className={`nav-link${activeSection === 'payables' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'payables' ? 'page' : undefined} onClick={() => { setTitlesPage(0); setActiveSection('payables') }}>A pagar</button>
           </aside>
-          {activeSection === 'dashboard' ? <Dashboard companyName={companyName} onNewMovement={() => { setActiveSection('transactions'); setShowCashTransactionForm(true) }} /> : activeSection === 'contacts' ? <section className="workspace-content" id="contacts" aria-labelledby="contacts-title">
+          {activeSection === 'dashboard' ? <Dashboard companyName={companyName} onNewMovement={() => { setActiveSection('transactions'); setShowCashTransactionForm(true) }} /> : activeSection === 'reports' ? <MonthlyReport companyName={companyName} /> : activeSection === 'statements' ? <StatementImportPreview companyName={companyName} /> : activeSection === 'contacts' ? <section className="workspace-content" id="contacts" aria-labelledby="contacts-title">
             <div className="workspace-heading">
               <div><p className="eyebrow">{companyName}</p><h1 id="contacts-title">Clientes e fornecedores</h1><p className="welcome-copy">Mantenha os dados de quem faz parte da rotina da sua empresa.</p></div>
               <button className="submit-button new-contact-button" type="button" onClick={() => { setEditing(null); setShowContactForm((value) => !value); setMessage('') }}>{showContactForm ? 'Fechar formulário' : 'Novo contato'}</button>

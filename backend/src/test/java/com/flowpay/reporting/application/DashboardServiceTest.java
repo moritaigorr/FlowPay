@@ -9,9 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 class DashboardServiceTest {
-    private final DashboardService service = new DashboardService(null, email -> {
+    private final DashboardService service = new DashboardService(email -> {
         throw new AssertionError("Tenant lookup must not run for invalid dashboard parameters.");
-    });
+    }, null);
 
     @Test
     void rejectsReversedPeriod() {

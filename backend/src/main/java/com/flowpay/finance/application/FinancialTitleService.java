@@ -140,8 +140,9 @@ public class FinancialTitleService {
             if (!sameHash(prior.hash(), hash)) throw idempotencyConflict();
             return new SettlementResult(get(tenant.id(), prior.titleId()), true);
         }
-        var state = jdbc.query("SELECT kind, status, original_amount_minor FROM financial_title WHERE tenant_id = ? AND id = ? FOR UPDATE",
-                (rs, row) -> new LockedTitle(TitleKind.valueOf(rs.getString("kind")), rs.getString("status"), rs.getLong("original_amount_minor")), tenant.id(), titleId)
+        var state = jdbc.query("SELECT kind, status, original_amount_minor, category_id, category_direction FROM financial_title WHERE tenant_id = ? AND id = ? FOR UPDATE",
+                (rs, row) -> new LockedTitle(TitleKind.valueOf(rs.getString("kind")), rs.getString("status"), rs.getLong("original_amount_minor"),
+                        rs.getObject("category_id", UUID.class), rs.getString("category_direction")), tenant.id(), titleId)
                 .stream().findFirst().orElseThrow(FinancialTitleService::notFound);
         if (!"OPEN".equals(state.status())) throw new ResponseStatusException(HttpStatus.CONFLICT, "Este título não está disponível para baixa.");
         var account = jdbc.query("SELECT status FROM financial_account WHERE tenant_id = ? AND id = ? FOR UPDATE",
@@ -158,10 +159,12 @@ public class FinancialTitleService {
         }
         var movementId = UUID.randomUUID();
         jdbc.update("""
-                INSERT INTO cash_transaction (id, tenant_id, financial_account_id, direction, amount_minor, effective_date, origin, description)
-                VALUES (?, ?, ?, ?, ?, ?, 'TITLE_SETTLEMENT', ?)
+                INSERT INTO cash_transaction
+                  (id, tenant_id, financial_account_id, direction, amount_minor, effective_date, origin, description, category_id, category_direction)
+                VALUES (?, ?, ?, ?, ?, ?, 'TITLE_SETTLEMENT', ?, ?, ?)
                 """, movementId, tenant.id(), input.accountId(), expectedDirection(state.kind()), input.amountMinor(), input.effectiveDate(),
-                truncate((state.kind() == TitleKind.RECEIVABLE ? "Recebimento: " : "Pagamento: ") + get(tenant.id(), titleId).description(), 160));
+                truncate((state.kind() == TitleKind.RECEIVABLE ? "Recebimento: " : "Pagamento: ") + get(tenant.id(), titleId).description(), 160),
+                state.categoryId(), state.categoryDirection());
         jdbc.update("""
                 INSERT INTO financial_settlement (id, tenant_id, financial_title_id, cash_transaction_id, amount_minor, effective_date, idempotency_key, payload_hash)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -206,13 +209,13 @@ public class FinancialTitleService {
                 (rs, row) -> rs.getString("status"), tenant.id(), titleId).stream().findFirst().orElseThrow(FinancialTitleService::notFound);
         if (!"OPEN".equals(titleStatus)) throw new ResponseStatusException(HttpStatus.CONFLICT, "Este título não está disponível para reversão.");
         var source = jdbc.query("""
-                SELECT s.amount_minor, ct.financial_account_id, ct.direction, ct.description
+                SELECT s.amount_minor, ct.financial_account_id, ct.direction, ct.description, ct.category_id, ct.category_direction
                 FROM financial_settlement s
                 JOIN cash_transaction ct ON ct.tenant_id = s.tenant_id AND ct.id = s.cash_transaction_id
                 WHERE s.tenant_id = ? AND s.financial_title_id = ? AND s.id = ?
                 FOR UPDATE OF s
                 """, (rs, row) -> new ReversibleSettlement(rs.getLong("amount_minor"), rs.getObject("financial_account_id", UUID.class),
-                rs.getString("direction"), rs.getString("description")), tenant.id(), titleId, settlementId)
+                rs.getString("direction"), rs.getString("description"), rs.getObject("category_id", UUID.class), rs.getString("category_direction")), tenant.id(), titleId, settlementId)
                 .stream().findFirst().orElseThrow(FinancialTitleService::notFound);
         var alreadyReversed = jdbc.queryForObject("SELECT COALESCE(sum(amount_minor), 0) FROM financial_settlement_reversal WHERE tenant_id = ? AND financial_settlement_id = ?", Long.class, tenant.id(), settlementId);
         var reversible = FinancialAmountRules.remaining(source.amountMinor(), alreadyReversed);
@@ -227,10 +230,11 @@ public class FinancialTitleService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "A conta do movimento original não está disponível."));
         var movementId = UUID.randomUUID();
         jdbc.update("""
-                INSERT INTO cash_transaction (id, tenant_id, financial_account_id, direction, amount_minor, effective_date, origin, description)
-                VALUES (?, ?, ?, ?, ?, ?, 'SETTLEMENT_REVERSAL', ?)
+                INSERT INTO cash_transaction
+                  (id, tenant_id, financial_account_id, direction, amount_minor, effective_date, origin, description, category_id, category_direction)
+                VALUES (?, ?, ?, ?, ?, ?, 'SETTLEMENT_REVERSAL', ?, ?, ?)
                 """, movementId, tenant.id(), source.accountId(), "INFLOW".equals(source.direction()) ? "OUTFLOW" : "INFLOW",
-                input.amountMinor(), input.effectiveDate(), truncate("Estorno: " + source.description(), 160));
+                input.amountMinor(), input.effectiveDate(), truncate("Estorno: " + source.description(), 160), source.categoryId(), source.categoryDirection());
         jdbc.update("""
                 INSERT INTO financial_settlement_reversal
                   (id, tenant_id, financial_title_id, financial_settlement_id, cash_transaction_id,
@@ -423,9 +427,10 @@ public class FinancialTitleService {
     public record ReversalResult(TitleView title, boolean replay) {}
     private record ExistingCreation(UUID id, String hash) {}
     private record TitleState(TitleKind kind, String status) {}
-    private record LockedTitle(TitleKind kind, String status, long originalAmountMinor) {}
+    private record LockedTitle(TitleKind kind, String status, long originalAmountMinor, UUID categoryId, String categoryDirection) {}
     private record ExistingSettlement(UUID titleId, String hash) {}
     private record ExistingReversal(UUID titleId, String hash) {}
-    private record ReversibleSettlement(long amountMinor, UUID accountId, String direction, String description) {}
+    private record ReversibleSettlement(long amountMinor, UUID accountId, String direction, String description,
+                                        UUID categoryId, String categoryDirection) {}
     private record ContactRoles(boolean customer, boolean supplier) {}
 }

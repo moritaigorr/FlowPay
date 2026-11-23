@@ -403,6 +403,23 @@ h1 {
 .dashboard-amount--inflow { color: var(--success); }
 .dashboard-amount--outflow { color: var(--danger); }
 .dashboard-empty { margin: 0; padding: 20px 18px; color: var(--muted-foreground); font-size: 13px; }
+.report-panel { margin-top: 20px; overflow: hidden; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); }
+.report-table-wrap { overflow-x: auto; }
+.report-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.report-table th, .report-table td { padding: 13px 18px; border-bottom: 1px solid var(--border); text-align: left; }
+.report-table thead th { color: var(--muted-foreground); background: #f7f9fa; font-size: 11px; font-weight: 650; }
+.report-table tbody th { font-weight: 550; }
+.report-table tbody tr:last-child th, .report-table tbody tr:last-child td { border-bottom: 0; }
+.report-table .report-amount { font-weight: 650; font-variant-numeric: tabular-nums; text-align: right; white-space: nowrap; }
+.report-movements { padding: 12px; }
+.report-movement { box-shadow: none; }
+.report-movement .dashboard-list-heading { align-items: center; padding: 12px 14px; }
+.report-movement .dashboard-list-heading h3 { overflow: hidden; margin: 0; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.report-movement .dashboard-list-heading span { flex: 0 0 auto; }
+.report-movement-body { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; }
+.report-movement-body div { display: grid; gap: 4px; color: var(--muted-foreground); font-size: 11px; }
+.report-movement-body strong { font-size: 14px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
 @media (max-width: 1050px) { .dashboard-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 720px) {
   .dashboard-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }

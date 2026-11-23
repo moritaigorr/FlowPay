@@ -29,4 +29,12 @@ public class JdbcTenantAccess implements TenantAccess {
         if (tenants.size() > 1) throw new ResponseStatusException(HttpStatus.CONFLICT, "A seleção de empresa ainda não está disponível.");
         return tenants.getFirst();
     }
+
+    @Override
+    public java.util.UUID requireUserId(String email) {
+        return jdbc.query("SELECT id FROM app_user WHERE email = ?",
+                (rs, row) -> rs.getObject("id", java.util.UUID.class), email).stream().findFirst()
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.FORBIDDEN, "Identidade autenticada não encontrada."));
+    }
 }
