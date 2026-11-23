@@ -411,6 +411,7 @@ Regras de banco:
 
 ### 11.4 Backup e restauração
 
+- Parcial (23/11/2026): scripts PowerShell criam dump PostgreSQL custom-format do serviço Compose local e restauram em banco novo `flowpay_restore_*`, sem sobrescrever o banco de origem ou um destino existente. O dump fica em diretório ignorado pelo Git; o procedimento ainda precisa de ensaio real com Docker.
 - Definir dados incluídos, retenção, RPO/RTO como objetivos a decidir antes de uso real; executar restauração em ambiente isolado.
 - Incluir metadados e política de storage de arquivos de extrato.
 - **Aceite:** restauração ensaiada produz dados consistentes e procedimento está documentado antes de qualquer promessa operacional.

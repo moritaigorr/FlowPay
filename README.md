@@ -6,9 +6,9 @@ FlowPay is a financial management SaaS for small Brazilian service businesses. T
 
 The repository includes a React frontend, Spring Boot API, PostgreSQL schema, and CI workflow. Registration creates a user, a company, and an initial `OWNER` membership; login uses a server session and the SPA has CSRF protection. Passwords use BCrypt, and the session cookie is `HttpOnly`/`SameSite=Lax` and `Secure` outside the local profile.
 
-The authenticated workspace currently supports tenant-scoped contacts, financial accounts and categories, receivable/payable titles, cash transactions, title settlements and reversals, dashboard/monthly reporting, CSV statement import, and reconciliation review and matching. Imported statement lines do not change controlled cash; matching links an existing cash transaction or creates one according to the selected reconciliation action. Reconciliation summaries compare statement activity with recorded cash activity. On import confirmation, users may also provide opening/closing statement balances and dates; when present, the summary compares the closing statement balance with FlowPay's controlled balance and reports a statement roll-forward difference. These balance fields are optional metadata and do not change cash. Migration V14 and balance calculations are covered by PostgreSQL 16.16 Testcontainers integration tests; browser validation of the full journey remains pending.
+The authenticated workspace currently supports tenant-scoped contacts, financial accounts and categories, receivable/payable titles, cash transactions, title settlements and reversals, dashboard/monthly reporting, CSV statement import, and reconciliation review and matching. Imported statement lines do not change controlled cash; matching links an existing cash transaction or creates one according to the selected reconciliation action. Reconciliation summaries compare statement activity with recorded cash activity. On import confirmation, users may also provide opening/closing statement balances and dates; when present, the summary compares the closing statement balance with FlowPay's controlled balance and reports a statement roll-forward difference. These balance fields are optional metadata and do not change cash. Migration V14 and balance calculations are covered by PostgreSQL 16.16 Testcontainers integration tests. The complete browser journey passed locally against a disposable PostgreSQL database on 2026-11-23; GitHub Actions still needs a run against the current local checkout.
 
-The product records financial activity completed outside FlowPay; it does not move money or connect to banks. Contact deletion, switching between multiple companies, invitations, email verification, password recovery, and abuse rate limiting are not implemented. Public registration should not be exposed beyond controlled local/demo use until abuse controls are added. The `demo` Spring profile creates a reproducible synthetic dataset; the remaining Portão 10 acceptance criteria are still pending. See the [implementation roadmap](docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md) for status and scope.
+The product records financial activity completed outside FlowPay; it does not move money or connect to banks. Contact deletion, switching between multiple companies, invitations, email verification, password recovery, and abuse rate limiting are not implemented. Public registration should not be exposed beyond controlled local/demo use until abuse controls are added. The `demo` Spring profile creates a reproducible synthetic dataset; Portão 10 still has manual accessibility and current-revision CI acceptance work open. See the [implementation roadmap](docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md) for status and scope.
 
 ## Prerequisites
 
@@ -79,9 +79,27 @@ The Playwright smoke journey uses the local `local,demo` API and synthetic datab
 npm.cmd run test:e2e
 ```
 
-Google Chrome must be installed. The default smoke journey signs in with keyboard activation and reads the dashboard, contacts, account, open titles, and statement import screen. The financial journey creates a synthetic company, records a partial receipt and an off-platform payable payment, imports and reconciles a matching statement line, checks replay without duplicate cash, and verifies monthly inflow/outflow totals. It is skipped unless `FLOWPAY_E2E_ALLOW_WRITES=true`. Enable it only against a fresh, disposable E2E database, never a shared or personal database. Axe scans login, dashboard, contacts, and statement import against WCAG 2.1 A/AA rules. The financial journey also contains scans for payment, saved statement lines and summary, and the monthly report; those checks remain unobserved until the isolated E2E run. Automated scans do not establish WCAG conformance. The statement screen is also checked at a 390 px viewport for horizontal overflow. Failure screenshots and traces are written under the ignored `frontend/test-results/` directory. `FLOWPAY_E2E_BASE_URL` can override the default Vite URL.
+Google Chrome must be installed. The default smoke journey signs in with keyboard activation and reads the dashboard, contacts, account, open titles, and statement import screen. The financial journey creates a synthetic company, records a partial receipt and an off-platform payable payment, imports and reconciles a matching statement line, checks replay without duplicate cash, verifies monthly inflow/outflow totals, and imports a CSV with only a rejected row to check reported balance differences. It is skipped unless `FLOWPAY_E2E_ALLOW_WRITES=true`. Enable it only against a fresh, disposable E2E database, never a shared or personal database. Axe scans login, dashboard, contacts, statement import, payment, saved statement lines and summary, and the monthly report against WCAG 2.1 A/AA rules. Automated scans do not establish WCAG conformance. The statement screen and reconciliation tables are also checked at a 390 px viewport for horizontal overflow. Failure screenshots and traces are written under the ignored `frontend/test-results/` directory. `FLOWPAY_E2E_BASE_URL` can override the default Vite URL.
 
-The GitHub Actions frontend job provisions its own PostgreSQL 18.7 service, starts the demo API with an ephemeral password, installs Playwright Chromium, and enables both browser journeys against that job-scoped database. The workflow must complete on GitHub before its CI integration is considered verified.
+The GitHub Actions frontend job provisions its own PostgreSQL 18.7 service, starts the demo API with an ephemeral password, installs Playwright Chromium, and enables both browser journeys against that job-scoped database. The latest observed remote run passed frontend checks but failed the backend integration test on an older remote commit; the current local checkout fixes its test web environment. Observe a new run after synchronizing the local commits.
+
+### Local PostgreSQL backup and restore drill
+
+These scripts operate only on the Compose `db` service whose database is named `flowpay`. They are local-development tools, not a production backup service.
+
+Create a custom-format dump under the ignored `backups/` directory:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/backup-postgres.ps1
+```
+
+Restore a dump into a new database without overwriting `flowpay`:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/restore-postgres.ps1 -BackupPath ./backups/flowpay-YYYYMMDD-HHMMSS.dump -TargetDatabase flowpay_restore_drill
+```
+
+The restore script accepts only new database names prefixed with `flowpay_restore_`, refuses an existing target, validates the archive, restores it in a separate database, and checks for successful Flyway migrations. It retains the restored database for inspection and never drops the source or target. Dumps contain the database's financial and personal data; protect and delete local copies deliberately. This procedure does not define production retention, encryption, RPO, or RTO, and does not back up object storage.
 
 ## Validation commands
 

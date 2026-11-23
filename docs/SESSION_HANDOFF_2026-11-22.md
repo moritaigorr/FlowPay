@@ -116,3 +116,11 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - O checkout local já corrige essa classe com `webEnvironment=MOCK` no commit `eb508aa`; `backend/target/surefire-reports` registra 12 testes PostgreSQL desse teste, 0 falhas/erros/skips. O SHA remoto do run não contém essa correção. A execução do GitHub nao valida o checkout atual.
 - A tentativa de `mvn verify` nesta retomada não foi iniciada: `mvn` não está no PATH, e este checkout não tem Maven Wrapper. O relatório local preexistente comprova somente aquela classe de integração, não um verify completo nesta sessão.
 - Próximo passo: observar um run da revisão atual quando os commits locais forem sincronizados com o remoto. Não foi feito push.
+
+## Retomada de 23/11/2026 - Backup e ensaio de restauracao local
+
+- Iniciado o Portao 11.4 com `scripts/backup-postgres.ps1` e `scripts/restore-postgres.ps1`, limitado ao servico Compose local `db` e banco `flowpay`.
+- Backup usa formato custom do PostgreSQL, valida o arquivo e grava em `backups/`, agora ignorado pelo Git. Restore exige alvo novo `flowpay_restore_*`, verifica que nao existe, valida o archive, restaura sem owner/ACL e confere o historico Flyway; nao sobrescreve nem remove banco algum.
+- README explica uso local e limita explicitamente o procedimento: sem politica de retencao, criptografia, RPO/RTO de producao ou backup de object storage.
+- Verificacoes: parser PowerShell aprovou ambos scripts; guards de nome e arquivo foram exercitados; mock de CLI validou sequencia backup/restore, contagem de migrations e recusa de alvo existente. Ainda falta ensaio real com Docker/PostgreSQL: CLI Docker nao esta no PATH nesta sessao.
+- Proximo passo: executar o ensaio com Docker Compose em banco local descartavel e comparar as migrations restauradas; manter politicas de backup de producao em aberto ate definir requisitos operacionais.
