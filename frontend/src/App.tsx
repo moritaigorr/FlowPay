@@ -575,6 +575,8 @@ function App() {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
   }
 
+  const isDemoEnvironment = companyName === 'FlowPay Demonstração'
+
   return (
     <main className={`page-shell${authenticatedEmail ? ' page-shell--workspace' : ''}`}>
       <header className="topbar">
@@ -582,7 +584,7 @@ function App() {
           <span className="brand-mark" aria-hidden="true">F</span><span>flowpay</span>
         </a>
         {authenticatedEmail
-          ? <div className="topbar-account"><span className="environment-label">{companyName}</span><button type="button" className="topbar-logout" onClick={logout} disabled={busy}>Sair</button></div>
+          ? <div className="topbar-account"><span className="environment-label">{isDemoEnvironment ? 'Ambiente de demonstração' : companyName}</span><button type="button" className="topbar-logout" onClick={logout} disabled={busy}>Sair</button></div>
           : <span className="environment-label">Ambiente local</span>}
       </header>
 
