@@ -39,37 +39,60 @@ public class StatementReconciliationSummaryService {
                        COALESCE(sum(sl.amount_minor) FILTER (WHERE sl.row_status='ACCEPTED' AND sl.direction='OUTFLOW'), 0)::text AS statement_outflows,
                        count(*) FILTER (WHERE sl.row_status='ACCEPTED' AND EXISTS (
                            SELECT 1 FROM reconciliation_match rm WHERE rm.tenant_id=sl.tenant_id
-                             AND rm.statement_line_id=sl.id AND rm.reversed_at IS NULL)) AS matched_count
+                             AND rm.statement_line_id=sl.id AND rm.reversed_at IS NULL)) AS matched_count,
+                       si.statement_opening_balance_minor::text AS opening_balance_minor,
+                       si.statement_opening_balance_date AS opening_balance_date,
+                       si.statement_closing_balance_minor::text AS closing_balance_minor,
+                       si.statement_closing_balance_date AS closing_balance_date
                 FROM statement_import si
                 LEFT JOIN statement_line sl ON sl.tenant_id=si.tenant_id AND sl.statement_import_id=si.id
                 WHERE si.tenant_id=? AND si.id=?
-                GROUP BY si.financial_account_id
+                GROUP BY si.financial_account_id, si.statement_opening_balance_minor, si.statement_opening_balance_date,
+                         si.statement_closing_balance_minor, si.statement_closing_balance_date
                 """, (rs, row) -> {
             var from = rs.getDate("period_from");
             var to = rs.getDate("period_to");
+            var openingDate = rs.getDate("opening_balance_date");
+            var closingDate = rs.getDate("closing_balance_date");
             return new ImportActivity(rs.getObject("financial_account_id", UUID.class),
                     from == null ? null : from.toLocalDate(), to == null ? null : to.toLocalDate(),
                     rs.getLong("accepted_count"), rs.getLong("rejected_count"), rs.getLong("duplicate_count"),
-                    rs.getString("statement_inflows"), rs.getString("statement_outflows"), rs.getLong("matched_count"));
+                    rs.getString("statement_inflows"), rs.getString("statement_outflows"), rs.getLong("matched_count"),
+                    rs.getString("opening_balance_minor"), openingDate == null ? null : openingDate.toLocalDate(),
+                    rs.getString("closing_balance_minor"), closingDate == null ? null : closingDate.toLocalDate());
         }, tenant.id(), importId).stream().findFirst().orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND, "Importação não encontrada."));
+                new ResponseStatusException(HttpStatus.NOT_FOUND, "Statement import was not found."));
 
-        if (source.periodFrom() == null || source.periodTo() == null) {
-            return new Summary(importId, source.accountId(), null, null, zone.getId(), null, 0, source.rejectedCount(),
-                    source.duplicateCount(), source.matchedCount(), source.statementInflows(), source.statementOutflows(),
-                    "0", "0", null, null, null, null, false);
+        boolean balanceAvailable = source.openingBalanceMinor() != null;
+        if ((source.periodFrom() == null || source.periodTo() == null) && !balanceAvailable) {
+            return new Summary(importId, source.accountId(), null, null, zone.getId(), null, 0,
+                    source.rejectedCount(), source.duplicateCount(), source.matchedCount(),
+                    source.statementInflows(), source.statementOutflows(), "0", "0", null,
+                    null, null, null, null, null, null, null, null, null, false);
         }
-        var cash = finance.accountCashSummary(tenant.id(), source.accountId(), source.periodFrom(), source.periodTo(), source.periodTo());
+
+        var movementFrom = balanceAvailable ? source.openingBalanceDate().plusDays(1) : source.periodFrom();
+        var movementTo = balanceAvailable ? source.closingBalanceDate() : source.periodTo();
+        var asOf = balanceAvailable ? source.closingBalanceDate() : source.periodTo();
+        var cash = finance.accountCashSummary(tenant.id(), source.accountId(), movementFrom, movementTo, asOf);
         var statementNet = new BigInteger(source.statementInflows()).subtract(new BigInteger(source.statementOutflows()));
         var controlledNet = new BigInteger(cash.inflowsMinor()).subtract(new BigInteger(cash.outflowsMinor()));
         var netActivityDifference = statementNet.subtract(controlledNet).toString();
-        return new Summary(importId, source.accountId(), source.periodFrom(), source.periodTo(), zone.getId(), source.periodTo(),
+        var inflowActivityDifference = new BigInteger(source.statementInflows()).subtract(new BigInteger(cash.inflowsMinor())).toString();
+        var outflowActivityDifference = new BigInteger(source.statementOutflows()).subtract(new BigInteger(cash.outflowsMinor())).toString();
+        var statementBalanceDifference = balanceAvailable
+                ? new BigInteger(source.closingBalanceMinor()).subtract(new BigInteger(cash.controlledBalanceMinor())).toString()
+                : null;
+        var statementBalanceRollForwardDifference = balanceAvailable
+                ? new BigInteger(source.closingBalanceMinor()).subtract(new BigInteger(source.openingBalanceMinor()).add(statementNet)).toString()
+                : null;
+        return new Summary(importId, source.accountId(), movementFrom, movementTo, zone.getId(), asOf,
                 source.acceptedCount(), source.rejectedCount(), source.duplicateCount(), source.matchedCount(),
                 source.statementInflows(), source.statementOutflows(), cash.inflowsMinor(), cash.outflowsMinor(),
-                cash.controlledBalanceMinor(),
-                new BigInteger(source.statementInflows()).subtract(new BigInteger(cash.inflowsMinor())).toString(),
-                new BigInteger(source.statementOutflows()).subtract(new BigInteger(cash.outflowsMinor())).toString(),
-                netActivityDifference, false);
+                cash.controlledBalanceMinor(), inflowActivityDifference, outflowActivityDifference, netActivityDifference,
+                source.openingBalanceDate(), source.openingBalanceMinor(), source.closingBalanceDate(),
+                source.closingBalanceMinor(), statementBalanceDifference, statementBalanceRollForwardDifference,
+                balanceAvailable);
     }
 
     private static ZoneId parseZone(String timezone) {
@@ -81,12 +104,17 @@ public class StatementReconciliationSummaryService {
 
     private record ImportActivity(UUID accountId, LocalDate periodFrom, LocalDate periodTo, long acceptedCount,
                                   long rejectedCount, long duplicateCount, String statementInflows,
-                                  String statementOutflows, long matchedCount) {}
+                                  String statementOutflows, long matchedCount, String openingBalanceMinor,
+                                  LocalDate openingBalanceDate, String closingBalanceMinor,
+                                  LocalDate closingBalanceDate) {}
     public record Summary(UUID importId, UUID financialAccountId, LocalDate periodFrom, LocalDate periodTo,
                           String timezone, LocalDate asOf, long acceptedCount, long rejectedCount,
                           long duplicateCount, long matchedCount, String statementInflowsMinor,
                           String statementOutflowsMinor, String controlledInflowsMinor,
                           String controlledOutflowsMinor, String controlledBalanceMinor,
                           String inflowActivityDifferenceMinor, String outflowActivityDifferenceMinor,
-                          String netActivityDifferenceMinor, boolean statementBalanceAvailable) {}
+                          String netActivityDifferenceMinor, LocalDate statementOpeningBalanceDate,
+                          String statementOpeningBalanceMinor, LocalDate statementClosingBalanceDate,
+                          String statementClosingBalanceMinor, String statementBalanceDifferenceMinor,
+                          String statementBalanceRollForwardDifferenceMinor, boolean statementBalanceAvailable) {}
 }

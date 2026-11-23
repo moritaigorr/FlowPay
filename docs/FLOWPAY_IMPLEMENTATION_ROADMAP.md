@@ -332,11 +332,11 @@ Regras de banco:
 
 ### 9.4 UI da conciliação
 
-- Implementado nesta etapa: resumo por importação com período observado, fuso e `asOf`, saldo controlado da conta específica, totais de entrada/saída do extrato e do caixa, diferença líquida de movimentação e quantidade de vínculos ativos.
-- A tela separa saldo controlado de atividade importada e registrada. Linhas inválidas e repetidas ficam fora dos totais; importar e vincular uma linha não altera o caixa.
-- Limite do contrato atual: o CSV contém movimentos, sem saldo de abertura/fechamento. A diferença apresentada compara atividades no período e não equivale à diferença entre saldos bancários.
-- Pendente para conciliação de saldos: definir e validar como receber saldo inicial/final do extrato, sem adivinhar valores pelo CSV atual.
-- Critério parcial: referências de período/data explícitas e comparações corretamente rotuladas; diferença entre saldos permanece pendente até estender o contrato.
+- Implementado parcialmente: resumo por importação separa totais de atividade, caixa controlado e vínculos ativos. O formulário de confirmação agora aceita saldo de abertura/fechamento com datas opcionais, e o schema tem migration para persistir esses metadados.
+- Decisão de implementação: os saldos representam o fechamento do dia indicado; a data de fechamento precisa ser posterior à de abertura; linhas válidas precisam estar após a data de abertura e até a data de fechamento. Valores negativos são permitidos para contas com saldo devedor. O checksum continua identificando o arquivo: uma repetição devolve a importação existente e preserva os metadados gravados originalmente.
+- A tela distingue diferença líquida de movimentação, diferença do saldo final do extrato contra o saldo controlado até a mesma data e diferença de roll-forward (saldo final menos saldo inicial e movimentos aceitos). Importar ou vincular não altera o caixa; somente a decisão explícita de criar movimento o faz.
+- Pendências: validar migration e fluxo contra PostgreSQL; verificar importação repetida com metadados; garantir cobertura para limites, datas e valores negativos; revisar a jornada no navegador. Enquanto a migration não for aplicada, esta fatia não pode ser considerada pronta.
+- Critério parcial: contrato e experiência de preenchimento implementados; comportamento persistido e cálculos dependem da validação de integração antes do aceite.
 ## Portão 10 — MVP demonstrável
 
 ### 10.1 Jornada completa

@@ -52,3 +52,11 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - [Roadmap](FLOWPAY_IMPLEMENTATION_ROADMAP.md)
 - [README e comandos locais](../README.md)
 - [Instrucoes de desenvolvimento](../AGENTS.md)
+
+## Retomada de 23/11/2026 — Portão 9.4
+
+- Implementei campos opcionais para saldo de abertura/fechamento do extrato e suas datas na confirmação da importação, persistência proposta na migration `V14__statement_balances.sql` e cálculo separado de atividade, diferença entre saldo final do extrato e caixa controlado, e diferença de roll-forward.
+- Contrato desta fatia: saldos representam fim do dia; fechamento posterior à abertura; linhas aceitas após a abertura e até o fechamento; saldo negativo permitido. Reenvio do mesmo checksum retorna a importação original, sem sobrescrever metadados.
+- Frontend passou em `npm.cmd run typecheck`, `npm.cmd run lint -- --deny-warnings` e `npm.cmd run build`.
+- Backend não compilado: Maven existe, mas o JDK indicado anteriormente não está no caminho; só foi localizado Java 8. Docker também segue indisponível, portanto migration e cálculo não foram verificados no PostgreSQL. Não considerar Portão 9.4 aceito até validar integração e replay.
+- Próximo passo: restaurar JDK compatível e Docker/PostgreSQL, compilar, validar a migration e exercitar saldos positivos/negativos, datas e reenvio do checksum; depois revisar a jornada no navegador.

@@ -4,6 +4,7 @@ import com.flowpay.statements.application.StatementPreviewService;
 import com.flowpay.statements.application.StatementReconciliationSummaryService;
 import com.flowpay.statements.domain.StatementCsvParser;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -39,8 +40,14 @@ public class StatementImportController {
     @PostMapping("/confirm")
     ResponseEntity<StatementPreviewService.ConfirmationResult> confirm(@AuthenticationPrincipal UserDetails user,
                                                                        @RequestParam UUID accountId,
-                                                                       @RequestParam MultipartFile file) {
-        var result = previews.confirm(user.getUsername(), accountId, readFile(file));
+                                                                       @RequestParam MultipartFile file,
+                                                                       @RequestParam(required = false) Long statementOpeningBalanceMinor,
+                                                                       @RequestParam(required = false) LocalDate statementOpeningBalanceDate,
+                                                                       @RequestParam(required = false) Long statementClosingBalanceMinor,
+                                                                       @RequestParam(required = false) LocalDate statementClosingBalanceDate) {
+        var balances = new StatementPreviewService.StatementBalances(statementOpeningBalanceMinor,
+                statementOpeningBalanceDate, statementClosingBalanceMinor, statementClosingBalanceDate);
+        var result = previews.confirm(user.getUsername(), accountId, readFile(file), balances);
         return ResponseEntity.status(result.replay() ? HttpStatus.OK : HttpStatus.CREATED).body(result);
     }
 

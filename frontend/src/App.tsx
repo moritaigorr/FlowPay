@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { FormEvent } from 'react'
 import './App.css'
-import { formatMinor } from './finance/format'
+import { formatMinor, parseBrlToMinor } from './finance/format'
 import { Dashboard } from './reporting/Dashboard'
 import { MonthlyReport } from './reporting/MonthlyReport'
 import { StatementImportPreview } from './statements/StatementImportPreview'
@@ -43,16 +43,6 @@ type Settlement = { id: string; amountMinor: string; reversedAmountMinor: string
 type CashTransaction = { id: string; direction: 'INFLOW' | 'OUTFLOW'; amountMinor: string; effectiveDate: string; origin: string; description: string; categoryId: string | null; categoryName: string | null; accountId: string; accountName: string }
 type CashTransactionPage = { items: CashTransaction[]; total: number; page: number; size: number }
 type CashTransactionOptions = { categories: FinancialCategory[]; accounts: FinancialAccount[] }
-
-function parseBrlToMinor(value: string) {
-  const input = value.trim()
-  const match = input.match(/^(-?)(?:(\d+|\d{1,3}(?:\.\d{3})+))(?:,(\d{1,2}))?$/)
-  if (!match) throw new Error('Informe um saldo válido, como 1.234,56.')
-  const whole = BigInt(match[2].replaceAll('.', ''))
-  const cents = BigInt((match[3] ?? '').padEnd(2, '0'))
-  const amount = whole * 100n + cents
-  return (match[1] ? -amount : amount).toString()
-}
 
 function accountTypeLabel(type: AccountType) {
   return { BANK: 'Conta bancária', CASH: 'Caixa', OTHER: 'Outra conta' }[type]

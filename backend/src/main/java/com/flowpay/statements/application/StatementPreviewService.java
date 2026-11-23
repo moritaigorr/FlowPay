@@ -3,6 +3,7 @@ package com.flowpay.statements.application;
 import com.flowpay.finance.api.FinanceAccountReader;
 import com.flowpay.identity.api.TenantAccess;
 import com.flowpay.statements.domain.StatementCsvParser;
+import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
@@ -39,20 +40,33 @@ public class StatementPreviewService {
 
     @Transactional
     public ConfirmationResult confirm(String email, UUID accountId, byte[] file) {
+        return confirm(email, accountId, file, new StatementBalances(null, null, null, null));
+    }
+
+    @Transactional
+    public ConfirmationResult confirm(String email, UUID accountId, byte[] file, StatementBalances statementBalances) {
         var tenant = tenantAccess.requireSingleTenant(email);
         requireImporter(tenant.role());
         requireActiveAccount(tenant.id(), accountId);
         var preview = parse(file);
+        var balances = validateStatementBalances(statementBalances);
+        validateRowsInBalancePeriod(preview, balances);
         String checksum = checksum(file);
         var importId = UUID.randomUUID();
         var inserted = jdbc.query("""
                 INSERT INTO statement_import
-                  (id, tenant_id, financial_account_id, file_checksum, file_content, total_rows, accepted_rows, rejected_rows, duplicate_rows)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  (id, tenant_id, financial_account_id, file_checksum, file_content, total_rows, accepted_rows,
+                   rejected_rows, duplicate_rows, statement_opening_balance_minor, statement_opening_balance_date,
+                   statement_closing_balance_minor, statement_closing_balance_date)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT (tenant_id, financial_account_id, file_checksum) DO NOTHING
                 RETURNING id
                 """, (rs, row) -> rs.getObject(1, UUID.class), importId, tenant.id(), accountId, checksum, file,
-                preview.rows().size(), preview.acceptedCount(), preview.rejectedCount(), preview.duplicateCount());
+                preview.rows().size(), preview.acceptedCount(), preview.rejectedCount(), preview.duplicateCount(),
+                balances == null ? null : balances.openingBalanceMinor(),
+                balances == null ? null : balances.openingBalanceDate(),
+                balances == null ? null : balances.closingBalanceMinor(),
+                balances == null ? null : balances.closingBalanceDate());
         if (inserted.isEmpty()) {
             return jdbc.queryForObject("""
                     SELECT id, total_rows, accepted_rows, rejected_rows, duplicate_rows
@@ -132,6 +146,41 @@ public class StatementPreviewService {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Conta financeira não encontrada.");
     }
 
+    private static StatementBalances validateStatementBalances(StatementBalances balances) {
+        if (balances == null) return null;
+        var values = List.of(balances.openingBalanceMinor() == null ? "" : "value",
+                balances.openingBalanceDate() == null ? "" : "date",
+                balances.closingBalanceMinor() == null ? "" : "value",
+                balances.closingBalanceDate() == null ? "" : "date");
+        if (values.stream().allMatch(String::isEmpty)) return null;
+        if (values.stream().anyMatch(String::isEmpty)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Informe os dois saldos e as duas datas, ou deixe todos os campos de saldo vazios.");
+        }
+        var maximum = BigInteger.valueOf(9_000_000_000_000_000L);
+        if (BigInteger.valueOf(balances.openingBalanceMinor()).abs().compareTo(maximum) > 0
+                || BigInteger.valueOf(balances.closingBalanceMinor()).abs().compareTo(maximum) > 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Saldo do extrato fora do limite permitido.");
+        }
+        if (!balances.closingBalanceDate().isAfter(balances.openingBalanceDate())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "A data do saldo de fechamento deve ser posterior à data do saldo de abertura.");
+        }
+        return balances;
+    }
+
+    private static void validateRowsInBalancePeriod(StatementCsvParser.Preview preview, StatementBalances balances) {
+        if (balances == null) return;
+        boolean outsidePeriod = preview.rows().stream()
+                .filter(row -> row.errors().isEmpty() && !row.duplicateInFile())
+                .anyMatch(row -> !row.date().isAfter(balances.openingBalanceDate())
+                        || row.date().isAfter(balances.closingBalanceDate()));
+        if (outsidePeriod) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "As linhas válidas do CSV precisam ser posteriores à data de abertura e até a data de fechamento do saldo.");
+        }
+    }
+
     private static void requireImporter(String role) {
         if (!"OWNER".equals(role) && !"MANAGER".equals(role))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite importar extratos.");
@@ -156,6 +205,8 @@ public class StatementPreviewService {
 
     public record ConfirmationResult(UUID importId, boolean replay, int totalRows, int acceptedCount,
                                      int rejectedCount, int duplicateCount) {}
+    public record StatementBalances(Long openingBalanceMinor, LocalDate openingBalanceDate,
+                                    Long closingBalanceMinor, LocalDate closingBalanceDate) {}
     public record ImportSummary(UUID id, UUID accountId, Instant createdAt, int totalRows,
                                 int acceptedCount, int rejectedCount, int duplicateCount) {}
     public record ImportPage(List<ImportSummary> items, long total, int page, int size) {}
