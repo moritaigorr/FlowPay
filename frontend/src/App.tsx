@@ -77,6 +77,8 @@ function App() {
   const [page, setPage] = useState(0)
   const [showContactForm, setShowContactForm] = useState(false)
   const [editing, setEditing] = useState<Contact | null>(null)
+  const contactsHeadingRef = useRef<HTMLHeadingElement>(null)
+  const restoreContactsHeadingFocus = useRef(false)
   const [activeSection, setActiveSection] = useState<'dashboard' | 'reports' | 'contacts' | 'accounts' | 'categories' | 'receivables' | 'payables' | 'transactions' | 'statements'>('dashboard')
   const [accounts, setAccounts] = useState<AccountPage>({ items: [], total: 0, page: 0, size: 20 })
   const [accountsPage, setAccountsPage] = useState(0)
@@ -139,6 +141,12 @@ function App() {
     })()
     return () => { active = false }
   }, [])
+
+  useEffect(() => {
+    if (showContactForm || !restoreContactsHeadingFocus.current) return
+    restoreContactsHeadingFocus.current = false
+    contactsHeadingRef.current?.focus()
+  }, [showContactForm])
 
   useEffect(() => {
     if (!authenticatedEmail || activeSection !== 'contacts') return
@@ -315,6 +323,7 @@ function App() {
         body: JSON.stringify(payload),
       })
       if (!response.ok) throw new Error('Não foi possível salvar. Confira o nome e selecione cliente, fornecedor ou ambos.')
+      restoreContactsHeadingFocus.current = true
       setShowContactForm(false)
       setEditing(null)
       setTitleOptions(null)
@@ -604,7 +613,7 @@ function App() {
           </aside>
           {activeSection === 'dashboard' ? <Dashboard companyName={companyName} onNewMovement={() => { setActiveSection('transactions'); setShowCashTransactionForm(true) }} /> : activeSection === 'reports' ? <MonthlyReport companyName={companyName} /> : activeSection === 'statements' ? <StatementImportPreview companyName={companyName} /> : activeSection === 'contacts' ? <section className="workspace-content" id="contacts" aria-labelledby="contacts-title">
             <div className="workspace-heading">
-              <div><p className="eyebrow">{companyName}</p><h1 id="contacts-title">Clientes e fornecedores</h1><p className="welcome-copy">Mantenha os dados de quem faz parte da rotina da sua empresa.</p></div>
+              <div><p className="eyebrow">{companyName}</p><h1 id="contacts-title" ref={contactsHeadingRef} tabIndex={-1}>Clientes e fornecedores</h1><p className="welcome-copy">Mantenha os dados de quem faz parte da rotina da sua empresa.</p></div>
               <button className="submit-button new-contact-button" type="button" onClick={() => { setEditing(null); setShowContactForm((value) => !value); setMessage('') }}>{showContactForm ? 'Fechar formulário' : 'Novo contato'}</button>
             </div>
 
@@ -619,7 +628,7 @@ function App() {
                 <label>E-mail<input name="email" type="email" maxLength={254} defaultValue={editing?.email ?? ''} /></label>
                 <label>Telefone<input name="phone" type="tel" maxLength={32} defaultValue={editing?.phone ?? ''} /></label>
                 <label className="field--wide">Observação<textarea name="notes" rows={3} maxLength={1000} defaultValue={editing?.notes ?? ''} /></label>
-                <div className="contact-form-actions field--wide"><button className="submit-button" type="submit" disabled={busy}>{busy ? 'Salvando…' : editing ? 'Salvar alterações' : 'Cadastrar contato'}</button><button className="refresh-button" type="button" onClick={() => { setShowContactForm(false); setEditing(null) }}>Cancelar</button></div>
+                <div className="contact-form-actions field--wide"><button className="submit-button" type="submit" disabled={busy}>{busy ? 'Salvando…' : editing ? 'Salvar alterações' : 'Cadastrar contato'}</button><button className="refresh-button" type="button" onClick={() => { restoreContactsHeadingFocus.current = true; setShowContactForm(false); setEditing(null) }}>Cancelar</button></div>
               </form>
             </section>}
 
