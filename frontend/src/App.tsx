@@ -597,7 +597,7 @@ function App() {
   return (
     <main className={`page-shell${authenticatedEmail ? ' page-shell--workspace' : ''}`}>
       <header className="topbar">
-        <a className="brand" href="/" aria-label="FlowPay, início">
+        <a className="brand" href="/">
           <span className="brand-mark" aria-hidden="true">F</span><span>flowpay</span>
         </a>
         {authenticatedEmail
