@@ -24,6 +24,8 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 ## Commits recentes
 
+- `1ea50d6` Document automated accessibility coverage
+- `1eedaa5` Add automated demo accessibility scans
 - `839ec25` Document verified demo browser journey
 - `5f895e9` Add FlowPay demo browser smoke journey
 - `0febdb0` Record demo tenant isolation verification
