@@ -123,8 +123,13 @@ public class StatementPreviewService {
     public LinePage listLines(String email, UUID importId, int page, int size) {
         validatePage(page, size);
         var tenant = tenantAccess.requireSingleTenant(email);
+        boolean importExists = !jdbc.query("SELECT 1 FROM statement_import WHERE tenant_id = ? AND id = ?",
+                (rs, row) -> true, tenant.id(), importId).isEmpty();
+        if (!importExists) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Statement import was not found.");
+        }
         Long total = jdbc.query("""
-                SELECT count(*) FROM statement_import WHERE tenant_id = ? AND id = ?
+                SELECT count(*) FROM statement_line WHERE tenant_id = ? AND statement_import_id = ?
                 """, (rs, row) -> rs.getLong(1), tenant.id(), importId).stream().findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Importação não encontrada."));
         var items = jdbc.query("""

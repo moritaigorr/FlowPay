@@ -32,7 +32,7 @@ import com.flowpay.reconciliation.application.ReconciliationCandidateIgnoreServi
 import com.flowpay.statements.application.StatementLineReviewService;
 import com.flowpay.statements.application.StatementReconciliationSummaryService;
 
-@SpringBootTest(classes = FlowPayApplication.class, webEnvironment = SpringBootTest.WebEnvironment.NONE)
+@SpringBootTest(classes = FlowPayApplication.class, webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @Testcontainers(disabledWithoutDocker = true)
 class FinancialTitlePostgresIntegrationTest {
     @Container
@@ -136,7 +136,9 @@ class FinancialTitlePostgresIntegrationTest {
                 + "01/03/2026;Pagamento recebido;125,00;ENTRADA\n"
                 + "01/03/2026;Pagamento recebido;125,00;ENTRADA\n"
                 + "31/02/2026;Linha inválida;10,00;SAIDA\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        var result = statementImports.confirm(email, accountId, csv);
+        var balances = new StatementPreviewService.StatementBalances(40_000L,
+                LocalDate.of(2026, 2, 28), 42_500L, LocalDate.of(2026, 3, 2));
+        var result = statementImports.confirm(email, accountId, csv, balances);
 
         assertThat(result.replay()).isFalse();
         assertThat(result.totalRows()).isEqualTo(3);
@@ -148,12 +150,24 @@ class FinancialTitlePostgresIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT count(*) FROM statement_line WHERE tenant_id = ? AND statement_import_id = ?", Integer.class, tenantId, result.importId()))
                 .isEqualTo(3);
         assertThat(statementImports.listImports(email, accountId, 0, 20).total()).isEqualTo(1);
-        assertThat(statementImports.listLines(email, result.importId(), 0, 50).items()).hasSize(3);
+        var savedLines = statementImports.listLines(email, result.importId(), 0, 50);
+        assertThat(savedLines.items()).hasSize(3);
+        assertThat(savedLines.total()).isEqualTo(3);
         assertThat(count("SELECT count(*) FROM cash_transaction WHERE tenant_id = ?", tenantId)).isZero();
 
-        var replay = statementImports.confirm(email, accountId, csv);
+        var replayBalances = new StatementPreviewService.StatementBalances(39_000L,
+                LocalDate.of(2026, 2, 27), 45_000L, LocalDate.of(2026, 3, 3));
+        var replay = statementImports.confirm(email, accountId, csv, replayBalances);
         assertThat(replay.replay()).isTrue();
         assertThat(replay.importId()).isEqualTo(result.importId());
+        assertThat(jdbc.queryForObject("SELECT statement_opening_balance_minor FROM statement_import WHERE tenant_id=? AND id=?",
+                Long.class, tenantId, result.importId())).isEqualTo(40_000L);
+        assertThat(jdbc.queryForObject("SELECT statement_opening_balance_date FROM statement_import WHERE tenant_id=? AND id=?",
+                LocalDate.class, tenantId, result.importId())).isEqualTo(LocalDate.of(2026, 2, 28));
+        assertThat(jdbc.queryForObject("SELECT statement_closing_balance_minor FROM statement_import WHERE tenant_id=? AND id=?",
+                Long.class, tenantId, result.importId())).isEqualTo(42_500L);
+        assertThat(jdbc.queryForObject("SELECT statement_closing_balance_date FROM statement_import WHERE tenant_id=? AND id=?",
+                LocalDate.class, tenantId, result.importId())).isEqualTo(LocalDate.of(2026, 3, 2));
         assertThat(count("SELECT count(*) FROM statement_import WHERE tenant_id = ?", tenantId)).isEqualTo(1);
         assertThat(count("SELECT count(*) FROM cash_transaction WHERE tenant_id = ?", tenantId)).isZero();
 
@@ -167,6 +181,8 @@ class FinancialTitlePostgresIntegrationTest {
             assertThatThrownBy(() -> statementImports.listLines(otherEmail, result.importId(), 0, 50))
                     .isInstanceOf(ResponseStatusException.class).hasMessageContaining("404 NOT_FOUND");
         } finally {
+            jdbc.update("DELETE FROM membership WHERE tenant_id = ? AND user_id = ?", otherTenantId, otherUserId);
+            jdbc.update("DELETE FROM app_user WHERE id = ?", otherUserId);
             jdbc.update("DELETE FROM tenant WHERE id = ?", otherTenantId);
         }
     }
@@ -389,7 +405,9 @@ class FinancialTitlePostgresIntegrationTest {
 
         byte[] csv = ("data;descricao;valor;direcao\n01/03/2026;Entrada registrada;125,00;ENTRADA\n"
                 + "01/03/2026;Saída no extrato;20,00;SAIDA\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
-        var imported = statementImports.confirm(email, accountId, csv);
+        var balances = new StatementPreviewService.StatementBalances(50_000L,
+                LocalDate.of(2026, 2, 28), 60_500L, today);
+        var imported = statementImports.confirm(email, accountId, csv, balances);
         var lines = jdbc.query("SELECT id FROM statement_line WHERE tenant_id=? AND statement_import_id=? ORDER BY row_number",
                 (rs, row) -> rs.getObject(1, UUID.class), tenantId, imported.importId());
         reconciliationMatches.match(email, lines.get(0), UUID.randomUUID(),
@@ -409,7 +427,36 @@ class FinancialTitlePostgresIntegrationTest {
         assertThat(summary.outflowActivityDifferenceMinor()).isEqualTo("-1000");
         assertThat(summary.netActivityDifferenceMinor()).isEqualTo("1000");
         assertThat(summary.controlledBalanceMinor()).isEqualTo("59500");
-        assertThat(summary.statementBalanceAvailable()).isFalse();
+        assertThat(summary.statementOpeningBalanceDate()).isEqualTo(LocalDate.of(2026, 2, 28));
+        assertThat(summary.statementOpeningBalanceMinor()).isEqualTo("50000");
+        assertThat(summary.statementClosingBalanceDate()).isEqualTo(today);
+        assertThat(summary.statementClosingBalanceMinor()).isEqualTo("60500");
+        assertThat(summary.statementBalanceDifferenceMinor()).isEqualTo("1000");
+        assertThat(summary.statementBalanceRollForwardDifferenceMinor()).isEqualTo("0");
+        assertThat(summary.statementBalanceAvailable()).isTrue();
+    }
+
+    @Test
+    void statementSummarySupportsNegativeOpeningAndClosingBalances() {
+        var openingDate = LocalDate.of(2026, 2, 28);
+        var closingDate = LocalDate.of(2026, 3, 1);
+        jdbc.update("""
+                INSERT INTO cash_transaction (id, tenant_id, financial_account_id, direction, amount_minor, effective_date, origin, description)
+                VALUES (?, ?, ?, 'OUTFLOW', 50000, ?, 'OPENING_BALANCE', 'Saldo inicial devedor')
+                """, UUID.randomUUID(), tenantId, accountId, LocalDate.of(2026, 2, 1));
+        byte[] csv = ("data;descricao;valor;direcao\n"
+                + "01/03/2026;Saída;100,00;SAIDA\n"
+                + "01/03/2026;Entrada;95,00;ENTRADA\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var balances = new StatementPreviewService.StatementBalances(-50_000L, openingDate, -50_500L, closingDate);
+        var imported = statementImports.confirm(email, accountId, csv, balances);
+
+        var summary = statementSummaries.get(email, imported.importId(), "America/Sao_Paulo");
+
+        assertThat(summary.statementOpeningBalanceMinor()).isEqualTo("-50000");
+        assertThat(summary.statementClosingBalanceMinor()).isEqualTo("-50500");
+        assertThat(summary.controlledBalanceMinor()).isEqualTo("-50000");
+        assertThat(summary.statementBalanceDifferenceMinor()).isEqualTo("-500");
+        assertThat(summary.statementBalanceRollForwardDifferenceMinor()).isEqualTo("0");
     }
 
     @Test
