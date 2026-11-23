@@ -102,7 +102,7 @@ export function MonthlyReport({ companyName }: { companyName: string }) {
 
       <section className="report-panel" aria-labelledby="report-categories-title">
         <div className="dashboard-list-heading"><h2 id="report-categories-title">Realizado por categoria</h2><span>Saldo inicial não compõe os totais</span></div>
-        {data.categories.length === 0 ? <p className="dashboard-empty">Não há entradas ou saídas realizadas neste mês.</p> : <div className="report-table-wrap"><table className="report-table">
+        {data.categories.length === 0 ? <p className="dashboard-empty">Não há entradas ou saídas realizadas neste mês.</p> : <div className="report-table-wrap" role="region" aria-label="Tabela rolável: Totais por categoria" tabIndex={0}><table className="report-table">
           <caption className="visually-hidden">Totais de movimentos realizados, separados por tipo e categoria</caption>
           <thead><tr><th scope="col">Categoria</th><th scope="col">Tipo</th><th scope="col">Movimentos</th><th scope="col">Total</th></tr></thead>
           <tbody>{data.categories.map((category) => <tr key={`${category.direction}:${category.categoryId ?? 'none'}`}>

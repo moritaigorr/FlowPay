@@ -332,13 +332,13 @@ Regras de banco:
 
 ### 9.4 UI da conciliação
 
-- Implementado parcialmente: resumo por importação separa totais de atividade, caixa controlado e vínculos ativos. O E2E financeiro agora verifica saldo controlado, entradas, diferença líquida e contagem de vínculos antes e depois da conciliação. Essa jornada ainda depende de execução observada no CI para contar como verificada.
-- Verificação de interface (23/11/2026): em Chrome, a primeira tela de importação foi revisada em 1440×1000 e 390×844; o smoke autenticado verifica labels, mensagem de prévia sem efeito no caixa, axe WCAG 2.1 A/AA e ausência de overflow horizontal no viewport móvel. Os estados de resumo, linhas salvas e conciliação ainda não receberam revisão visual completa.
+- Implementado parcialmente: resumo por importação separa totais de atividade, caixa controlado e vínculos ativos. O fluxo Playwright financeiro passou localmente em Chrome com PostgreSQL descartável; valida saldo controlado, entradas/saídas, diferenças e vínculos antes/depois, CSV replay e relatório. O workflow GitHub Actions ainda precisa de execução observada.
+- Verificação visual (23/11/2026): resumo, linhas salvas e prévia foram conferidos em Chrome a 1440×1000 e 390×844. Ajustados espaçamento das notas, pluralização, foco visível e regiões roláveis focáveis por teclado. A jornada executa axe WCAG 2.1 A/AA no estado conciliado em mobile e desktop; não há overflow do documento a 390 px. As tabelas mantêm rolagem horizontal em telas estreitas.
 - Decisão de implementação: os saldos representam o fechamento do dia indicado; a data de fechamento precisa ser posterior à de abertura; linhas válidas precisam estar após a data de abertura e até a data de fechamento. Valores negativos são permitidos para contas com saldo devedor. O checksum continua identificando o arquivo: uma repetição devolve a importação existente e preserva os metadados gravados originalmente.
 - A tela distingue diferença líquida de movimentação, diferença do saldo final do extrato contra o saldo controlado até a mesma data e diferença de roll-forward (saldo final menos saldo inicial e movimentos aceitos). Importar ou vincular não altera o caixa; somente a decisão explícita de criar movimento o faz.
 - Verificação local: backend compilado e empacotado pelo `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` com JDK 25/Maven 3.9.16. A suíte executou 39 testes sem falhas nem skips, incluindo 12 integrações em PostgreSQL 16.16 descartável. A migration V14 foi aplicada desde schema vazio; testes conferem cálculo para saldos positivo e negativo, replay preservando metadados, import sem efeito no caixa e isolamento de linhas por tenant.
 - Testes unitários rejeitam conjunto de campos incompleto, data de fechamento não posterior e linha aceita fora do período. O teste de integração precisou passar a usar contexto web simulado e agora remove membership/usuário antes do tenant; com o teste ativo também foi corrigido o acesso a linhas de importação alheia (404 tenant-scoped) e o total paginado de linhas.
-- Pendências: revisar a jornada no navegador e fechar os critérios de UX/E2E compartilhados com os Portões 10 e 11. O aceite global da conciliação ainda depende dessa revisão.
+- Pendências: observar a jornada no CI e validar casos de linhas rejeitadas/repetidas e saldos opcionais no browser; o aceite global também depende dos portões 10 e 11.
 - Critério parcial: contrato e experiência de preenchimento implementados; comportamento persistido e cálculos dependem da validação de integração antes do aceite.
 ## Portão 10 — MVP demonstrável
 
@@ -371,7 +371,7 @@ Regras de banco:
 ### 10.3 Usabilidade e acessibilidade
 
 - Parcial: a jornada seed foi exercitada em Chrome desktop e mobile; no viewport de 390 px não há rolagem horizontal no dashboard e na entrada de extratos. Isso não substitui auditoria de teclado, contraste, zoom ou leitor de tela.
-- Parcial: scans automatizados do axe-core com tags WCAG 2.1 A/AA passaram nas telas de login, dashboard, contatos, entrada de extratos, pagamento, linhas/resumo de conciliação e relatório mensal. O teste confirma o alternador e o envio do login via Tab/Enter. O scan anterior encontrou divergência entre nome ARIA e texto visível da marca; o rótulo redundante foi removido. Isto não comprova conformidade WCAG.
+- Parcial: scans automatizados do axe-core com tags WCAG 2.1 A/AA passaram em login, dashboard, contatos, entrada de extratos, pagamento, linhas/resumo de conciliação e relatório mensal. O fluxo conciliado foi também escaneado a 390 px. O teste confirma alternador e envio do login via Tab/Enter. Não comprova conformidade WCAG.
 
 - Parcial: ao salvar ou cancelar os formulários de contatos, contas, categorias, títulos, movimentos avulsos, baixas/reversões e confirmação de conciliação, o foco retorna a um título da seção; campos de valor recebem foco ao abrir baixa/reversão.
 - Pendente: auditar manualmente teclado, zoom, contraste, leitor de tela e fluxos além do demo em toda a jornada.
