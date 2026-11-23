@@ -81,6 +81,8 @@ npm.cmd run test:e2e
 
 Google Chrome must be installed. The test signs in with keyboard activation and reads the dashboard, contacts, account, and open titles; it does not mutate financial data. Axe scans login, dashboard, and contacts against WCAG 2.1 A/AA rules, but automated scans do not establish WCAG conformance. Failure screenshots and traces are written under the ignored `frontend/test-results/` directory. `FLOWPAY_E2E_BASE_URL` can override the default Vite URL.
 
+The GitHub Actions frontend job provisions its own PostgreSQL 18.7 service, starts the demo API with an ephemeral password, installs Playwright Chromium, and runs this journey. The workflow must complete on GitHub before its CI integration is considered verified.
+
 ## Validation commands
 
 From the repository root:

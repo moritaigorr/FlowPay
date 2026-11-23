@@ -388,6 +388,7 @@ Regras de banco:
 - Concorrência: dupla baixa, chave repetida, checksum repetido e match disputado; sincronização determinística e consulta dos efeitos finais.
 - UI: formulários, cache separado por empresa, erro/retry, tabelas e estados acessíveis.
 - E2E: jornada MVP e isolamento de tenant.
+- Parcial: CI agora configura PostgreSQL descartável, inicializa API no perfil `local,demo`, instala Chromium e executa a jornada Playwright com senha efêmera. A execução real no GitHub Actions ainda precisa ser observada.
 - **Aceite:** CI executa a suíte necessária; resultados e limitações são reportados.
 
 ### 11.2 Modelagem de segurança e privacidade
