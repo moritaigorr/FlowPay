@@ -53,8 +53,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
   const [importsRefresh, setImportsRefresh] = useState(0)
   const [selectedImportId, setSelectedImportId] = useState('')
   const [savedLines, setSavedLines] = useState<LinePage | null>(null)
-  const [reconciliationSummary, setReconciliationSummary] = useState<ReconciliationSummary | null>(null)
-  const [summaryError, setSummaryError] = useState('')
+  const [summaryResult, setSummaryResult] = useState<{ key: string; data: ReconciliationSummary | null; error: string }>({ key: '', data: null, error: '' })
   const [savedLinesPage, setSavedLinesPage] = useState(0)
   const [suggestionLineId, setSuggestionLineId] = useState('')
   const [suggestions, setSuggestions] = useState<SuggestionList | null>(null)
@@ -71,6 +70,9 @@ export function StatementImportPreview({ companyName }: { companyName: string })
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Sao_Paulo'
+  const summaryKey = selectedImportId ? `${selectedImportId}|${timezone}|${linesRefresh}` : ''
+  const reconciliationSummary = summaryResult.key === summaryKey ? summaryResult.data : null
+  const summaryError = summaryResult.key === summaryKey ? summaryResult.error : ''
 
   useEffect(() => {
     let active = true
@@ -133,16 +135,15 @@ export function StatementImportPreview({ companyName }: { companyName: string })
   useEffect(() => {
     if (!selectedImportId) return
     let active = true
-    setReconciliationSummary(null)
-    setSummaryError('')
+    const key = `${selectedImportId}|${timezone}|${linesRefresh}`
     fetch(`/api/statement-imports/${selectedImportId}/reconciliation-summary?timezone=${encodeURIComponent(timezone)}`, { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => {
         const body = await response.json() as ReconciliationSummary | { detail?: string; message?: string }
         if (!response.ok) throw new Error(('detail' in body && body.detail) || ('message' in body && body.message) || 'Não foi possível calcular o resumo da conciliação.')
         return body as ReconciliationSummary
       })
-      .then((body) => { if (active) setReconciliationSummary(body) })
-      .catch((error: unknown) => { if (active) setSummaryError(error instanceof Error ? error.message : 'Falha ao calcular o resumo da conciliação.') })
+      .then((body) => { if (active) setSummaryResult({ key, data: body, error: '' }) })
+      .catch((error: unknown) => { if (active) setSummaryResult({ key, data: null, error: error instanceof Error ? error.message : 'Falha ao calcular o resumo da conciliação.' }) })
     return () => { active = false }
   }, [selectedImportId, linesRefresh, timezone])
 
