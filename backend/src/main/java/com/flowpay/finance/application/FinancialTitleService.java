@@ -9,6 +9,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HexFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpStatus;
@@ -30,23 +31,55 @@ public class FinancialTitleService {
 
     @Transactional(readOnly = true)
     public TitlePage list(String email, TitleKind kind, String query, int page, int size) {
+        return list(email, kind, query, null, null, null, null, page, size);
+    }
+
+    @Transactional(readOnly = true)
+    public TitlePage list(String email, TitleKind kind, String query, TitleStatus status,
+                          UUID contactId, LocalDate dueFrom, LocalDate dueTo, int page, int size) {
         validatePage(page, size);
+        if (dueFrom != null && dueTo != null && dueFrom.isAfter(dueTo)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O início do período deve ser anterior ao fim.");
+        }
         var tenant = tenantAccess.requireSingleTenant(email);
         var normalizedQuery = normalize(query);
-        var filter = normalizedQuery == null ? "" : " AND (t.description ILIKE ? OR c.name ILIKE ?)";
         var today = LocalDate.now(BUSINESS_ZONE);
-        var total = normalizedQuery == null
-                ? jdbc.queryForObject("SELECT count(*) FROM financial_title WHERE tenant_id = ? AND kind = ?", Long.class, tenant.id(), kind.name())
-                : jdbc.queryForObject("""
-                        SELECT count(*) FROM financial_title t JOIN contact c ON c.tenant_id = t.tenant_id AND c.id = t.contact_id
-                        WHERE t.tenant_id = ? AND t.kind = ?
-                        """ + filter, Long.class, tenant.id(), kind.name(), "%" + normalizedQuery + "%", "%" + normalizedQuery + "%");
-        var sql = titleSelect() + " WHERE t.tenant_id = ? AND t.kind = ?" + filter
-                + " ORDER BY t.due_date, lower(t.description), t.id LIMIT ? OFFSET ?";
-        var items = normalizedQuery == null
-                ? jdbc.query(sql, (rs, row) -> mapTitle(rs, today), tenant.id(), kind.name(), size, page * size)
-                : jdbc.query(sql, (rs, row) -> mapTitle(rs, today), tenant.id(), kind.name(),
-                        "%" + normalizedQuery + "%", "%" + normalizedQuery + "%", size, page * size);
+        var where = new StringBuilder(" WHERE t.tenant_id = ? AND t.kind = ?");
+        var filterArgs = new ArrayList<Object>(List.of(tenant.id(), kind.name()));
+        if (normalizedQuery != null) {
+            where.append(" AND (t.description ILIKE ? OR c.name ILIKE ?)");
+            filterArgs.add("%" + normalizedQuery + "%");
+            filterArgs.add("%" + normalizedQuery + "%");
+        }
+        if (contactId != null) {
+            where.append(" AND t.contact_id = ?");
+            filterArgs.add(contactId);
+        }
+        if (dueFrom != null) {
+            where.append(" AND t.due_date >= ?");
+            filterArgs.add(dueFrom);
+        }
+        if (dueTo != null) {
+            where.append(" AND t.due_date <= ?");
+            filterArgs.add(dueTo);
+        }
+        if (status != null) {
+            where.append(switch (status) {
+                case OPEN -> " AND t.status = 'OPEN' AND COALESCE(s.settled_minor, 0) = 0 AND t.due_date >= ?";
+                case OVERDUE -> " AND t.status = 'OPEN' AND COALESCE(s.settled_minor, 0) = 0 AND t.due_date < ?";
+                case PARTIALLY_SETTLED -> " AND t.status = 'OPEN' AND COALESCE(s.settled_minor, 0) > 0 AND t.original_amount_minor > COALESCE(s.settled_minor, 0)";
+                case SETTLED -> " AND t.status = 'OPEN' AND t.original_amount_minor = COALESCE(s.settled_minor, 0)";
+                case CANCELLED -> " AND t.status = 'CANCELLED'";
+            });
+            if (status == TitleStatus.OPEN || status == TitleStatus.OVERDUE) filterArgs.add(today);
+        }
+        var select = titleSelect() + where;
+        var total = jdbc.queryForObject("SELECT count(*) FROM (" + select + ") filtered_titles", Long.class, filterArgs.toArray());
+        var pageArgs = new ArrayList<>(filterArgs);
+        pageArgs.add(size);
+        pageArgs.add(page * size);
+        var items = jdbc.query(select + " ORDER BY t.due_date, lower(t.description), t.id LIMIT ? OFFSET ?",
+                (rs, row) -> mapTitle(rs, today), pageArgs.toArray());
         return new TitlePage(items, total, page, size, today);
     }
 

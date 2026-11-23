@@ -32,7 +32,11 @@
 .contact-form-card h2, .empty-state h2 { margin-bottom: 18px; font-size: 18px; }
 .contact-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
 .contact-form label, .contact-toolbar label { display: grid; gap: 7px; color: var(--foreground); font-size: 13px; font-weight: 650; }
-.contact-form input:not([type=checkbox]), .contact-form textarea, .contact-toolbar input { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px; color: var(--foreground); background: var(--surface); font: inherit; font-weight: 400; }
+.contact-form input:not([type=checkbox]), .contact-form textarea, .contact-toolbar input, .title-filters input, .title-filters select { width: 100%; min-height: 42px; padding: 9px 11px; border: 1px solid var(--border); border-radius: 7px; color: var(--foreground); background: var(--surface); font: inherit; font-weight: 400; }
+.title-filters { display: grid; grid-template-columns: minmax(190px, 1.5fr) repeat(4, minmax(135px, 1fr)) auto; align-items: end; gap: 12px; margin-bottom: 12px; }
+.title-filters label { display: grid; gap: 7px; color: var(--foreground); font-size: 13px; font-weight: 650; }
+.title-filters input:focus-visible, .title-filters select:focus-visible { outline: 3px solid rgb(7 90 99 / 24%); border-color: var(--primary); }
+.title-filter-count { grid-column: 1 / span 3; color: var(--muted-foreground); font-size: 13px; }
 .contact-form textarea { resize: vertical; }
 .contact-form input:focus-visible, .contact-form textarea:focus-visible, .contact-toolbar input:focus-visible { outline: 3px solid rgb(7 90 99 / 24%); border-color: var(--primary); }
 .field--wide { grid-column: 1 / -1; }
@@ -298,6 +302,8 @@ h1 {
   .contact-row .edit-button { grid-column: 2; grid-row: 1; }
   .contact-toolbar { align-items: flex-start; flex-direction: column; }
   .contact-toolbar label { width: 100%; }
+  .title-filters { grid-template-columns: 1fr; }
+  .title-filter-count { grid-column: auto; }
 
   .topbar {
     padding: 20px 0;

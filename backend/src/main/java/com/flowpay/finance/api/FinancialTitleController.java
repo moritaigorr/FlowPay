@@ -3,6 +3,7 @@ package com.flowpay.finance.api;
 import com.flowpay.finance.application.FinancialTitleService;
 import com.flowpay.finance.application.FinancialTitleService.TitleInput;
 import com.flowpay.finance.application.FinancialTitleService.TitleKind;
+import com.flowpay.finance.application.FinancialTitleService.TitleStatus;
 import com.flowpay.finance.application.FinancialTitleService.TitlePage;
 import com.flowpay.finance.application.FinancialTitleService.SettlementInput;
 import com.flowpay.finance.application.FinancialTitleService.SettlementResult;
@@ -46,9 +47,13 @@ public class FinancialTitleController {
     TitlePage list(@AuthenticationPrincipal UserDetails user,
                    @RequestParam TitleKind kind,
                    @RequestParam(required = false) @Size(max = 100) String q,
+                   @RequestParam(required = false) TitleStatus status,
+                   @RequestParam(required = false) UUID contactId,
+                   @RequestParam(required = false) LocalDate dueFrom,
+                   @RequestParam(required = false) LocalDate dueTo,
                    @RequestParam(defaultValue = "0") int page,
                    @RequestParam(defaultValue = "20") int size) {
-        return titles.list(user.getUsername(), kind, q, page, size);
+        return titles.list(user.getUsername(), kind, q, status, contactId, dueFrom, dueTo, page, size);
     }
 
     @PostMapping

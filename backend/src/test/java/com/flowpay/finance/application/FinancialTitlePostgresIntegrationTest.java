@@ -8,6 +8,7 @@ import com.flowpay.reporting.application.DashboardService;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executors;
@@ -111,6 +112,31 @@ class FinancialTitlePostgresIntegrationTest {
             assertThat(titles.get(email, titleId).settledAmountMinor()).isEqualTo("7000");
             assertThat(titles.get(email, titleId).remainingAmountMinor()).isEqualTo("3000");
         }
+    }
+
+    @Test
+    void titleListFiltersByStatusContactAndDueDateWithinTenant() {
+        var today = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        var matching = titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null, null,
+                contactId, today, today, 0, 20);
+        assertThat(matching.total()).isEqualTo(1);
+        assertThat(matching.items()).extracting(FinancialTitleService.TitleView::id).containsExactly(titleId);
+
+        var anotherContact = titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null, null,
+                UUID.randomUUID(), null, null, 0, 20);
+        assertThat(anotherContact.total()).isZero();
+
+        jdbc.update("UPDATE financial_title SET due_date = ? WHERE tenant_id = ? AND id = ?", today.minusDays(1), tenantId, titleId);
+        var overdue = titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null,
+                FinancialTitleService.TitleStatus.OVERDUE, contactId, null, today.minusDays(1), 0, 20);
+        assertThat(overdue.total()).isEqualTo(1);
+        assertThat(overdue.items().getFirst().status()).isEqualTo(FinancialTitleService.TitleStatus.OVERDUE);
+
+        assertThatThrownBy(() -> titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null, null,
+                null, today, today.minusDays(1), 0, 20))
+                .isInstanceOf(ResponseStatusException.class)
+                .extracting(error -> ((ResponseStatusException) error).getStatusCode())
+                .isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
