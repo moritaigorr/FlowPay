@@ -17,13 +17,14 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Desfazer vinculo mantem o movimento de caixa. Estornar o movimento e uma operacao separada. Ignorar/restaurar candidato nao altera caixa nem afeta outras linhas.
 - Portao 9.4 parcial: formulario, migration V14 e calculos foram validados por 12 integracoes em PostgreSQL 16.16 via Testcontainers. Resumo separa atividade, saldo final do extrato vs caixa controlado e roll-forward; revisao no browser pendente.
 - Portao 10.2 backend verificado: seed, reexecucao idempotente, login/CSRF e isolamento de leitura/alteracao por outro tenant. A apresentacao visual ainda aguarda revisao mais ampla.
-- Portao 10.3 parcial: fluxo demo em desktop/mobile e scans axe nas tres telas passaram; gestao de foco tambem esta validada por build/lint/typecheck. Auditoria manual de teclado, contraste, zoom e leitor de tela continua pendente.
+- Portao 10.3 parcial: fluxo demo em desktop/mobile, scans axe e alternador/envio do login via Tab/Enter passaram; gestao de foco tambem esta validada por build/lint/typecheck. Auditoria manual de teclado nos outros fluxos, contraste, zoom e leitor de tela continua pendente.
 - Seed implementa empresa, login `demo@flowpay.local`, dois contatos, conta com saldo inicial ficticio, categorias e titulos em aberto. Nao apaga registros nem cria baixas/importacoes. Protecao adicional: so executa com perfil `local` e URL PostgreSQL loopback para o banco `flowpay`.
 - Pendencias restantes do demo: revisar a apresentacao visual completa; o acesso HTTP e isolamento entre tenants estao cobertos.
 - Portoes 10.1 e 10.3 seguem parciais: a jornada E2E cobre login, dashboard, contatos, conta e titulos, mas ainda nao baixa titulos nem importa/concilia CSV. Portao 11 ainda pede auditoria e operacao.
 
 ## Commits recentes
 
+- 3006df0 Cover keyboard login in browser journey
 - `1ea50d6` Document automated accessibility coverage
 - `1eedaa5` Add automated demo accessibility scans
 - `839ec25` Document verified demo browser journey
@@ -52,7 +53,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 - Backend (23/11): `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com JDK 25/Maven 3.9.16. Foram 42 testes sem falhas nem skips, incluindo 15 testes Testcontainers em PostgreSQL 16.16. V14, calculos, replay, caixa, login/CSRF e isolamento de leitura/alteracao foram exercitados; seed aplicado em schema vazio e reexecutado sem duplicacao.
 - Frontend: `npm.cmd run typecheck`, `npm.cmd run lint -- --deny-warnings` e `npm.cmd run build` passaram apos a gestao de foco dos fluxos principais.
-- Frontend E2E (23/11): login demo, dashboard, contatos, conta e titulos passaram em Chrome; viewport 1440x1000 e mobile 390x844 sem overflow horizontal. Axe/WCAG 2.1 A/AA automatizado passou em login, dashboard e contatos apos remover aria-label redundante do link da marca. Resultado automatizado nao atesta conformidade; teclado, contraste manual e leitor de tela pendentes.
+- Frontend E2E (23/11): login demo com Tab/Enter, dashboard, contatos, conta e titulos passaram em Chrome; viewport 1440x1000 e mobile 390x844 sem overflow horizontal. Axe/WCAG 2.1 A/AA automatizado passou em login, dashboard e contatos apos remover aria-label redundante do link da marca. Resultado automatizado nao atesta conformidade; teclado nos demais fluxos, contraste manual e leitor de tela pendentes.
 - Docker Desktop foi iniciado para os testes; Testcontainers criou e encerrou containers descartaveis. O banco PostgreSQL local permanente nao foi alterado. Compose fixa PostgreSQL 18.7; integracoes locais usaram 16.16.
 - O perfil `local,demo` foi exercitado com banco descartavel; autenticacao HTTP e acesso cruzado por outro tenant agora estao cobertos por integracao MockMvc.
 - Revisao browser limitada a Chrome desktop 1440x1000 e mobile 390x844; auditoria de acessibilidade e outros fluxos visuais permanecem pendentes.
