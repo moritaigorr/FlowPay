@@ -355,8 +355,9 @@ Regras de banco:
 
 ### 10.2 Dados seed e ambiente demo
 
-- Seed determinístico, removível/recriado, senhas e dados sintéticos sem relação com pessoas reais.
-- Demonstrar banner/ambiente demo; reset documentado sem risco a dados externos.
+- Parcial: o perfil Spring `demo` cria registros sintéticos com IDs estáveis, em transação e de forma idempotente. Exige `FLOWPAY_DEMO_PASSWORD`; não há senha padrão no código.
+- README documenta o login e o reset somente para o volume descartável deste checkout. O seed não apaga dados e aborta diante de colisões detectadas com outro usuário/empresa.
+- Pendente: executar em PostgreSQL limpo, confirmar a reexecução e os dados resultantes; adicionar sinalização visual dedicada de ambiente demo e validar isolamento por tenant.
 - **Aceite:** ambiente pode ser recriado em banco limpo com resultado conhecido; nenhum segredo seed é reutilizado fora do dev/demo isolado.
 
 ### 10.3 Usabilidade e acessibilidade

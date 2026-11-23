@@ -8,7 +8,7 @@ The repository includes a React frontend, Spring Boot API, PostgreSQL schema, an
 
 The authenticated workspace currently supports tenant-scoped contacts, financial accounts and categories, receivable/payable titles, cash transactions, title settlements and reversals, dashboard/monthly reporting, CSV statement import, and reconciliation review and matching. Imported statement lines do not change controlled cash; matching links an existing cash transaction or creates one according to the selected reconciliation action. Reconciliation summaries compare activity over the selected period. The current CSV format does not include opening/closing statement balances, so it cannot report an actual bank-balance difference.
 
-The product records financial activity completed outside FlowPay; it does not move money or connect to banks. Contact deletion, switching between multiple companies, invitations, email verification, password recovery, and abuse rate limiting are not implemented. Public registration should not be exposed beyond controlled local/demo use until abuse controls are added. A reproducible demo seed and the remaining Portao 10 acceptance criteria are still pending. See the [implementation roadmap](docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md) for status and scope.
+The product records financial activity completed outside FlowPay; it does not move money or connect to banks. Contact deletion, switching between multiple companies, invitations, email verification, password recovery, and abuse rate limiting are not implemented. Public registration should not be exposed beyond controlled local/demo use until abuse controls are added. The `demo` Spring profile creates a reproducible synthetic dataset; the remaining Portão 10 acceptance criteria are still pending. See the [implementation roadmap](docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md) for status and scope.
 
 ## Prerequisites
 
@@ -56,6 +56,20 @@ To stop the database:
 ```powershell
 docker compose down
 ```
+
+### Demo account and data
+
+The demo seed runs only when the backend starts with the explicit `demo` profile. It creates a synthetic company, contacts, account with a fictitious opening balance, categories, and open titles. Re-running it is idempotent. It does not delete data, create bank statement imports, or record settlements.
+
+Set `FLOWPAY_DEMO_PASSWORD` in the backend process environment before starting with both `local` and `demo` profiles. Start the API from the repository root with:
+
+```powershell
+mvn -f backend/pom.xml -Dspring-boot.run.profiles=local,demo spring-boot:run
+```
+
+The password must be 12–72 UTF-8 bytes. The demo email is `demo@flowpay.local`; no password is committed or supplied by default. The company name shown after login is `FlowPay Demonstração`.
+
+The seed uses stable identifiers and fails startup if its demo user or company identifiers already belong to a different record. For a full reset, stop the app and remove the Compose database volume only when it contains disposable data for this checkout; `docker compose down --volumes` erases the local database for this project. Do not point the demo profile at a shared, personal, staging, or production database.
 
 ## Validation commands
 
