@@ -23,7 +23,7 @@ test('new company imports a settled receipt and links without duplicating cash',
   await page.getByLabel('E-mail').fill(`e2e-${id}@flowpay.local`)
   await page.getByLabel('Senha').fill(`FlowPay-E2E-${id}!`)
   await page.getByRole('button', { name: 'Criar empresa', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'VisÃ£o geral' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Contatos', exact: true }).click()
   await page.getByRole('button', { name: /Novo contato|Cadastrar primeiro contato/ }).click()

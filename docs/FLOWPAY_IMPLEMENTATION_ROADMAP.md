@@ -344,8 +344,7 @@ Regras de banco:
 
 ### 10.1 Jornada completa
 
-- Parcial: Playwright valida login do owner demo, dashboard com saldo seed, contatos, conta e títulos a receber/pagar. A tela também foi conferida em Chrome desktop (1440 px) e o viewport mobile (390 px) não apresenta overflow horizontal.
-- Em implementação: uma jornada de escrita cria tenant sintético, contato cliente/fornecedor, conta, categorias de entrada/saída e títulos a receber/pagar; registra recebimento parcial e pagamento realizado fora do FlowPay; importa CSV correspondente ao recebimento, vincula ao movimento existente, reimporta o arquivo e consulta o relatório mensal. Confere valores em aberto, saldo controlado, vínculos e totais por tipo. O cenário é opt-in local (`FLOWPAY_E2E_ALLOW_WRITES=true`) e o CI ativa escrita apenas no PostgreSQL descartável do job; ainda depende de execução observada para contar como verificado.
+- Verificado localmente em Chrome: Playwright valida login do owner demo, dashboard com saldo seed, contatos, conta, títulos e telas de extrato; a jornada financeira cria tenant sintético, contato cliente/fornecedor, conta, categorias, títulos, baixa parcial, pagamento realizado fora do FlowPay, importa CSV, vincula linha ao movimento existente sem duplicar caixa, repete a importação e consulta o relatório mensal. Executado com API e Vite em portas exclusivas e PostgreSQL 16 descartável: saldo final R$ 1.150,00, diferença líquida do extrato e vínculos confirmados. `npm run test:e2e`: 2 testes passaram. O cenário de escrita segue opt-in local (`FLOWPAY_E2E_ALLOW_WRITES=true`); falta observar o workflow no GitHub Actions.
 
 1. Proprietário cria conta e empresa.
 2. Cadastra cliente e fornecedor.
@@ -372,7 +371,7 @@ Regras de banco:
 ### 10.3 Usabilidade e acessibilidade
 
 - Parcial: a jornada seed foi exercitada em Chrome desktop e mobile; no viewport de 390 px não há rolagem horizontal no dashboard e na entrada de extratos. Isso não substitui auditoria de teclado, contraste, zoom ou leitor de tela.
-- Parcial: scans automatizados do axe-core com tags WCAG 2.1 A/AA passaram nas telas de login, dashboard, contatos e entrada de extratos. O smoke financeiro agora também contém scans para pagamento, linhas/resumo de conciliação e relatório mensal, ainda sem execução observada. O scan anterior encontrou uma divergência entre o nome ARIA e o texto visível da marca; o rótulo redundante foi removido e os scans passaram após a correção. O teste também confirma o alternador e o envio do login via Tab/Enter. Isto não comprova conformidade WCAG.
+- Parcial: scans automatizados do axe-core com tags WCAG 2.1 A/AA passaram nas telas de login, dashboard, contatos, entrada de extratos, pagamento, linhas/resumo de conciliação e relatório mensal. O teste confirma o alternador e o envio do login via Tab/Enter. O scan anterior encontrou divergência entre nome ARIA e texto visível da marca; o rótulo redundante foi removido. Isto não comprova conformidade WCAG.
 
 - Parcial: ao salvar ou cancelar os formulários de contatos, contas, categorias, títulos, movimentos avulsos, baixas/reversões e confirmação de conciliação, o foco retorna a um título da seção; campos de valor recebem foco ao abrir baixa/reversão.
 - Pendente: auditar manualmente teclado, zoom, contraste, leitor de tela e fluxos além do demo em toda a jornada.
