@@ -11,7 +11,7 @@ export default defineConfig({
   outputDir: './test-results',
   use: {
     baseURL,
-    channel: 'chrome',
+    channel: process.env.CI ? undefined : 'chrome',
     headless: true,
     locale: 'pt-BR',
     timezoneId: 'America/Sao_Paulo',

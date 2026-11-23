@@ -29,11 +29,30 @@ jobs:
   frontend:
     name: Frontend checks
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18.7
+        env:
+          POSTGRES_DB: flowpay
+          POSTGRES_USER: flowpay_dev
+          POSTGRES_PASSWORD: flowpay_dev_only_local
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U flowpay_dev -d flowpay"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     defaults:
       run:
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
@@ -43,3 +62,34 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run build
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Run demo browser journey against isolated PostgreSQL
+        working-directory: .
+        run: |
+          export SPRING_PROFILES_ACTIVE=local,demo
+          export SPRING_DATASOURCE_URL=jdbc:postgresql://127.0.0.1:5432/flowpay
+          export SPRING_DATASOURCE_USERNAME=flowpay_dev
+          export SPRING_DATASOURCE_PASSWORD=flowpay_dev_only_local
+          export FLOWPAY_DEMO_PASSWORD="$(openssl rand -hex 24)"
+          mvn --batch-mode --no-transfer-progress -f backend/pom.xml spring-boot:run > /tmp/flowpay-e2e-api.log 2>&1 &
+          api_pid=$!
+          trap 'kill "$api_pid" 2>/dev/null || true' EXIT
+          api_ready=false
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8080/actuator/health > /dev/null; then
+              api_ready=true
+              break
+            fi
+            if ! kill -0 "$api_pid" 2>/dev/null; then
+              cat /tmp/flowpay-e2e-api.log
+              exit 1
+            fi
+            sleep 2
+          done
+          if [ "$api_ready" != true ]; then
+            cat /tmp/flowpay-e2e-api.log
+            exit 1
+          fi
+          cd frontend
+          npm run test:e2e

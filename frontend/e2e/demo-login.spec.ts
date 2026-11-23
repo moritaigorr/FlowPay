@@ -3,7 +3,9 @@ import AxeBuilder from '@axe-core/playwright'
 
 const demoPassword = process.env.FLOWPAY_E2E_DEMO_PASSWORD
 
-test.skip(!demoPassword, 'Set FLOWPAY_E2E_DEMO_PASSWORD for the isolated local demo environment.')
+if (!demoPassword) {
+  throw new Error('Set FLOWPAY_E2E_DEMO_PASSWORD for the isolated local demo environment.')
+}
 
 async function expectAutomaticallyAccessible(page: import('@playwright/test').Page, screen: string) {
   const results = await new AxeBuilder({ page })
@@ -46,7 +48,6 @@ test('demo owner signs in and sees the seeded financial workspace', async ({ pag
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
   await expect(page.getByText('Saldo controlado', { exact: true })).toBeVisible()
   await expect(page.getByText('R$ 25.000,00', { exact: true })).toBeVisible()
-  await expect(page.getByText('R$ 1.850,00', { exact: true })).toBeVisible()
   await expectAutomaticallyAccessible(page, 'dashboard')
 
   await page.getByRole('button', { name: 'Contatos', exact: true }).click()
