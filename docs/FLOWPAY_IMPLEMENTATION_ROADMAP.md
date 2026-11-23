@@ -361,7 +361,8 @@ Regras de banco:
 - README documenta o login e o reset somente para o volume descartável deste checkout. O seed não apaga dados e aborta diante de colisões detectadas com outro usuário/empresa.
 - A UI identifica o tenant do seed com o rótulo `Ambiente de demonstração`.
 - Verificado: PostgreSQL 16 descartável desde schema vazio; as 14 migrations foram aplicadas, os nove grupos de registros seed foram conferidos e uma segunda execução não duplicou dados. A senha sintética corresponde ao hash armazenado.
-- Pendente: validar acesso aos dados seed pela aplicação e confirmar que outro tenant não consegue lê-los.
+- Verificado via MockMvc e filtros reais da API: o login `local,demo` exige CSRF; a sessão demo lê os dois contatos e o saldo inicial. Uma sessão autenticada de outro tenant, com CSRF válido, não lê nem altera contato demo e vê saldo controlado zero.
+- Pendente: revisar a identificação visual do ambiente e completar a jornada demo no browser (Portões 10.1 e 10.3).
 - **Aceite:** ambiente pode ser recriado em banco limpo com resultado conhecido; nenhum segredo seed é reutilizado fora do dev/demo isolado.
 
 ### 10.3 Usabilidade e acessibilidade
