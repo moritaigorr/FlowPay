@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import com.flowpay.finance.api.FinanceAccountReader;
 import com.flowpay.identity.api.TenantAccess;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.UUID;
@@ -23,6 +24,7 @@ class StatementPreviewServiceTest {
     @Mock TenantAccess tenantAccess;
     @Mock FinanceAccountReader accounts;
     @Mock JdbcTemplate jdbc;
+    private final SimpleMeterRegistry meters = new SimpleMeterRegistry();
 
     @Test
     void derivesTenantFromAuthenticatedUserAndPreviewsAuthorizedAccount() {
@@ -31,12 +33,14 @@ class StatementPreviewServiceTest {
         when(tenantAccess.requireSingleTenant("owner@example.test"))
                 .thenReturn(new TenantAccess.CurrentTenant(tenantId, "Empresa", "OWNER"));
         when(accounts.isActiveAccount(tenantId, accountId)).thenReturn(true);
-        var service = new StatementPreviewService(tenantAccess, accounts, jdbc);
+        var service = new StatementPreviewService(tenantAccess, accounts, jdbc, meters);
 
         var preview = service.preview("owner@example.test", accountId,
                 "data;descricao;valor;direcao\n01/03/2026;Serviço;12,00;ENTRADA\n".getBytes(StandardCharsets.UTF_8));
 
         assertThat(preview.acceptedCount()).isEqualTo(1);
+        assertThat(meters.get("flowpay.statement.operation.duration")
+                .tags("operation", "preview", "outcome", "success").timer().count()).isEqualTo(1);
         verify(tenantAccess).requireSingleTenant("owner@example.test");
         verify(accounts).isActiveAccount(tenantId, accountId);
     }
@@ -48,7 +52,7 @@ class StatementPreviewServiceTest {
         when(tenantAccess.requireSingleTenant("user@example.test"))
                 .thenReturn(new TenantAccess.CurrentTenant(tenantId, "Empresa", "OWNER"));
         when(accounts.isActiveAccount(tenantId, accountId)).thenReturn(false);
-        var service = new StatementPreviewService(tenantAccess, accounts, jdbc);
+        var service = new StatementPreviewService(tenantAccess, accounts, jdbc, meters);
 
         assertThatThrownBy(() -> service.preview("user@example.test", accountId, new byte[] {0}))
                 .isInstanceOf(ResponseStatusException.class)
@@ -60,10 +64,12 @@ class StatementPreviewServiceTest {
     void readerCannotPreviewOrImportStatements() {
         when(tenantAccess.requireSingleTenant("reader@example.test"))
                 .thenReturn(new TenantAccess.CurrentTenant(UUID.randomUUID(), "Empresa", "READER"));
-        var service = new StatementPreviewService(tenantAccess, accounts, jdbc);
+        var service = new StatementPreviewService(tenantAccess, accounts, jdbc, meters);
 
         assertThatThrownBy(() -> service.preview("reader@example.test", UUID.randomUUID(), new byte[0]))
                 .isInstanceOf(ResponseStatusException.class).hasMessageContaining("403 FORBIDDEN");
+        assertThat(meters.get("flowpay.statement.operation.duration")
+                .tags("operation", "preview", "outcome", "error").timer().count()).isEqualTo(1);
         org.mockito.Mockito.verifyNoInteractions(accounts, jdbc);
     }
 
@@ -114,7 +120,7 @@ class StatementPreviewServiceTest {
         when(tenantAccess.requireSingleTenant("owner@example.test"))
                 .thenReturn(new TenantAccess.CurrentTenant(tenantId, "Empresa", "OWNER"));
         when(accounts.isActiveAccount(tenantId, accountId)).thenReturn(true);
-        return new StatementPreviewService(tenantAccess, accounts, jdbc);
+        return new StatementPreviewService(tenantAccess, accounts, jdbc, meters);
     }
 
     private static byte[] validCsv() {

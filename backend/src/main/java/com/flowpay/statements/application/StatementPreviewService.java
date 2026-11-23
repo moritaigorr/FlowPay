@@ -3,6 +3,8 @@ package com.flowpay.statements.application;
 import com.flowpay.finance.api.FinanceAccountReader;
 import com.flowpay.identity.api.TenantAccess;
 import com.flowpay.statements.domain.StatementCsvParser;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -11,6 +13,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.HexFormat;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -22,20 +26,25 @@ public class StatementPreviewService {
     private final TenantAccess tenantAccess;
     private final FinanceAccountReader accounts;
     private final JdbcTemplate jdbc;
+    private final MeterRegistry meters;
     private final StatementCsvParser parser = new StatementCsvParser();
 
-    public StatementPreviewService(TenantAccess tenantAccess, FinanceAccountReader accounts, JdbcTemplate jdbc) {
+    public StatementPreviewService(TenantAccess tenantAccess, FinanceAccountReader accounts, JdbcTemplate jdbc,
+                                   MeterRegistry meters) {
         this.tenantAccess = tenantAccess;
         this.accounts = accounts;
         this.jdbc = jdbc;
+        this.meters = meters;
     }
 
     @Transactional(readOnly = true)
     public StatementCsvParser.Preview preview(String email, UUID accountId, byte[] file) {
-        var tenant = tenantAccess.requireSingleTenant(email);
-        requireImporter(tenant.role());
-        requireActiveAccount(tenant.id(), accountId);
-        return parse(file);
+        return measure("preview", () -> {
+            var tenant = tenantAccess.requireSingleTenant(email);
+            requireImporter(tenant.role());
+            requireActiveAccount(tenant.id(), accountId);
+            return parse(file);
+        }, ignored -> "success");
     }
 
     @Transactional
@@ -45,15 +54,16 @@ public class StatementPreviewService {
 
     @Transactional
     public ConfirmationResult confirm(String email, UUID accountId, byte[] file, StatementBalances statementBalances) {
-        var tenant = tenantAccess.requireSingleTenant(email);
-        requireImporter(tenant.role());
-        requireActiveAccount(tenant.id(), accountId);
-        var preview = parse(file);
-        var balances = validateStatementBalances(statementBalances);
-        validateRowsInBalancePeriod(preview, balances);
-        String checksum = checksum(file);
-        var importId = UUID.randomUUID();
-        var inserted = jdbc.query("""
+        return measure("confirm", () -> {
+            var tenant = tenantAccess.requireSingleTenant(email);
+            requireImporter(tenant.role());
+            requireActiveAccount(tenant.id(), accountId);
+            var preview = parse(file);
+            var balances = validateStatementBalances(statementBalances);
+            validateRowsInBalancePeriod(preview, balances);
+            String checksum = checksum(file);
+            var importId = UUID.randomUUID();
+            var inserted = jdbc.query("""
                 INSERT INTO statement_import
                   (id, tenant_id, financial_account_id, file_checksum, file_content, total_rows, accepted_rows,
                    rejected_rows, duplicate_rows, statement_opening_balance_minor, statement_opening_balance_date,
@@ -62,43 +72,60 @@ public class StatementPreviewService {
                 ON CONFLICT (tenant_id, financial_account_id, file_checksum) DO NOTHING
                 RETURNING id
                 """, (rs, row) -> rs.getObject(1, UUID.class), importId, tenant.id(), accountId, checksum, file,
-                preview.rows().size(), preview.acceptedCount(), preview.rejectedCount(), preview.duplicateCount(),
-                balances == null ? null : balances.openingBalanceMinor(),
-                balances == null ? null : balances.openingBalanceDate(),
-                balances == null ? null : balances.closingBalanceMinor(),
-                balances == null ? null : balances.closingBalanceDate());
-        if (inserted.isEmpty()) {
-            return jdbc.queryForObject("""
+                    preview.rows().size(), preview.acceptedCount(), preview.rejectedCount(), preview.duplicateCount(),
+                    balances == null ? null : balances.openingBalanceMinor(),
+                    balances == null ? null : balances.openingBalanceDate(),
+                    balances == null ? null : balances.closingBalanceMinor(),
+                    balances == null ? null : balances.closingBalanceDate());
+            if (inserted.isEmpty()) {
+                return jdbc.queryForObject("""
                     SELECT id, total_rows, accepted_rows, rejected_rows, duplicate_rows
                     FROM statement_import WHERE tenant_id = ? AND financial_account_id = ? AND file_checksum = ?
                     """, (rs, row) -> new ConfirmationResult(rs.getObject("id", UUID.class), true,
-                    rs.getInt("total_rows"), rs.getInt("accepted_rows"), rs.getInt("rejected_rows"), rs.getInt("duplicate_rows")),
-                    tenant.id(), accountId, checksum);
-        }
+                        rs.getInt("total_rows"), rs.getInt("accepted_rows"), rs.getInt("rejected_rows"), rs.getInt("duplicate_rows")),
+                        tenant.id(), accountId, checksum);
+            }
 
-        jdbc.batchUpdate("""
+            jdbc.batchUpdate("""
                 INSERT INTO statement_line
                   (id, tenant_id, financial_account_id, statement_import_id, row_number, effective_date, description, direction, amount_minor, row_status, validation_errors)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, preview.rows(), 500, (statement, row) -> {
-            boolean rejected = !row.errors().isEmpty();
-            String status = rejected ? "REJECTED" : row.duplicateInFile() ? "DUPLICATE" : "ACCEPTED";
-            String errors = row.errors().stream().map(error -> error.column() + ": " + error.message()).collect(java.util.stream.Collectors.joining("; "));
-            statement.setObject(1, UUID.randomUUID());
-            statement.setObject(2, tenant.id());
-            statement.setObject(3, accountId);
-            statement.setObject(4, importId);
-            statement.setInt(5, row.rowNumber());
-            statement.setObject(6, row.date());
-            statement.setString(7, row.description());
-            statement.setString(8, row.direction());
-            if (row.amountMinor() == null) statement.setNull(9, java.sql.Types.BIGINT);
-            else statement.setLong(9, Long.parseLong(row.amountMinor()));
-            statement.setString(10, status);
-            statement.setString(11, errors);
-        });
-        return new ConfirmationResult(importId, false, preview.rows().size(), preview.acceptedCount(),
-                preview.rejectedCount(), preview.duplicateCount());
+                boolean rejected = !row.errors().isEmpty();
+                String status = rejected ? "REJECTED" : row.duplicateInFile() ? "DUPLICATE" : "ACCEPTED";
+                String errors = row.errors().stream().map(error -> error.column() + ": " + error.message()).collect(java.util.stream.Collectors.joining("; "));
+                statement.setObject(1, UUID.randomUUID());
+                statement.setObject(2, tenant.id());
+                statement.setObject(3, accountId);
+                statement.setObject(4, importId);
+                statement.setInt(5, row.rowNumber());
+                statement.setObject(6, row.date());
+                statement.setString(7, row.description());
+                statement.setString(8, row.direction());
+                if (row.amountMinor() == null) statement.setNull(9, java.sql.Types.BIGINT);
+                else statement.setLong(9, Long.parseLong(row.amountMinor()));
+                statement.setString(10, status);
+                statement.setString(11, errors);
+            });
+            return new ConfirmationResult(importId, false, preview.rows().size(), preview.acceptedCount(),
+                    preview.rejectedCount(), preview.duplicateCount());
+        }, result -> result.replay() ? "replay" : "created");
+    }
+
+    private <T> T measure(String operation, Supplier<T> action, Function<T, String> successOutcome) {
+        var sample = Timer.start(meters);
+        var outcome = "error";
+        try {
+            var result = action.get();
+            outcome = successOutcome.apply(result);
+            return result;
+        } finally {
+            sample.stop(Timer.builder("flowpay.statement.operation.duration")
+                    .description("Duration of statement preview and import operations")
+                    .tag("operation", operation)
+                    .tag("outcome", outcome)
+                    .register(meters));
+        }
     }
 
     @Transactional(readOnly = true)

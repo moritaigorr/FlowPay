@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.flowpay.FlowPayApplication;
 import com.flowpay.reporting.application.DashboardService;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.UUID;
@@ -46,6 +47,7 @@ class FinancialTitlePostgresIntegrationTest {
     }
 
     @Autowired JdbcTemplate jdbc;
+    @Autowired MeterRegistry meters;
     @Autowired FinancialTitleService titles;
     @Autowired DashboardService dashboard;
     @Autowired MonthlyReportService monthlyReports;
@@ -132,6 +134,8 @@ class FinancialTitlePostgresIntegrationTest {
 
     @Test
     void confirmedStatementIsPrivateEvidenceAndNeverCreatesCashMovements() {
+        var createdCountBefore = statementOperationCount("confirm", "created");
+        var replayCountBefore = statementOperationCount("confirm", "replay");
         byte[] csv = ("data;descricao;valor;direcao\n"
                 + "01/03/2026;Pagamento recebido;125,00;ENTRADA\n"
                 + "01/03/2026;Pagamento recebido;125,00;ENTRADA\n"
@@ -141,6 +145,7 @@ class FinancialTitlePostgresIntegrationTest {
         var result = statementImports.confirm(email, accountId, csv, balances);
 
         assertThat(result.replay()).isFalse();
+        assertThat(statementOperationCount("confirm", "created")).isEqualTo(createdCountBefore + 1);
         assertThat(result.totalRows()).isEqualTo(3);
         assertThat(result.acceptedCount()).isEqualTo(1);
         assertThat(result.duplicateCount()).isEqualTo(1);
@@ -159,6 +164,7 @@ class FinancialTitlePostgresIntegrationTest {
                 LocalDate.of(2026, 2, 27), 45_000L, LocalDate.of(2026, 3, 3));
         var replay = statementImports.confirm(email, accountId, csv, replayBalances);
         assertThat(replay.replay()).isTrue();
+        assertThat(statementOperationCount("confirm", "replay")).isEqualTo(replayCountBefore + 1);
         assertThat(replay.importId()).isEqualTo(result.importId());
         assertThat(jdbc.queryForObject("SELECT statement_opening_balance_minor FROM statement_import WHERE tenant_id=? AND id=?",
                 Long.class, tenantId, result.importId())).isEqualTo(40_000L);
@@ -547,5 +553,11 @@ class FinancialTitlePostgresIntegrationTest {
 
     private long count(String sql, UUID firstId, UUID secondId) {
         return jdbc.queryForObject(sql, Long.class, firstId, secondId);
+    }
+
+    private long statementOperationCount(String operation, String outcome) {
+        var timer = meters.find("flowpay.statement.operation.duration")
+                .tags("operation", operation, "outcome", outcome).timer();
+        return timer == null ? 0 : timer.count();
     }
 }
