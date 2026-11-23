@@ -27,6 +27,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 
 - `9ae34c5` Run demo Playwright journey in CI
 - `7c904a1` Add isolated financial settlement E2E
+- Proximo commit registrara a cobertura E2E da entrada de extratos e a revisao visual responsiva.
 - 3006df0 Cover keyboard login in browser journey
 - `1ea50d6` Document automated accessibility coverage
 - `1eedaa5` Add automated demo accessibility scans
@@ -57,6 +58,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Backend (23/11): `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` passou com JDK 25/Maven 3.9.16. Foram 42 testes sem falhas nem skips, incluindo 15 testes Testcontainers em PostgreSQL 16.16. V14, calculos, replay, caixa, login/CSRF e isolamento de leitura/alteracao foram exercitados; seed aplicado em schema vazio e reexecutado sem duplicacao.
 - Frontend: `npm.cmd run typecheck`, `npm.cmd run lint -- --deny-warnings` e `npm.cmd run build` passaram apos a gestao de foco dos fluxos principais.
 - Frontend E2E (23/11): login demo com Tab/Enter, dashboard, contatos, conta e titulos passaram em Chrome; viewport 1440x1000 e mobile 390x844 sem overflow horizontal. Axe/WCAG 2.1 A/AA automatizado passou em login, dashboard e contatos apos remover aria-label redundante do link da marca. Resultado automatizado nao atesta conformidade; teclado nos demais fluxos, contraste manual e leitor de tela pendentes.
+- Tela inicial de extratos revisada em Chrome 1440x1000 e 390x844. E2E autenticado confirma heading/labels, texto que informa que a previa nao altera caixa, axe WCAG 2.1 A/AA sem violacoes e largura de documento <=390. Revisao visual nao cobre resumo de conciliacao nem linhas/matches salvos.
 - CI E2E configurado: PostgreSQL 18.7 de servico, API local/demo, senha efemera e Chromium. Ainda falta observar um run real no GitHub Actions.
 - Docker Desktop foi iniciado para os testes; Testcontainers criou e encerrou containers descartaveis. O banco PostgreSQL local permanente nao foi alterado. Compose fixa PostgreSQL 18.7; integracoes locais usaram 16.16.
 - O perfil `local,demo` foi exercitado com banco descartavel; autenticacao HTTP e acesso cruzado por outro tenant agora estao cobertos por integracao MockMvc.

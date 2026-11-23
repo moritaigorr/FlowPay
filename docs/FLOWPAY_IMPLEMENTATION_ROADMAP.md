@@ -333,6 +333,7 @@ Regras de banco:
 ### 9.4 UI da conciliação
 
 - Implementado parcialmente: resumo por importação separa totais de atividade, caixa controlado e vínculos ativos. O formulário de confirmação agora aceita saldo de abertura/fechamento com datas opcionais, e o schema tem migration para persistir esses metadados.
+- Verificação de interface (23/11/2026): em Chrome, a primeira tela de importação foi revisada em 1440×1000 e 390×844; o smoke autenticado verifica labels, mensagem de prévia sem efeito no caixa, axe WCAG 2.1 A/AA e ausência de overflow horizontal no viewport móvel. Os estados de resumo, linhas salvas e conciliação ainda não receberam revisão visual completa.
 - Decisão de implementação: os saldos representam o fechamento do dia indicado; a data de fechamento precisa ser posterior à de abertura; linhas válidas precisam estar após a data de abertura e até a data de fechamento. Valores negativos são permitidos para contas com saldo devedor. O checksum continua identificando o arquivo: uma repetição devolve a importação existente e preserva os metadados gravados originalmente.
 - A tela distingue diferença líquida de movimentação, diferença do saldo final do extrato contra o saldo controlado até a mesma data e diferença de roll-forward (saldo final menos saldo inicial e movimentos aceitos). Importar ou vincular não altera o caixa; somente a decisão explícita de criar movimento o faz.
 - Verificação local: backend compilado e empacotado pelo `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify` com JDK 25/Maven 3.9.16. A suíte executou 39 testes sem falhas nem skips, incluindo 12 integrações em PostgreSQL 16.16 descartável. A migration V14 foi aplicada desde schema vazio; testes conferem cálculo para saldos positivo e negativo, replay preservando metadados, import sem efeito no caixa e isolamento de linhas por tenant.
@@ -370,8 +371,8 @@ Regras de banco:
 
 ### 10.3 Usabilidade e acessibilidade
 
-- Parcial: a jornada seed foi exercitada em Chrome desktop e mobile; no viewport de 390 px não há rolagem horizontal. Isso não substitui auditoria de teclado, contraste, zoom ou leitor de tela.
-- Parcial: scans automatizados do axe-core com tags WCAG 2.1 A/AA passaram nas telas de login, dashboard e contatos. O scan encontrou uma divergência entre o nome ARIA e o texto visível da marca; o rótulo redundante foi removido e os scans passaram após a correção. O teste também confirma que o alternador e o envio do login funcionam via Tab/Enter. Isto não comprova conformidade WCAG.
+- Parcial: a jornada seed foi exercitada em Chrome desktop e mobile; no viewport de 390 px não há rolagem horizontal no dashboard e na entrada de extratos. Isso não substitui auditoria de teclado, contraste, zoom ou leitor de tela.
+- Parcial: scans automatizados do axe-core com tags WCAG 2.1 A/AA passaram nas telas de login, dashboard, contatos e entrada de extratos. O scan encontrou uma divergência entre o nome ARIA e o texto visível da marca; o rótulo redundante foi removido e os scans passaram após a correção. O teste também confirma que o alternador e o envio do login funcionam via Tab/Enter. Isto não comprova conformidade WCAG.
 
 - Parcial: ao salvar ou cancelar os formulários de contatos, contas, categorias, títulos, movimentos avulsos, baixas/reversões e confirmação de conciliação, o foco retorna a um título da seção; campos de valor recebem foco ao abrir baixa/reversão.
 - Pendente: auditar manualmente teclado, zoom, contraste, leitor de tela e fluxos além do demo em toda a jornada.

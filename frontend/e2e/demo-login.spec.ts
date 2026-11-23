@@ -64,8 +64,16 @@ test('demo owner signs in and sees the seeded financial workspace', async ({ pag
   await page.getByRole('button', { name: 'A pagar', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Licença de software' })).toBeVisible()
 
+  await page.getByRole('button', { name: 'Extratos', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Prévia de extrato' })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Selecionar conta e arquivo' })).toBeVisible()
+  await expect(page.getByLabel('Conta financeira')).toBeVisible()
+  await expect(page.getByLabel('Arquivo CSV')).toBeVisible()
+  await expect(page.getByText(/Esta prévia não salva linhas nem altera o caixa\./)).toBeVisible()
+  await expectAutomaticallyAccessible(page, 'statement import')
+
   await page.setViewportSize({ width: 390, height: 844 })
-  await expect(page.getByText('Ambiente de demonstração', { exact: true })).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Prévia de extrato' })).toBeVisible()
   const documentWidth = await page.evaluate(() => document.documentElement.scrollWidth)
   expect(documentWidth).toBeLessThanOrEqual(390)
 })
