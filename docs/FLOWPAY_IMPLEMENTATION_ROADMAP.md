@@ -245,6 +245,8 @@ Regras de banco:
 
 ### 6.3 Transferências e ajustes
 
+**Validação incremental (24/11/2026):** a execução Testcontainers do backend encontrou que V17 havia removido `STATEMENT_RECONCILIATION` da constraint de origem dos movimentos. V18 restaura essa origem sem alterar migrations aplicadas. `mvn -o -f backend/pom.xml verify` executou 73 testes PostgreSQL e unitários, todos aprovados; isso valida também os fluxos de conciliação com criação e vínculo de movimento.
+
 **Decisão de implementação (24/11/2026):** transferências internas entre contas fazem parte do MVP de acompanhamento. O FlowPay apenas registra a operação já realizada fora do sistema. Cada transferência cria uma saída e uma entrada do mesmo valor, data e descrição em contas diferentes, na mesma transação local; isso preserva o saldo consolidado sem classificar a operação como receita ou despesa.
 
 - Implementado: endpoint idempotente exige duas contas ativas do mesmo tenant, bloqueadas em ordem estável. A migration V15 cria o fato de transferência, vincula as duas pernas e impõe por FK composta que tenant, valor, data e descrição coincidam. Índice único impede pernas repetidas por direção. O histórico identifica conta de origem/destino; dashboard e totais por categoria excluem transferências das somas operacionais, enquanto saldos de cada conta refletem as duas pernas.

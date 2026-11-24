@@ -3,15 +3,23 @@ package com.flowpay.reporting.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.flowpay.identity.api.TenantAccess;
 import java.time.YearMonth;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
 class MonthlyReportServiceTest {
-    private final MonthlyReportService service = new MonthlyReportService(email -> {
-        throw new AssertionError("Tenant lookup must not run for invalid report parameters.");
-    }, null);
+    private final TenantAccess tenantAccess = new TenantAccess() {
+        @Override public CurrentTenant requireSingleTenant(String email) {
+            throw new AssertionError("Tenant lookup must not run for invalid report parameters.");
+        }
+        @Override public List<CurrentTenant> listTenants(String email) {
+            throw new AssertionError("Tenant listing must not run for invalid report parameters.");
+        }
+    };
+    private final MonthlyReportService service = new MonthlyReportService(tenantAccess, null);
 
     @Test
     void rejectsOutOfRangeYears() {
