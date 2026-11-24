@@ -11,6 +11,7 @@ debug: false
 flowpay:
   security:
     rate-limit-hmac-key: ${FLOWPAY_RATE_LIMIT_HMAC_KEY}
+    trusted-proxy-cidrs: ${FLOWPAY_TRUSTED_PROXY_CIDRS:}
   identity:
     registration:
       enabled: false
