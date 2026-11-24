@@ -358,6 +358,39 @@ class FinancialTitlePostgresIntegrationTest {
     }
 
     @Test
+    void concurrentStatementLinesCannotLinkTheSameCashMovement() throws Exception {
+        byte[] csv = ("data;descricao;valor;direcao\n"
+                + "01/03/2026;Primeira linha;125,00;ENTRADA\n"
+                + "01/03/2026;Segunda linha;125,00;ENTRADA\n").getBytes(java.nio.charset.StandardCharsets.UTF_8);
+        var imported = statementImports.confirm(email, accountId, csv);
+        var lineIds = jdbc.query("SELECT id FROM statement_line WHERE tenant_id = ? AND statement_import_id = ? ORDER BY row_number",
+                (rs, row) -> rs.getObject("id", UUID.class), tenantId, imported.importId());
+        var movementId = UUID.randomUUID();
+        insertManualMovement(tenantId, accountId, categoryId, movementId, LocalDate.of(2026, 3, 1), 12500,
+                "Pagamento em conta");
+        var request = new ReconciliationMatchService.MatchRequest(
+                ReconciliationMatchService.Decision.LINK_EXISTING, movementId, null);
+        var ready = new CountDownLatch(2);
+        var start = new CountDownLatch(1);
+
+        try (var executor = Executors.newFixedThreadPool(2)) {
+            var first = executor.submit(() -> linkTogether(lineIds.get(0), UUID.randomUUID(), request, ready, start));
+            var second = executor.submit(() -> linkTogether(lineIds.get(1), UUID.randomUUID(), request, ready, start));
+            assertThat(ready.await(5, TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+
+            var outcomes = java.util.List.of(first.get(10, TimeUnit.SECONDS), second.get(10, TimeUnit.SECONDS));
+            assertThat(outcomes).containsExactlyInAnyOrder("linked", "conflict");
+            assertThat(count("SELECT count(*) FROM reconciliation_match WHERE tenant_id = ? AND reversed_at IS NULL", tenantId))
+                    .isEqualTo(1);
+            assertThat(count("SELECT count(*) FROM reconciliation_match WHERE tenant_id = ? AND cash_transaction_id = ? AND reversed_at IS NULL",
+                    tenantId, movementId)).isEqualTo(1);
+            assertThat(count("SELECT count(*) FROM cash_transaction WHERE tenant_id = ?", tenantId)).isEqualTo(1);
+            assertThat(reconciliationStatuses.activeMatches(email, lineIds)).hasSize(1);
+        }
+    }
+
+    @Test
     void lineReviewIsAuditedIdempotentAndIgnoredRowsCannotBeMatched() {
         byte[] csv = ("data;descricao;valor;direcao\n01/03/2026;Revisar recebimento;125,00;ENTRADA\n")
                 .getBytes(java.nio.charset.StandardCharsets.UTF_8);
@@ -587,6 +620,19 @@ class FinancialTitlePostgresIntegrationTest {
         ready.countDown();
         if (!start.await(5, TimeUnit.SECONDS)) throw new IllegalStateException("Concurrent import start timed out");
         return statementImports.confirm(email, accountId, csv);
+    }
+
+    private String linkTogether(UUID lineId, UUID idempotencyKey, ReconciliationMatchService.MatchRequest request,
+                                CountDownLatch ready, CountDownLatch start) throws Exception {
+        ready.countDown();
+        if (!start.await(5, TimeUnit.SECONDS)) throw new IllegalStateException("Concurrent reconciliation start timed out");
+        try {
+            reconciliationMatches.match(email, lineId, idempotencyKey, request);
+            return "linked";
+        } catch (ResponseStatusException conflict) {
+            if (conflict.getStatusCode() != HttpStatus.CONFLICT) throw conflict;
+            return "conflict";
+        }
     }
 
     private void insertManualMovement(UUID movementTenantId, UUID movementAccountId, UUID movementCategoryId,
