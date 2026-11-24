@@ -100,6 +100,7 @@ test('demo owner signs in and sees the seeded financial workspace', async ({ pag
   await expect(page.getByRole('heading', { name: 'Selecionar conta e arquivo' })).toBeVisible()
   await expect(page.getByLabel('Conta financeira')).toBeVisible()
   await expect(page.getByLabel('Arquivo CSV')).toBeVisible()
+  await expect(page.getByText(/UTF-8, até 10 MB e 50\.000 linhas de dados\./)).toBeVisible()
   await expect(page.getByText(/Esta prévia não salva linhas nem altera o caixa\./)).toBeVisible()
   await expectAutomaticallyAccessible(page, 'statement import')
 
