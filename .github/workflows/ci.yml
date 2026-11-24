@@ -72,6 +72,7 @@ jobs:
           export SPRING_DATASOURCE_USERNAME=flowpay_dev
           export SPRING_DATASOURCE_PASSWORD=flowpay_dev_only_local
           export FLOWPAY_DEMO_PASSWORD="$(openssl rand -hex 24)"
+          export FLOWPAY_DEMO_MULTI_TENANT_E2E=true
           mvn --batch-mode --no-transfer-progress -f backend/pom.xml spring-boot:run > /tmp/flowpay-e2e-api.log 2>&1 &
           api_pid=$!
           trap 'kill "$api_pid" 2>/dev/null || true' EXIT

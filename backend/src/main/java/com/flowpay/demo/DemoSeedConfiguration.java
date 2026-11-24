@@ -23,6 +23,7 @@ class DemoSeedConfiguration {
 
     private static final UUID USER_ID = UUID.fromString("df532c38-c914-4f62-9341-41d20f3c9021");
     private static final UUID TENANT_ID = UUID.fromString("db702708-27ec-47d1-8e06-1f9587feafcb");
+    private static final UUID E2E_READER_TENANT_ID = UUID.fromString("5817d87b-ae9b-4cdf-a4c7-2a6bd8d66745");
     private static final UUID CUSTOMER_ID = UUID.fromString("5a602c54-6224-4ed5-9cb5-127922ba54a1");
     private static final UUID SUPPLIER_ID = UUID.fromString("1652d7ef-e311-42e2-9cb2-63db9eea7ce2");
     private static final UUID ACCOUNT_ID = UUID.fromString("ba05801e-75f1-477b-b4ae-16006c473202");
@@ -36,11 +37,15 @@ class DemoSeedConfiguration {
                                    TransactionTemplate transactions,
                                    Environment environment,
                                    @Value("${spring.datasource.url}") String datasourceUrl,
-                                   @Value("${FLOWPAY_DEMO_PASSWORD:}") String demoPassword) {
+                                   @Value("${FLOWPAY_DEMO_PASSWORD:}") String demoPassword,
+                                   @Value("${FLOWPAY_DEMO_MULTI_TENANT_E2E:false}") boolean seedE2eReaderTenant) {
         return args -> {
             requireLocalDemoDatasource(environment, datasourceUrl);
             requireDemoPassword(demoPassword);
-            transactions.executeWithoutResult(status -> seed(jdbc, passwordEncoder, demoPassword));
+            transactions.executeWithoutResult(status -> {
+                seed(jdbc, passwordEncoder, demoPassword);
+                if (seedE2eReaderTenant) seedE2eReaderTenant(jdbc);
+            });
         };
     }
 
@@ -133,6 +138,25 @@ class DemoSeedConfiguration {
                 UUID.fromString("fbe4937a-57c9-4798-8654-9b6d1ea37107"), hash("payable-v1"));
 
         requireTenantRows(jdbc);
+    }
+
+    private static void seedE2eReaderTenant(JdbcTemplate jdbc) {
+        String tenantName = "FlowPay Leitura E2E";
+        jdbc.update("INSERT INTO tenant(id, name) VALUES (?, ?) ON CONFLICT (id) DO NOTHING",
+                E2E_READER_TENANT_ID, tenantName);
+        requireOwnedRow(jdbc, "SELECT count(*) FROM tenant WHERE id = ? AND name = ?", E2E_READER_TENANT_ID,
+                tenantName, "demo E2E tenant identifier is already used by another company");
+        jdbc.update("""
+                INSERT INTO membership(tenant_id, user_id, role) VALUES (?, ?, 'READER')
+                ON CONFLICT (tenant_id, user_id) DO NOTHING
+                """, E2E_READER_TENANT_ID, USER_ID);
+        Long membershipCount = jdbc.queryForObject("""
+                SELECT count(*) FROM membership
+                WHERE tenant_id = ? AND user_id = ? AND role = 'READER'
+                """, Long.class, E2E_READER_TENANT_ID, USER_ID);
+        if (membershipCount == null || membershipCount != 1) {
+            throw new IllegalStateException("The demo E2E tenant membership conflicts with data outside the fixture.");
+        }
     }
 
     private static void requireOwnedRow(JdbcTemplate jdbc, String query, UUID id, String value, String message) {

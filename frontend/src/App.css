@@ -312,7 +312,29 @@ h1 {
   .title-filter-count { grid-column: auto; }
 
   .topbar {
+    align-items: flex-start;
+    gap: 12px;
     padding: 20px 0;
+  }
+
+  .topbar-account {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .tenant-switch-label {
+    flex: 1 1 100%;
+    justify-content: flex-end;
+    min-width: 0;
+    white-space: nowrap;
+  }
+
+  .tenant-switch-label select {
+    width: min(200px, calc(100% - 100px));
+    min-width: 0;
   }
 
   .welcome {

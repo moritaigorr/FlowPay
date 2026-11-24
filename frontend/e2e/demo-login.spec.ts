@@ -16,6 +16,7 @@ async function tabUntilFocused(page: import('@playwright/test').Page, locator: i
 }
 
 test('demo owner signs in and sees the seeded financial workspace', async ({ page }) => {
+  await page.addInitScript(() => window.localStorage.removeItem('flowpay.activeTenantId'))
   await page.goto('/')
   await expect(page.getByRole('heading', { name: 'Crie sua empresa' })).toBeVisible()
   const switchToLogin = page.getByRole('button', { name: 'Entrar', exact: true })
@@ -30,6 +31,11 @@ test('demo owner signs in and sees the seeded financial workspace', async ({ pag
   await email.fill('demo@flowpay.local')
   await password.fill(demoPassword!)
   await password.press('Enter')
+
+  if (process.env.FLOWPAY_DEMO_MULTI_TENANT_E2E === 'true') {
+    await expect(page.getByRole('heading', { name: 'Escolha uma empresa' })).toBeVisible()
+    await page.getByRole('button', { name: /FlowPay Demonstração/ }).click()
+  }
 
   await expect(page.getByText('Ambiente de demonstração', { exact: true })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
