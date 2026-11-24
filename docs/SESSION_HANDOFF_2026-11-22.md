@@ -14,6 +14,11 @@ Este arquivo registra onde retomar a jornada ativa do MVP.
 
 Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo as invariantes de financas, tenancy, seguranca e UX. O MVP ainda nao esta concluido.
 
+## Continuação registrada em 24/11/2026
+
+- Implementada filtragem de títulos por estado, contato e intervalo de vencimento na API e na interface. O estado em aberto/vencido considera a data de referência `America/Sao_Paulo`; troca de usuário limpa todos os filtros. O teste de integração PostgreSQL cobre tenant/contact, intervalo, vencidos e período inválido. `npm.cmd run lint` e `npm.cmd run build` passaram. A suíte PostgreSQL não foi executada: Maven/Docker não estão disponíveis e o JDK 25 apontado no ambiente não existe no caminho informado (PATH resolve Java 8).
+- Próxima ação: executar `mvn verify` no ambiente Java 21 + Maven + Docker; corrigir qualquer falha e acrescentar/verificar a jornada de filtros com Playwright. Não considerar esta fatia validada pelo backend até a integração rodar.
+
 ## Estado do roadmap
 
 - Atualizacao de 23/11: DemoSeedPostgresIntegrationTest parte de PostgreSQL 16 descartavel vazio, confere registros, membership OWNER e hash, e reexecuta sem duplicacao. Tambem valida login com CSRF e leituras de contatos/dashboard pela sessao demo.
