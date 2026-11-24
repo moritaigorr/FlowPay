@@ -1,6 +1,6 @@
 # FlowPay - checkpoint de implementacao
 
-Atualizado: 23/11/2026
+Atualizado: 24/11/2026
 
 ## Continuação registrada em 23/11/2026
 
@@ -19,6 +19,11 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Implementada filtragem de títulos por estado, contato e intervalo de vencimento na API e na interface. O estado em aberto/vencido considera a data de referência `America/Sao_Paulo`; troca de usuário limpa todos os filtros. O teste de integração PostgreSQL cobre estados aberto, vencido, parcial, quitado e cancelado, contato, intervalo e período inválido; há efeitos de baixa/cancelamento em banco Testcontainers. Ainda não executado localmente. `npm.cmd run lint` e `npm.cmd run build` passaram. A suíte PostgreSQL não foi executada: Maven/Docker não estão disponíveis e o JDK 25 apontado no ambiente não existe no caminho informado (PATH resolve Java 8).
 - O Actions run #6 (`78836f7`) aprovou o job de backend e falhou no `tsc` do frontend por `setTitlesQuery(')` malformado no botão Limpar. Corrigido localmente; lint/build passam, mas não houve novo run porque não foi feito push. O Playwright demo verifica parâmetros de status/contato/período, limpeza e mensagem vazia contextual; ainda não foi executado no browser nesta sessão. O teste Testcontainers agora percorre todos os estados derivados (aberto, vencido, parcial, quitado, cancelado) e fixa o vencimento na data empresarial para não falhar perto da virada UTC.
 - Próxima ação: executar a jornada Playwright e observar novo CI quando o commit local for sincronizado. O teste Testcontainers cobre a consulta, mas execução local aguarda JDK 21, Maven e Docker disponíveis.
+
+## Continuação registrada em 24/11/2026
+
+- Segurança da identidade: cadastro por `POST /api/auth/register` negado por padrão (`flowpay.identity.registration.enabled=false`); `application-local.yml` habilita o fluxo local. Foi adicionado teste unitário para rejeitar o cadastro antes de persistência/autenticação quando desabilitado, além de teste MockMvc de sucesso no perfil local. Esses testes aguardam execução. Login continua disponível nos demais perfis. Rate limiting ainda não existe; não expor registro publicamente.
+- Validação do backend desta fatia aguarda Maven/JDK 21 disponíveis; frontend não mudou.
 
 ## Estado do roadmap
 

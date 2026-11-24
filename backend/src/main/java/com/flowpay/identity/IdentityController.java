@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import java.util.Locale;
 import java.util.UUID;
 import com.flowpay.identity.api.TenantAccess;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -36,16 +37,19 @@ public class IdentityController {
     private final SecurityContextRepository contexts;
     private final org.springframework.security.crypto.password.PasswordEncoder passwords;
     private final TenantAccess tenantAccess;
+    private final boolean registrationEnabled;
 
     public IdentityController(JdbcTemplate jdbc, AuthenticationManager authenticationManager,
                               SecurityContextRepository contexts,
                               org.springframework.security.crypto.password.PasswordEncoder passwords,
-                              TenantAccess tenantAccess) {
+                              TenantAccess tenantAccess,
+                              @Value("${flowpay.identity.registration.enabled:false}") boolean registrationEnabled) {
         this.jdbc = jdbc;
         this.authenticationManager = authenticationManager;
         this.contexts = contexts;
         this.passwords = passwords;
         this.tenantAccess = tenantAccess;
+        this.registrationEnabled = registrationEnabled;
     }
 
     @GetMapping("/csrf")
@@ -61,6 +65,9 @@ public class IdentityController {
     @Transactional
     RegistrationResponse register(@Valid @RequestBody RegistrationRequest input,
                                   HttpServletRequest request, HttpServletResponse response) {
+        if (!registrationEnabled) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cadastro indisponível neste ambiente.");
+        }
         var email = input.email().trim().toLowerCase(Locale.ROOT);
         var password = input.password();
         if (password.length() < 12 || password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72) {

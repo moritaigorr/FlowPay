@@ -128,6 +128,26 @@ class DemoSeedPostgresIntegrationTest {
     }
 
     @Test
+    void localProfileAllowsRegistrationWithValidCsrf() throws Exception {
+        var email = "registration-" + UUID.randomUUID() + "@flowpay.local";
+        var csrf = csrfState();
+
+        mockMvc.perform(post("/api/auth/register")
+                        .cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"companyName\":\"Empresa de teste\",\"password\":\"Long-password-123\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.companyName").value("Empresa de teste"));
+
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM membership m
+                JOIN app_user u ON u.id = m.user_id
+                WHERE u.email = ? AND m.role = 'OWNER'
+                """, Long.class, email)).isEqualTo(1);
+    }
+
+    @Test
     void authenticatedStatementPreviewRequiresCsrfAndDoesNotPersistWithoutIt() throws Exception {
         UUID accountId = demoAccountId();
         CsrfState csrf = csrfState();
