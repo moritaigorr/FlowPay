@@ -249,9 +249,9 @@ Regras de banco:
 
 - Implementado: endpoint idempotente exige duas contas ativas do mesmo tenant, bloqueadas em ordem estável. A migration V15 cria o fato de transferência, vincula as duas pernas e impõe por FK composta que tenant, valor, data e descrição coincidam. Índice único impede pernas repetidas por direção. O histórico identifica conta de origem/destino; dashboard e totais por categoria excluem transferências das somas operacionais, enquanto saldos de cada conta refletem as duas pernas.
 - Cobertura adicionada para criar/repetir/conflitar a chave, rejeitar a mesma conta, comparar saldo por conta e consolidado e verificar que dashboard não infla entradas/saídas. Testes PostgreSQL ainda aguardam execução neste ambiente.
-- Ajuste de saldo fora da transferência continua pendente: antes dele, definir motivo, permissão e trilha auditável.
+
 - Implementado e validado parcialmente (24/11/2026): `OWNER`/`MANAGER` podem registrar `ADJUSTMENT` por conta ativa, em centavos, direção explícita, data realizada e motivo obrigatório de até 500 caracteres. O movimento guarda o ator autenticado e o motivo na mesma linha de `CashTransaction`; usa idempotência por tenant/operação/chave. Ajustes alteram saldos por conta e consolidado, mas ficam fora das entradas/saídas operacionais e totais por categoria. `READER` não vê o controle de escrita; jornadas browser mockada e real passaram nessa verificação/UI. A migration V17 foi aplicada pelo Flyway em banco vazio PostgreSQL 16.15; a jornada financeira real confirmou ajuste, motivo, caixa e totais de relatório. A integração Testcontainers está adicionada, compilou, mas ainda precisa executar em CI com Docker.
-- **Aceite desta fatia:** duas pernas atômicas e pareadas; soma dos saldos da empresa permanece igual; relatório não interpreta transferência interna como receita ou despesa consolidada.
+- **Aceite desta fatia:** Transferências criam duas pernas atômicas e pareadas, preservam o saldo consolidado e não inflam receita/despesa. Ajustes exigem motivo, papel de escrita, ator autenticado e idempotência; alteram o caixa sem inflar os totais operacionais. A execução da integração PostgreSQL ainda aguarda ambiente com Docker.
 
 ## Portão 7 — dashboard e relatórios de uso diário
 
