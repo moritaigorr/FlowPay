@@ -6,9 +6,11 @@ import { Dashboard } from './reporting/Dashboard'
 import { MonthlyReport } from './reporting/MonthlyReport'
 import { StatementImportPreview } from './statements/StatementImportPreview'
 import { useFocusReturnOnClose } from './shared/useFocusReturnOnClose'
+import { apiFetch } from './shared/api'
 
 type Mode = 'register' | 'login'
 type TenantRole = 'OWNER' | 'MANAGER' | 'READER'
+type TenantChoice = { id: string; name: string; role: TenantRole }
 type ContactRole = 'CUSTOMER' | 'SUPPLIER'
 type Contact = {
   id: string
@@ -57,7 +59,7 @@ let csrfRefreshInFlight: Promise<void> | null = null
 
 function refreshCsrf(): Promise<void> {
   if (!csrfRefreshInFlight) {
-    csrfRefreshInFlight = fetch('/api/auth/csrf', { credentials: 'same-origin', cache: 'no-store' })
+    csrfRefreshInFlight = apiFetch('/api/auth/csrf', { credentials: 'same-origin', cache: 'no-store' })
       .then((response) => {
         if (!response.ok) throw new Error('Não foi possível preparar a sessão segura.')
       })
@@ -72,6 +74,8 @@ function App() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [authenticatedEmail, setAuthenticatedEmail] = useState('')
+  const [tenantChoices, setTenantChoices] = useState<TenantChoice[]>([])
+  const [selectedTenantId, setSelectedTenantId] = useState('')
   const [companyName, setCompanyName] = useState('')
   const [tenantRole, setTenantRole] = useState<TenantRole | ''>('')
   const [contacts, setContacts] = useState<ContactPage>({ items: [], total: 0, page: 0, size: 20 })
@@ -131,19 +135,43 @@ function App() {
   const reversalIdempotency = useRef(new Map<string, { key: string; signature: string }>())
   const cashTransactionIdempotency = useRef<{ key: string; signature: string } | null>(null)
   const cashTransferIdempotency = useRef<{ key: string; signature: string } | null>(null)
-  const contactsLoading = Boolean(authenticatedEmail && contactsLoadedKey !== `${page}:${query.trim()}`)
-  const accountsLoading = Boolean(authenticatedEmail && activeSection === 'accounts' && accountsLoadedKey !== `${accountsPage}:${accountsRefresh}`)
-  const categoriesLoading = Boolean(authenticatedEmail && activeSection === 'categories' && !categoriesLoaded)
+  const contactsLoading = Boolean(selectedTenantId && contactsLoadedKey !== `${page}:${query.trim()}`)
+  const accountsLoading = Boolean(selectedTenantId && activeSection === 'accounts' && accountsLoadedKey !== `${accountsPage}:${accountsRefresh}`)
+  const categoriesLoading = Boolean(selectedTenantId && activeSection === 'categories' && !categoriesLoaded)
   const titleKind: TitleKind | null = activeSection === 'receivables' ? 'RECEIVABLE' : activeSection === 'payables' ? 'PAYABLE' : null
   const titleRequestKey = titleKind ? [titleKind, titlesPage, titlesQuery.trim(), titlesStatus, titlesContactId, titlesDueFrom, titlesDueTo, titlesRefresh].join(':') : ''
   const hasTitleFilters = Boolean(titlesQuery.trim() || titlesStatus || titlesContactId || titlesDueFrom || titlesDueTo)
-  const titlesLoading = Boolean(authenticatedEmail && titleKind && titlesLoadedKey !== titleRequestKey)
-  const titleOptionsLoading = Boolean(authenticatedEmail && titleKind && !titleOptions)
-  const cashTransactionsLoading = Boolean(authenticatedEmail && activeSection === 'transactions' && !cashTransactionsLoaded)
+  const titlesLoading = Boolean(selectedTenantId && titleKind && titlesLoadedKey !== titleRequestKey)
+  const titleOptionsLoading = Boolean(selectedTenantId && titleKind && !titleOptions)
+  const cashTransactionsLoading = Boolean(selectedTenantId && activeSection === 'transactions' && !cashTransactionsLoaded)
+
+  function activateTenant(tenantId: string, choices = tenantChoices) {
+    const tenant = choices.find((item) => item.id === tenantId)
+    if (!tenant) return
+    window.localStorage.setItem('flowpay.activeTenantId', tenant.id)
+    setSelectedTenantId(tenant.id)
+    setCompanyName(tenant.name)
+    setTenantRole(tenant.role)
+  }
+
+  function acceptSession(session: { email: string; tenants: TenantChoice[] }) {
+    setAuthenticatedEmail(session.email)
+    setTenantChoices(session.tenants)
+    const remembered = window.localStorage.getItem('flowpay.activeTenantId')
+    const selected = session.tenants.find((tenant) => tenant.id === remembered)
+      ?? (session.tenants.length === 1 ? session.tenants[0] : undefined)
+    if (selected) activateTenant(selected.id, session.tenants)
+    else {
+      window.localStorage.removeItem('flowpay.activeTenantId')
+      setSelectedTenantId('')
+      setCompanyName('')
+      setTenantRole('')
+    }
+  }
 
   useEffect(() => {
     let active = true
-    fetch('/api/auth/config', { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch('/api/auth/config', { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => {
         if (!response.ok) throw new Error('Authentication configuration unavailable')
         return await response.json() as { registrationEnabled: boolean }
@@ -162,13 +190,11 @@ function App() {
     void (async () => {
       try {
         await refreshCsrf()
-        const response = await fetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' })
+        const response = await apiFetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' })
         if (!response.ok) return
-        const session = await response.json() as { email: string; companyName: string; role: TenantRole }
+        const session = await response.json() as { email: string; tenants: TenantChoice[] }
         if (active) {
-          setAuthenticatedEmail(session.email)
-          setCompanyName(session.companyName)
-          setTenantRole(session.role)
+          acceptSession(session)
         }
       } catch {
         if (active) setMessage('Não foi possível conectar à API.')
@@ -178,12 +204,12 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (!authenticatedEmail || activeSection !== 'contacts') return
+    if (!selectedTenantId || activeSection !== 'contacts') return
     let active = true
     const requestKey = `${page}:${query.trim()}`
     const params = new URLSearchParams({ page: String(page), size: '20' })
     if (query.trim()) params.set('q', query.trim())
-    fetch(`/api/contacts?${params}`, { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch(`/api/contacts?${params}`, { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => {
         if (!response.ok) throw new Error('Não foi possível carregar os contatos.')
         return await response.json() as ContactPage
@@ -192,7 +218,7 @@ function App() {
       .catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : 'Falha ao carregar contatos.') })
       .finally(() => { if (active) setContactsLoadedKey(requestKey) })
     return () => { active = false }
-  }, [authenticatedEmail, activeSection, page, query])
+  }, [selectedTenantId, activeSection, page, query])
 
   useEffect(() => {
     if (settlingTitleId !== null || !restoreTitlesFocusAfterSettlementClose.current) return
@@ -213,11 +239,11 @@ function App() {
   }, [cancellingTitleId, titlesHeadingRef])
 
   useEffect(() => {
-    if (!authenticatedEmail || activeSection !== 'accounts') return
+    if (!selectedTenantId || activeSection !== 'accounts') return
     let active = true
     const requestKey = `${accountsPage}:${accountsRefresh}`
     const params = new URLSearchParams({ page: String(accountsPage), size: '20' })
-    fetch(`/api/financial-accounts?${params}`, { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch(`/api/financial-accounts?${params}`, { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => {
         if (!response.ok) throw new Error('Não foi possível carregar as contas financeiras.')
         return await response.json() as AccountPage
@@ -226,21 +252,21 @@ function App() {
       .catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : 'Falha ao carregar contas financeiras.') })
       .finally(() => { if (active) setAccountsLoadedKey(requestKey) })
     return () => { active = false }
-  }, [authenticatedEmail, activeSection, accountsPage, accountsRefresh])
+  }, [selectedTenantId, activeSection, accountsPage, accountsRefresh])
 
   useEffect(() => {
-    if (!authenticatedEmail || activeSection !== 'categories' || categoriesLoaded) return
+    if (!selectedTenantId || activeSection !== 'categories' || categoriesLoaded) return
     let active = true
-    fetch('/api/financial-categories?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch('/api/financial-categories?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => { if (!response.ok) throw new Error('Não foi possível carregar as categorias.'); return await response.json() as CategoryPage })
       .then((result) => { if (active) setCategories(result) })
       .catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : 'Falha ao carregar categorias.') })
       .finally(() => { if (active) setCategoriesLoaded(true) })
     return () => { active = false }
-  }, [authenticatedEmail, activeSection, categoriesLoaded, categoriesRefresh])
+  }, [selectedTenantId, activeSection, categoriesLoaded, categoriesRefresh])
 
   useEffect(() => {
-    if (!authenticatedEmail || !titleKind) return
+    if (!selectedTenantId || !titleKind) return
     let active = true
     const params = new URLSearchParams({ kind: titleKind, page: String(titlesPage), size: '20' })
     if (titlesQuery.trim()) params.set('q', titlesQuery.trim())
@@ -248,57 +274,57 @@ function App() {
     if (titlesContactId) params.set('contactId', titlesContactId)
     if (titlesDueFrom) params.set('dueFrom', titlesDueFrom)
     if (titlesDueTo) params.set('dueTo', titlesDueTo)
-    fetch('/api/financial-titles?' + params.toString(), { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch('/api/financial-titles?' + params.toString(), { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => { if (!response.ok) throw new Error('Não foi possível carregar os títulos.'); return await response.json() as TitlePage })
       .then((result) => { if (active) setTitles(result) })
       .catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : 'Falha ao carregar títulos.') })
       .finally(() => { if (active) setTitlesLoadedKey(titleRequestKey) })
     return () => { active = false }
-  }, [authenticatedEmail, titleKind, titlesPage, titlesQuery, titlesStatus, titlesContactId, titlesDueFrom, titlesDueTo, titlesRefresh, titleRequestKey])
+  }, [selectedTenantId, titleKind, titlesPage, titlesQuery, titlesStatus, titlesContactId, titlesDueFrom, titlesDueTo, titlesRefresh, titleRequestKey])
 
   useEffect(() => {
-    if (!authenticatedEmail || !titleKind || titleOptions) return
+    if (!selectedTenantId || !titleKind || titleOptions) return
     let active = true
     void Promise.all([
-      fetch('/api/contacts?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.ok ? r.json() as Promise<ContactPage> : Promise.reject(new Error('Não foi possível carregar contatos.'))),
-      fetch('/api/financial-categories?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.ok ? r.json() as Promise<CategoryPage> : Promise.reject(new Error('Não foi possível carregar categorias.'))),
-      fetch('/api/financial-accounts?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.ok ? r.json() as Promise<AccountPage> : Promise.reject(new Error('Não foi possível carregar contas.'))),
+      apiFetch('/api/contacts?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.ok ? r.json() as Promise<ContactPage> : Promise.reject(new Error('Não foi possível carregar contatos.'))),
+      apiFetch('/api/financial-categories?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.ok ? r.json() as Promise<CategoryPage> : Promise.reject(new Error('Não foi possível carregar categorias.'))),
+      apiFetch('/api/financial-accounts?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.ok ? r.json() as Promise<AccountPage> : Promise.reject(new Error('Não foi possível carregar contas.'))),
     ]).then(([contactPage, categoryPage, accountPage]) => { if (active) setTitleOptions({ contacts: contactPage.items, categories: categoryPage.items, accounts: accountPage.items }) })
       .catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : 'Falha ao carregar opções para o título.') })
     return () => { active = false }
-  }, [authenticatedEmail, titleKind, titleOptions])
+  }, [selectedTenantId, titleKind, titleOptions])
 
   useEffect(() => {
-    if (!authenticatedEmail || !settlingTitleId) return
+    if (!selectedTenantId || !settlingTitleId) return
     let active = true
-    fetch(`/api/financial-titles/${settlingTitleId}/settlements`, { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch(`/api/financial-titles/${settlingTitleId}/settlements`, { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => { if (!response.ok) throw new Error('Não foi possível carregar as baixas deste título.'); return await response.json() as Settlement[] })
       .then((items) => { if (active) setSettlementHistory({ titleId: settlingTitleId, items }) })
       .catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : 'Falha ao carregar as baixas.') })
     return () => { active = false }
-  }, [authenticatedEmail, settlingTitleId])
+  }, [selectedTenantId, settlingTitleId])
 
   useEffect(() => {
-    if (!authenticatedEmail || activeSection !== 'transactions' || cashTransactionsLoaded) return
+    if (!selectedTenantId || activeSection !== 'transactions' || cashTransactionsLoaded) return
     let active = true
-    fetch(`/api/cash-transactions?page=${cashTransactionsPage}&size=20`, { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch(`/api/cash-transactions?page=${cashTransactionsPage}&size=20`, { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => { if (!response.ok) throw new Error('Não foi possível carregar os movimentos de caixa.'); return await response.json() as CashTransactionPage })
       .then((page) => { if (active) setCashTransactions(page) })
       .catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : 'Falha ao carregar movimentos.') })
       .finally(() => { if (active) setCashTransactionsLoaded(true) })
     return () => { active = false }
-  }, [authenticatedEmail, activeSection, cashTransactionsLoaded, cashTransactionsRefresh, cashTransactionsPage])
+  }, [selectedTenantId, activeSection, cashTransactionsLoaded, cashTransactionsRefresh, cashTransactionsPage])
 
   useEffect(() => {
-    if (!authenticatedEmail || activeSection !== 'transactions' || cashTransactionOptions) return
+    if (!selectedTenantId || activeSection !== 'transactions' || cashTransactionOptions) return
     let active = true
     void Promise.all([
-      fetch('/api/financial-categories?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.ok ? r.json() as Promise<CategoryPage> : Promise.reject(new Error('Não foi possível carregar categorias.'))),
-      fetch('/api/financial-accounts?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.ok ? r.json() as Promise<AccountPage> : Promise.reject(new Error('Não foi possível carregar contas.'))),
+      apiFetch('/api/financial-categories?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.ok ? r.json() as Promise<CategoryPage> : Promise.reject(new Error('Não foi possível carregar categorias.'))),
+      apiFetch('/api/financial-accounts?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' }).then((r) => r.ok ? r.json() as Promise<AccountPage> : Promise.reject(new Error('Não foi possível carregar contas.'))),
     ]).then(([categoryPage, accountPage]) => { if (active) setCashTransactionOptions({ categories: categoryPage.items, accounts: accountPage.items }) })
       .catch((error: unknown) => { if (active) setMessage(error instanceof Error ? error.message : 'Falha ao carregar opções de movimento.') })
     return () => { active = false }
-  }, [authenticatedEmail, activeSection, cashTransactionOptions])
+  }, [selectedTenantId, activeSection, cashTransactionOptions])
 
   async function submitAuth(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -313,16 +339,16 @@ function App() {
 
     try {
       await refreshCsrf()
-      const response = await fetch(`/api/auth/${mode}`, {
+      const response = await apiFetch(`/api/auth/${mode}`, {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? '') },
         body: JSON.stringify(payload),
       })
       if (!response.ok) throw new Error(response.status === 401 ? 'E-mail ou senha inválidos.' : 'Não foi possível concluir. Confira os dados e tente novamente.')
-      const sessionResponse = await fetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' })
+      const sessionResponse = await apiFetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' })
       if (!sessionResponse.ok) throw new Error('A sessão foi iniciada, mas não foi possível carregar a empresa.')
-      const session = await sessionResponse.json() as { email: string; companyName: string; role: TenantRole }
+      const session = await sessionResponse.json() as { email: string; tenants: TenantChoice[] }
       setContacts({ items: [], total: 0, page: 0, size: 20 })
       setContactsLoadedKey('')
       setAccounts({ items: [], total: 0, page: 0, size: 20 })
@@ -349,9 +375,7 @@ function App() {
       setCancellingTitleId(null)
       setCancellationReason('')
       setActiveSection('dashboard')
-      setAuthenticatedEmail(session.email)
-      setCompanyName(session.companyName)
-      setTenantRole(session.role)
+      acceptSession(session)
       await refreshCsrf()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Falha de conexão com a API.')
@@ -375,7 +399,7 @@ function App() {
     }
     try {
       await refreshCsrf()
-      const response = await fetch(editing ? `/api/contacts/${editing.id}` : '/api/contacts', {
+      const response = await apiFetch(editing ? `/api/contacts/${editing.id}` : '/api/contacts', {
         method: editing ? 'PUT' : 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? '') },
@@ -389,7 +413,7 @@ function App() {
       setMessage(editing ? 'Contato atualizado.' : 'Contato cadastrado.')
       const params = new URLSearchParams({ page: String(page), size: '20' })
       if (query.trim()) params.set('q', query.trim())
-      const list = await fetch(`/api/contacts?${params}`, { credentials: 'same-origin', cache: 'no-store' })
+      const list = await apiFetch(`/api/contacts?${params}`, { credentials: 'same-origin', cache: 'no-store' })
       if (list.ok) setContacts(await list.json() as ContactPage)
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Falha ao salvar contato.')
@@ -406,7 +430,7 @@ function App() {
     try {
       await refreshCsrf()
       if (editingAccount) {
-        const response = await fetch(`/api/financial-accounts/${editingAccount.id}`, {
+        const response = await apiFetch(`/api/financial-accounts/${editingAccount.id}`, {
           method: 'PUT', credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? '') },
           body: JSON.stringify({ name: String(data.get('name') ?? ''), status: data.get('status') }),
@@ -421,7 +445,7 @@ function App() {
           openingBalanceMinor: parseBrlToMinor(String(data.get('openingBalance') ?? '')),
           openingBalanceDate: String(data.get('openingBalanceDate') ?? ''),
         }
-        const response = await fetch('/api/financial-accounts', {
+        const response = await apiFetch('/api/financial-accounts', {
           method: 'POST', credentials: 'same-origin',
           headers: {
             'Content-Type': 'application/json',
@@ -454,7 +478,7 @@ function App() {
     try {
       await refreshCsrf()
       const status: AccountStatus = account.status === 'ACTIVE' ? 'ARCHIVED' : 'ACTIVE'
-      const response = await fetch(`/api/financial-accounts/${account.id}`, {
+      const response = await apiFetch(`/api/financial-accounts/${account.id}`, {
         method: 'PUT', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? '') },
         body: JSON.stringify({ name: account.name, status }),
@@ -478,7 +502,7 @@ function App() {
     const data = new FormData(event.currentTarget)
     try {
       await refreshCsrf()
-      const response = await fetch(editingCategory ? `/api/financial-categories/${editingCategory.id}` : '/api/financial-categories', {
+      const response = await apiFetch(editingCategory ? `/api/financial-categories/${editingCategory.id}` : '/api/financial-categories', {
         method: editingCategory ? 'PUT' : 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? '') },
         body: JSON.stringify(editingCategory ? { name: String(data.get('name') ?? ''), status: data.get('status') } : { name: String(data.get('name') ?? ''), direction: data.get('direction') }),
@@ -502,12 +526,12 @@ function App() {
       await refreshCsrf()
       const payload = { description: String(data.get('description') ?? ''), contactId: String(data.get('contactId') ?? ''), categoryId: String(data.get('categoryId') ?? ''), plannedAccountId: String(data.get('plannedAccountId') ?? '') || null, originalAmountMinor: amount, dueDate: String(data.get('dueDate') ?? ''), notes: String(data.get('notes') ?? '') }
       if (editingTitle) {
-        const response = await fetch('/api/financial-titles/' + editingTitle.id, { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? '') }, body: JSON.stringify(payload) })
+        const response = await apiFetch('/api/financial-titles/' + editingTitle.id, { method: 'PUT', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? '') }, body: JSON.stringify(payload) })
         if (!response.ok) throw new Error('Não foi possível atualizar o título. Confira contato, categoria, conta e valor.')
         setMessage('Título atualizado.')
       } else {
         titleIdempotencyKey.current ??= crypto.randomUUID()
-        const response = await fetch('/api/financial-titles', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? ''), 'Idempotency-Key': titleIdempotencyKey.current }, body: JSON.stringify({ kind: titleKind, ...payload }) })
+        const response = await apiFetch('/api/financial-titles', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? ''), 'Idempotency-Key': titleIdempotencyKey.current }, body: JSON.stringify({ kind: titleKind, ...payload }) })
         if (!response.ok) throw new Error(response.status === 409 ? 'Esta tentativa foi repetida com dados diferentes ou encontrou um conflito.' : 'Não foi possível criar o título. Confira os dados e tente novamente.')
         titleIdempotencyKey.current = null
         setMessage(response.status === 200 ? 'A criação anterior foi recuperada com segurança.' : 'Título criado. Ele ainda não altera o caixa.')
@@ -535,7 +559,7 @@ function App() {
     setMessage('')
     try {
       await refreshCsrf()
-      const response = await fetch('/api/financial-titles/' + title.id + '/cancel', {
+      const response = await apiFetch('/api/financial-titles/' + title.id + '/cancel', {
         method: 'POST',
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? '') },
@@ -569,7 +593,7 @@ function App() {
         settlementIdempotency.current.set(title.id, attempt)
       }
       await refreshCsrf()
-      const response = await fetch(`/api/financial-titles/${title.id}/settlements`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? ''), 'Idempotency-Key': attempt.key }, body: JSON.stringify({ accountId: String(data.get('accountId') ?? ''), amountMinor, effectiveDate: String(data.get('effectiveDate') ?? '') }) })
+      const response = await apiFetch(`/api/financial-titles/${title.id}/settlements`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? ''), 'Idempotency-Key': attempt.key }, body: JSON.stringify({ accountId: String(data.get('accountId') ?? ''), amountMinor, effectiveDate: String(data.get('effectiveDate') ?? '') }) })
       if (!response.ok) throw new Error(response.status === 409 ? 'A baixa excede o saldo em aberto ou esta tentativa encontrou um conflito.' : 'Não foi possível registrar a baixa. Confira a conta e os dados.')
       settlementIdempotency.current.delete(title.id)
       setMessage(response.status === 200 ? 'A baixa anterior foi recuperada com segurança.' : 'Baixa registrada e saldo controlado atualizado.')
@@ -595,7 +619,7 @@ function App() {
         reversalIdempotency.current.set(mapKey, attempt)
       }
       await refreshCsrf()
-      const response = await fetch(`/api/financial-titles/${title.id}/settlements/${settlement.id}/reversals`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? ''), 'Idempotency-Key': attempt.key }, body: JSON.stringify(payload) })
+      const response = await apiFetch(`/api/financial-titles/${title.id}/settlements/${settlement.id}/reversals`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? ''), 'Idempotency-Key': attempt.key }, body: JSON.stringify(payload) })
       if (!response.ok) throw new Error(response.status === 409 ? 'A reversão excede o valor ainda não revertido ou encontrou um conflito.' : 'Não foi possível registrar a reversão.')
       reversalIdempotency.current.delete(mapKey)
       setMessage('Reversão registrada com motivo e movimento de caixa preservados.')
@@ -616,7 +640,7 @@ function App() {
       const signature = JSON.stringify(payload)
       if (!cashTransactionIdempotency.current || cashTransactionIdempotency.current.signature !== signature) cashTransactionIdempotency.current = { key: crypto.randomUUID(), signature }
       await refreshCsrf()
-      const response = await fetch('/api/cash-transactions', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? ''), 'Idempotency-Key': cashTransactionIdempotency.current.key }, body: JSON.stringify(payload) })
+      const response = await apiFetch('/api/cash-transactions', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? ''), 'Idempotency-Key': cashTransactionIdempotency.current.key }, body: JSON.stringify(payload) })
       if (!response.ok) throw new Error(response.status === 409 ? 'Esta tentativa encontrou um conflito de idempotência.' : 'Não foi possível registrar o movimento. Confira conta, categoria e valor.')
       cashTransactionIdempotency.current = null
       setMessage(response.status === 200 ? 'O movimento anterior foi recuperado com segurança.' : 'Movimento registrado no saldo controlado.')
@@ -645,7 +669,7 @@ function App() {
         cashTransferIdempotency.current = { key: crypto.randomUUID(), signature }
       }
       await refreshCsrf()
-      const response = await fetch('/api/cash-transactions/transfers', {
+      const response = await apiFetch('/api/cash-transactions/transfers', {
         method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? ''), 'Idempotency-Key': cashTransferIdempotency.current.key },
         body: JSON.stringify(payload),
@@ -663,12 +687,15 @@ function App() {
     setBusy(true)
     try {
       await refreshCsrf()
-      const response = await fetch('/api/auth/logout', {
+      const response = await apiFetch('/api/auth/logout', {
         method: 'POST', credentials: 'same-origin',
         headers: { 'X-XSRF-TOKEN': decodeURIComponent(csrfCookie() ?? '') },
       })
       if (!response.ok) throw new Error('Não foi possível encerrar a sessão. Tente novamente.')
       setAuthenticatedEmail('')
+      setTenantChoices([])
+      setSelectedTenantId('')
+      window.localStorage.removeItem('flowpay.activeTenantId')
       setCompanyName('')
       setTenantRole('')
       setContacts({ items: [], total: 0, page: 0, size: 20 })
@@ -720,17 +747,20 @@ function App() {
   const isDemoEnvironment = companyName === 'FlowPay Demonstração'
 
   return (
-    <main className={`page-shell${authenticatedEmail ? ' page-shell--workspace' : ''}`} data-read-only={tenantRole === 'READER'}>
+    <main className={`page-shell${selectedTenantId ? ' page-shell--workspace' : ''}`} data-read-only={tenantRole === 'READER'}>
       <header className="topbar">
         <a className="brand" href="/">
           <span className="brand-mark" aria-hidden="true">F</span><span>flowpay</span>
         </a>
         {authenticatedEmail
-          ? <div className="topbar-account">{tenantRole === 'READER' && <span className="environment-label">Acesso de leitura</span>}<span className="environment-label">{isDemoEnvironment ? 'Ambiente de demonstração' : companyName}</span><button type="button" className="topbar-logout" onClick={logout} disabled={busy}>Sair</button></div>
+          ? <div className="topbar-account">{selectedTenantId && tenantChoices.length > 1 && <label className="tenant-switch-label">Empresa ativa<select aria-label="Empresa ativa" value={selectedTenantId} onChange={(event) => { window.localStorage.setItem('flowpay.activeTenantId', event.target.value); window.location.reload() }}>{tenantChoices.map((tenant) => <option value={tenant.id} key={tenant.id}>{tenant.name}</option>)}</select></label>}{selectedTenantId && tenantRole === 'READER' && <span className="environment-label">Acesso de leitura</span>}{selectedTenantId && <span className="environment-label">{isDemoEnvironment ? 'Ambiente de demonstração' : companyName}</span>}<button type="button" className="topbar-logout" onClick={logout} disabled={busy}>Sair</button></div>
           : <span className="environment-label">Ambiente local</span>}
       </header>
 
-      {authenticatedEmail ? <>
+      {authenticatedEmail && !selectedTenantId ? <section className="auth-layout tenant-chooser" aria-labelledby="tenant-chooser-title">
+        <div className="welcome"><p className="eyebrow">Sessão autenticada</p><h1 id="tenant-chooser-title">Escolha uma empresa</h1><p className="welcome-copy">Selecione a empresa cujos dados deseja consultar.</p></div>
+        <section className="auth-card"><h2>Empresas disponíveis</h2>{tenantChoices.length === 0 ? <p className="auth-intro">Esta conta ainda não tem acesso a uma empresa.</p> : <div className="tenant-choice-list">{tenantChoices.map((tenant) => <button key={tenant.id} type="button" className="tenant-choice" onClick={() => activateTenant(tenant.id)}><strong>{tenant.name}</strong><span>{tenant.role === 'READER' ? 'Acesso de leitura' : 'Acesso operacional'}</span></button>)}</div>}{message && <p className="form-message" role="status">{message}</p>}</section>
+      </section> : authenticatedEmail ? <>
         <div className="workspace-layout">
           <aside className="sidebar" aria-label="Navegação principal">
             <p className="sidebar-label">Empresa</p>

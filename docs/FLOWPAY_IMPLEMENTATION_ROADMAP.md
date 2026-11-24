@@ -128,7 +128,7 @@ Regras de banco:
 
 ### 2.3 Contexto de tenant e transações
 
-**Andamento (22/11/2026):** o contexto atual é resolvido pela membership da sessão autenticada e falha quando não há membership ou há mais de uma. A primeira tela carrega o nome da empresa. Seletor para múltiplas empresas permanece pendente.
+**Andamento (24/11/2026):** the authenticated session lists memberships. The SPA can select and switch companies. Business requests send `X-FlowPay-Tenant` as the requested selection; the backend validates it together with the authenticated identity and membership on every request. The header never grants access. Requests without a selection remain accepted for a single membership and fail closed for multiple memberships; an unauthorized company returns 403 and an invalid identifier returns 400.
 
 - Derivar tenant ativo de membership autenticado, não confiar em header/body do cliente.
 - Tornar acesso ao contexto explícito e falhar fechado se não houver contexto empresarial em caso de uso que o exige.
@@ -137,7 +137,7 @@ Regras de banco:
 
 ## Portão 3 — identidade e empresas
 
-**Andamento (24/11/2026):** a primeira fatia cria conta e empresa com membership `OWNER`, e oferece login por sessão com CSRF da SPA. A matriz operacional foi decidida e aplicada no backend: `OWNER`/`MANAGER` escrevem e `READER` consulta; a SPA sinaliza leitura e oculta controles de alteração para `READER`. Carregamento/troca do tenant ativo, administração de memberships, limitação de abuso, verificação de e-mail e recuperação de senha continuam pendentes. O endpoint de cadastro agora é negado por padrão (`flowpay.identity.registration.enabled=false`); `application-local.yml` habilita o fluxo para desenvolvimento e a demo local. A SPA consulta `GET /api/auth/config` e só mostra cadastro quando habilitado; falha de configuração mantém apenas login. Limites contra abuso continuam pendentes antes de qualquer exposição pública.
+**Andamento (24/11/2026):** a primeira fatia cria conta e empresa com membership `OWNER`, e oferece login por sessão com CSRF da SPA. A matriz operacional foi decidida e aplicada no backend: `OWNER`/`MANAGER` escrevem e `READER` consulta; a SPA sinaliza leitura e oculta controles de alteração para `READER`. administração de memberships, limitação de abuso, verificação de e-mail e recuperação de senha continuam pendentes. O endpoint de cadastro agora é negado por padrão (`flowpay.identity.registration.enabled=false`); `application-local.yml` habilita o fluxo para desenvolvimento e a demo local. A SPA consulta `GET /api/auth/config` e só mostra cadastro quando habilitado; falha de configuração mantém apenas login. Limites contra abuso continuam pendentes antes de qualquer exposição pública.
 
 ### 3.1 Autenticação local segura
 

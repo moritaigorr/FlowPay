@@ -139,6 +139,8 @@ Transferência entre contas próprias é registrada por um fato `CashTransfer` e
 
 **Saldos no UI:** `saldo controlado` (saldo inicial + movimentos reconhecidos) e `saldo do extrato` (quando fornecido pelo arquivo) são valores distintos. Mostrar diferença pendente de conciliação; não afirmar que são o saldo bancário em tempo real.
 
+**Implemented (2026-11-24):** the authenticated session lists memberships. The SPA requests an active company through `X-FlowPay-Tenant`; every business request resolves that ID together with the authenticated identity and membership. The header is only a selection hint and never an authorization credential. Requests without a selection fail closed for identities with multiple memberships.
+
 ## 8. Segurança e falhas
 
 | Risco | Controle | Teste |

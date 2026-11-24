@@ -130,6 +130,43 @@ class DemoSeedPostgresIntegrationTest {
     }
 
     @Test
+    @Transactional
+    void multipleMembershipsRequireAnAuthorizedTenantSelectionForBusinessRequests() throws Exception {
+        UUID userId = UUID.randomUUID();
+        UUID firstTenant = UUID.randomUUID();
+        UUID secondTenant = UUID.randomUUID();
+        UUID unrelatedTenant = UUID.randomUUID();
+        String email = "multi-tenant-" + UUID.randomUUID() + "@flowpay.local";
+        String password = "Multi-Tenant-Testing-2026!";
+        jdbc.update("INSERT INTO app_user(id, email, password_hash) VALUES (?, ?, ?)", userId, email, passwordEncoder.encode(password));
+        jdbc.update("INSERT INTO tenant(id, name, created_at) VALUES (?, ?, TIMESTAMPTZ '2026-01-01'), (?, ?, TIMESTAMPTZ '2026-01-02')",
+                firstTenant, "First company", secondTenant, "Second company");
+        jdbc.update("INSERT INTO tenant(id, name) VALUES (?, ?)", unrelatedTenant, "Unrelated company");
+        jdbc.update("INSERT INTO membership(tenant_id, user_id, role) VALUES (?, ?, 'OWNER'), (?, ?, 'READER')", firstTenant, userId, secondTenant, userId);
+        jdbc.update("INSERT INTO contact(id, tenant_id, name, is_customer) VALUES (?, ?, 'First contact', TRUE), (?, ?, 'Second contact', TRUE)",
+                UUID.randomUUID(), firstTenant, UUID.randomUUID(), secondTenant);
+
+        CsrfState csrf = csrfState();
+        MockHttpSession session = login(email, password, csrf);
+        mockMvc.perform(get("/api/auth/session").session(session))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tenants.length()").value(2))
+                .andExpect(jsonPath("$.tenants[0].name").value("First company"))
+                .andExpect(jsonPath("$.tenants[1].name").value("Second company"));
+        mockMvc.perform(get("/api/contacts").session(session)).andExpect(status().isConflict());
+        mockMvc.perform(get("/api/contacts").session(session).header("X-FlowPay-Tenant", firstTenant))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].name").value("First contact"));
+        mockMvc.perform(get("/api/contacts").session(session).header("X-FlowPay-Tenant", secondTenant))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1))
+                .andExpect(jsonPath("$.items[0].name").value("Second contact"));
+        mockMvc.perform(get("/api/contacts").session(session).header("X-FlowPay-Tenant", unrelatedTenant))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/contacts").session(session).header("X-FlowPay-Tenant", "not-a-uuid"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void localProfileAllowsRegistrationWithValidCsrf() throws Exception {
         mockMvc.perform(get("/api/auth/config"))
                 .andExpect(status().isOk())

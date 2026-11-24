@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { formatLocalDate, formatMinor } from '../finance/format'
+import { apiFetch } from '../shared/api'
 
 type DashboardData = {
   from: string
@@ -49,7 +50,7 @@ export function Dashboard({ companyName, onNewMovement }: { companyName: string;
     if (!from || !to || from > to) return
     const controller = new AbortController()
     const params = new URLSearchParams({ from, to, timezone })
-    fetch(`/api/dashboard?${params.toString()}`, { credentials: 'same-origin', cache: 'no-store', signal: controller.signal })
+    apiFetch(`/api/dashboard?${params.toString()}`, { credentials: 'same-origin', cache: 'no-store', signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error(dashboardErrorMessage(response))
         return await response.json() as DashboardData

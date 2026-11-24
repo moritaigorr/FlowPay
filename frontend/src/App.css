@@ -12,6 +12,12 @@
 
 .page-shell--workspace { width: min(100% - 48px, 1360px); }
 .topbar-account { display: flex; align-items: center; gap: 12px; }
+.tenant-switch-label { display: flex; align-items: center; gap: 8px; color: var(--muted-foreground); font-size: 12px; font-weight: 600; }
+.tenant-switch-label select { min-height: 38px; max-width: 240px; padding: 0 10px; border: 1px solid var(--border); border-radius: 999px; color: var(--foreground); background: var(--surface); font: inherit; }
+.tenant-choice-list { display: grid; gap: 10px; }
+.tenant-choice { display: grid; gap: 5px; min-height: 64px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; color: var(--foreground); background: var(--surface); text-align: left; font: inherit; cursor: pointer; }
+.tenant-choice:hover, .tenant-choice:focus-visible { border-color: var(--primary); outline: 3px solid rgb(7 90 99 / 18%); }
+.tenant-choice span { color: var(--muted-foreground); font-size: 13px; }
 .topbar-logout, .edit-button, .text-action { border: 0; color: var(--primary); background: transparent; font: inherit; font-weight: 650; cursor: pointer; }
 .topbar-logout { min-height: 40px; padding: 0 12px; }
 .topbar-logout:focus-visible, .edit-button:focus-visible, .text-action:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }

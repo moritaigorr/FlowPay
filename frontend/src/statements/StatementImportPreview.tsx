@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatLocalDate, formatMinor, parseBrlToMinor } from '../finance/format'
 import { useFocusReturnOnClose } from '../shared/useFocusReturnOnClose'
+import { apiFetch } from '../shared/api'
 
 type Account = { id: string; name: string; status: 'ACTIVE' | 'ARCHIVED' }
 type AccountPage = { items: Account[] }
@@ -122,7 +123,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
 
   useEffect(() => {
     let active = true
-    fetch('/api/financial-accounts?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch('/api/financial-accounts?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => {
         if (!response.ok) throw new Error('Não foi possível carregar as contas financeiras.')
         return await response.json() as AccountPage
@@ -134,7 +135,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
 
   useEffect(() => {
     let active = true
-    fetch('/api/financial-categories?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch('/api/financial-categories?page=0&size=100', { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => {
         if (!response.ok) throw new Error('Não foi possível carregar as categorias financeiras.')
         return await response.json() as CategoryPage
@@ -147,7 +148,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
   useEffect(() => {
     if (!accountId) return
     let active = true
-    fetch(`/api/statement-imports?accountId=${encodeURIComponent(accountId)}&page=${importsPage}&size=20`, { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch(`/api/statement-imports?accountId=${encodeURIComponent(accountId)}&page=${importsPage}&size=20`, { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => {
         if (!response.ok) throw new Error('Não foi possível carregar o histórico de extratos.')
         return await response.json() as ImportPage
@@ -160,14 +161,14 @@ export function StatementImportPreview({ companyName }: { companyName: string })
   useEffect(() => {
     if (!selectedImportId) return
     let active = true
-    fetch(`/api/statement-imports/${selectedImportId}/lines?page=${savedLinesPage}&size=50`, { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch(`/api/statement-imports/${selectedImportId}/lines?page=${savedLinesPage}&size=50`, { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => {
         if (!response.ok) throw new Error('Não foi possível carregar as linhas deste extrato.')
         const lines = await response.json() as Omit<LinePage, 'items'> & { items: Omit<SavedLine, 'matchId'>[] }
         if (lines.items.length === 0) return { ...lines, items: [] as SavedLine[] }
         const params = new URLSearchParams()
         lines.items.forEach((line) => params.append('lineIds', line.id))
-        const statusResponse = await fetch(`/api/statement-lines/matches?${params}`, { credentials: 'same-origin', cache: 'no-store' })
+        const statusResponse = await apiFetch(`/api/statement-lines/matches?${params}`, { credentials: 'same-origin', cache: 'no-store' })
         if (!statusResponse.ok) throw new Error('Não foi possível carregar o estado das conciliações.')
         const statuses = await statusResponse.json() as MatchStatus[]
         const matchIds = new Map(statuses.map((status) => [status.statementLineId, status.matchId]))
@@ -182,7 +183,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
     if (!selectedImportId) return
     let active = true
     const key = `${selectedImportId}|${timezone}|${linesRefresh}`
-    fetch(`/api/statement-imports/${selectedImportId}/reconciliation-summary?timezone=${encodeURIComponent(timezone)}`, { credentials: 'same-origin', cache: 'no-store' })
+    apiFetch(`/api/statement-imports/${selectedImportId}/reconciliation-summary?timezone=${encodeURIComponent(timezone)}`, { credentials: 'same-origin', cache: 'no-store' })
       .then(async (response) => {
         const body = await response.json() as ReconciliationSummary | { detail?: string; message?: string }
         if (!response.ok) throw new Error(('detail' in body && body.detail) || ('message' in body && body.message) || 'Não foi possível calcular o resumo da conciliação.')
@@ -204,7 +205,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
       const data = new FormData()
       data.set('accountId', accountId)
       data.set('file', file)
-      const response = await fetch('/api/statement-imports/preview', {
+      const response = await apiFetch('/api/statement-imports/preview', {
         method: 'POST', credentials: 'same-origin', headers: { 'X-XSRF-TOKEN': csrfToken() }, body: data,
       })
       const body = await response.json() as Preview | { detail?: string; message?: string }
@@ -244,7 +245,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
         data.set('statementClosingBalanceMinor', closingMinor.toString())
         data.set('statementClosingBalanceDate', statementClosingDate)
       }
-      const response = await fetch('/api/statement-imports/confirm', {
+      const response = await apiFetch('/api/statement-imports/confirm', {
         method: 'POST', credentials: 'same-origin', headers: { 'X-XSRF-TOKEN': csrfToken() }, body: data,
       })
       const body = await response.json() as Confirmation | { detail?: string; message?: string }
@@ -267,7 +268,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
     setSuggestions(null)
     setSuggestionBusy(true)
     try {
-      const response = await fetch(`/api/statement-lines/${line.id}/suggestions`, { credentials: 'same-origin', cache: 'no-store' })
+      const response = await apiFetch(`/api/statement-lines/${line.id}/suggestions`, { credentials: 'same-origin', cache: 'no-store' })
       const body = await response.json() as SuggestionList | { detail?: string; message?: string }
       if (!response.ok) throw new Error(('detail' in body && body.detail) || ('message' in body && body.message) || 'Não foi possível sugerir movimentos.')
       setSuggestions(body as SuggestionList)
@@ -290,7 +291,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
     setMatchBusy(true)
     setMessage('')
     try {
-      const response = await fetch(`/api/statement-lines/${selectedLine.id}/match`, {
+      const response = await apiFetch(`/api/statement-lines/${selectedLine.id}/match`, {
         method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': csrfToken(), 'Idempotency-Key': key },
         body: JSON.stringify(payload),
@@ -322,7 +323,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
     const key = reviewKeys.current.get(slot) ?? crypto.randomUUID()
     reviewKeys.current.set(slot, key)
     try {
-      const response = await fetch(`/api/statement-lines/${line.id}/review`, { method: 'POST', credentials: 'same-origin',
+      const response = await apiFetch(`/api/statement-lines/${line.id}/review`, { method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': csrfToken(), 'Idempotency-Key': key },
         body: JSON.stringify({ action, reason }) })
       const body = await response.json() as { detail?: string; message?: string }
@@ -340,7 +341,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
     const key = reviewKeys.current.get(slot) ?? crypto.randomUUID()
     reviewKeys.current.set(slot, key)
     try {
-      const response = await fetch(`/api/statement-lines/${line.id}/match/reversal`, { method: 'POST', credentials: 'same-origin',
+      const response = await apiFetch(`/api/statement-lines/${line.id}/match/reversal`, { method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': csrfToken(), 'Idempotency-Key': key },
         body: JSON.stringify({ reason }) })
       const body = await response.json() as { detail?: string; message?: string }
@@ -358,7 +359,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
     const key = reviewKeys.current.get(slot) ?? crypto.randomUUID()
     reviewKeys.current.set(slot, key)
     try {
-      const response = await fetch(`/api/statement-lines/${line.id}/candidate-ignores/${movementId}`, { method: 'POST', credentials: 'same-origin',
+      const response = await apiFetch(`/api/statement-lines/${line.id}/candidate-ignores/${movementId}`, { method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': csrfToken(), 'Idempotency-Key': key }, body: JSON.stringify({ reason }) })
       const body = await response.json() as { detail?: string; message?: string }
       if (!response.ok) throw new Error(body.detail || body.message || 'Não foi possível ignorar este candidato.')
@@ -375,7 +376,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
     const key = reviewKeys.current.get(slot) ?? crypto.randomUUID()
     reviewKeys.current.set(slot, key)
     try {
-      const response = await fetch(`/api/statement-lines/${line.id}/candidate-ignores/${movementId}/restore`, { method: 'POST', credentials: 'same-origin',
+      const response = await apiFetch(`/api/statement-lines/${line.id}/candidate-ignores/${movementId}/restore`, { method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': csrfToken(), 'Idempotency-Key': key }, body: JSON.stringify({ reason }) })
       const body = await response.json() as { detail?: string; message?: string }
       if (!response.ok) throw new Error(body.detail || body.message || 'Não foi possível restaurar este candidato.')

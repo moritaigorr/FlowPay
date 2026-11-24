@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { formatLocalDate, formatMinor } from '../finance/format'
+import { apiFetch } from '../shared/api'
 
 type MonthlyReportData = {
   month: string
@@ -55,7 +56,7 @@ export function MonthlyReport({ companyName }: { companyName: string }) {
     if (invalidMonth) return
     const controller = new AbortController()
     const params = new URLSearchParams({ month, timezone, page: String(page), size: '20' })
-    fetch(`/api/reports/monthly?${params.toString()}`, { credentials: 'same-origin', cache: 'no-store', signal: controller.signal })
+    apiFetch(`/api/reports/monthly?${params.toString()}`, { credentials: 'same-origin', cache: 'no-store', signal: controller.signal })
       .then(async (response) => {
         if (!response.ok) throw new Error(response.status === 400
           ? 'Confira o mês, o fuso horário e a paginação informados.'
