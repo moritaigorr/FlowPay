@@ -48,6 +48,36 @@ test('demo owner signs in and sees the seeded financial workspace', async ({ pag
   await page.getByRole('button', { name: 'A receber', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Projeto demonstração' })).toBeVisible()
 
+  const filterStart = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(new Date())
+  const filterEndDate = new Date(`${filterStart}T12:00:00Z`)
+  filterEndDate.setUTCDate(filterEndDate.getUTCDate() + 365)
+  const filterEnd = filterEndDate.toISOString().slice(0, 10)
+  const filteredRequest = page.waitForRequest((request) => {
+    const url = new URL(request.url())
+    return url.pathname === '/api/financial-titles'
+      && url.searchParams.get('status') === 'OPEN'
+      && url.searchParams.has('contactId')
+      && url.searchParams.get('dueFrom') === filterStart
+      && url.searchParams.get('dueTo') === filterEnd
+  })
+  await page.getByLabel('Estado').selectOption('OPEN')
+  await page.getByLabel('Pessoa').selectOption({ label: 'Cliente Exemplo Ltda.' })
+  await page.getByLabel('Vencimento a partir de').fill(filterStart)
+  await page.getByLabel('Vencimento até').fill(filterEnd)
+  const request = await filteredRequest
+  const filterParams = new URL(request.url()).searchParams
+  expect(filterParams.get('status')).toBe('OPEN')
+  expect(filterParams.get('dueFrom')).toBe(filterStart)
+  expect(filterParams.get('dueTo')).toBe(filterEnd)
+  expect(filterParams.get('contactId')).toBeTruthy()
+  await page.getByRole('button', { name: 'Limpar filtros' }).click()
+  await expect(page.getByLabel('Estado')).toHaveValue('')
+  await expect(page.getByLabel('Pessoa')).toHaveValue('')
+  await expect(page.getByLabel('Vencimento a partir de')).toHaveValue('')
+  await expect(page.getByLabel('Vencimento até')).toHaveValue('')
+
   await page.getByRole('button', { name: 'A pagar', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Licença de software' })).toBeVisible()
 
