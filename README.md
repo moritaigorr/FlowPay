@@ -85,7 +85,7 @@ The GitHub Actions frontend job provisions its own PostgreSQL 18.7 service, star
 
 ### Local PostgreSQL backup and restore drill
 
-These scripts operate only on the Compose `db` service whose database is named `flowpay`. They are local-development tools, not a production backup service.
+These scripts default to the Compose `db` service whose database is named `flowpay`. On Windows, `-ConnectionMode Local` can use installed PostgreSQL client tools against a loopback PostgreSQL server; that mode is restricted to the database named `flowpay` for backup and loopback addresses for restore. The restore user needs permission to create a database. Supply `-PostgresBinDirectory` when the client tools are not on `PATH`. Both modes are local-development tools, not a production backup service.
 
 Create a custom-format dump under the ignored `backups/` directory:
 
@@ -93,10 +93,22 @@ Create a custom-format dump under the ignored `backups/` directory:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/backup-postgres.ps1
 ```
 
+To back up a local PostgreSQL instance without Docker:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/backup-postgres.ps1 -ConnectionMode Local -PostgresBinDirectory 'C:\Program Files\PostgreSQL\16\bin' -DatabasePort 55432
+```
+
 Restore a dump into a new database without overwriting `flowpay`:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/restore-postgres.ps1 -BackupPath ./backups/flowpay-YYYYMMDD-HHMMSS.dump -TargetDatabase flowpay_restore_drill
+```
+
+Restore into a new database on a local PostgreSQL instance:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File ./scripts/restore-postgres.ps1 -ConnectionMode Local -PostgresBinDirectory 'C:\Program Files\PostgreSQL\16\bin' -DatabasePort 55432 -BackupPath ./backups/flowpay-YYYYMMDD-HHMMSS.dump -TargetDatabase flowpay_restore_drill
 ```
 
 The restore script accepts only new database names prefixed with `flowpay_restore_`, refuses an existing target, validates the archive, restores it in a separate database, and checks for successful Flyway migrations. It retains the restored database for inspection and never drops the source or target. Dumps contain the database's financial and personal data; protect and delete local copies deliberately. This procedure does not define production retention, encryption, RPO, or RTO, and does not back up object storage.
