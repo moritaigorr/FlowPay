@@ -32,7 +32,7 @@ test('new company imports a settled receipt without duplicating cash and reports
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
 
   await page.getByRole('button', { name: 'Contatos', exact: true }).click()
-  await page.getByRole('button', { name: /Novo contato|Cadastrar primeiro contato/ }).click()
+  await page.getByRole('button', { name: 'Novo contato', exact: true }).click()
   const contactForm = page.locator('form').filter({ has: page.getByLabel('Nome', { exact: true }) })
   await contactForm.getByLabel('Nome', { exact: true }).fill(`Cliente ${id}`)
   await contactForm.getByLabel('Cliente', { exact: true }).check()
@@ -291,7 +291,7 @@ test('new company imports a settled receipt without duplicating cash and reports
   await transferForm.getByLabel('Valor em reais').fill('25,00')
   await transferForm.getByLabel('Data realizada').fill(today)
   await transferForm.getByRole('button', { name: 'Registrar transfer\u00EAncia', exact: true }).click()
-  await expect(page.getByRole('status')).toContainText('Transferência registrada entre as contas')
+  await expect(page.getByRole('status').filter({ hasText: 'Transferência registrada entre as contas' })).toBeVisible()
   await expect(page.getByRole('article').filter({ hasText: 'Transferência interna E2E' })).toHaveCount(2)
 
   await page.getByRole('button', { name: 'Ajustar saldo', exact: true }).click()
@@ -302,7 +302,7 @@ test('new company imports a settled receipt without duplicating cash and reports
   await adjustmentForm.getByLabel('Data do ajuste').fill(today)
   await adjustmentForm.getByLabel('Motivo').fill('Contagem física de caixa')
   await adjustmentForm.getByRole('button', { name: 'Confirmar ajuste', exact: true }).click()
-  await expect(page.getByRole('status')).toContainText('Ajuste de saldo registrado com motivo e responsável')
+  await expect(page.getByRole('status').filter({ hasText: 'Ajuste de saldo registrado com motivo e responsável' })).toBeVisible()
   const adjustment = page.getByRole('article').filter({ hasText: 'Ajuste de saldo' })
   await expect(adjustment).toContainText('Contagem física de caixa')
   await expect(adjustment).toContainText('R$ 12,50')

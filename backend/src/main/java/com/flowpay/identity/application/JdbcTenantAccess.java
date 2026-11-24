@@ -40,7 +40,7 @@ public class JdbcTenantAccess implements TenantAccess {
     }
 
     private java.util.List<CurrentTenant> findTenants(String email, java.util.UUID tenantId) {
-        String filter = tenantId == null ? "" : " AND t.id = ?";
+        String filter = tenantId == null ? "" : " AND t.id = ?\n";
         var tenants = jdbc.query("""
                         SELECT t.id, t.name, m.role
                         FROM membership m

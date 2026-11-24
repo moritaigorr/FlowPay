@@ -30,18 +30,19 @@ Recorded in local commit `Add persistent authentication throttling`; the branch 
 - Added an isolated Playwright journey for choosing a company, switching to another authorized company, and rendering a `READER` workspace.
 - The test confirms no business API call occurs before company selection and checks the tenant header on dashboard requests. Axe scans passed for the chooser and read-only workspace.
 - The API is mocked in this browser test; this proves the SPA flow, not server authorization or PostgreSQL behavior. `npm.cmd run lint`, `npm.cmd run build`, and the focused Playwright case passed.
-- Current local branch is eleven commits ahead of `origin/main`; no changes have been pushed. This browser test and its documentation update are pending a local commit.
+- At that checkpoint, the local branch was eleven commits ahead of `origin/main`; the browser test and its documentation are now committed locally.
 
-## Current increment: audited balance adjustment
+## Completed increment: audited balance adjustment
 
 - Added migration V17, a tenant-scoped idempotent `ADJUSTMENT` cash movement, and a required reason plus authenticated actor FK on the immutable cash record. Only `OWNER`/`MANAGER` can create it; the account must be active.
 - Added the UI form and transaction-history reason display. `READER` sees the workspace in read-only mode with write actions hidden. Adjustments change controlled balances but are excluded from operating inflow/outflow and category totals.
 - Added PostgreSQL integration coverage for manager/reader access, actor/reason persistence, idempotent replay/conflict, and report totals, plus a real-API E2E scenario. The focused mocked browser journey also passed and verifies the adjustment action is hidden for `READER`.
-- Java 21 compilation of changed service/controller/reporting and integration test sources passed. Frontend lint and production build passed. PostgreSQL migration/Testcontainers and the real-API E2E remain unverified because Docker/Maven and the API are unavailable.
+- Java 21 compilation of changed service/controller/reporting, tenant access and integration test sources passed. Frontend lint/build passed. Flyway applied all 17 migrations to an empty PostgreSQL 16.15 database. Real API/PostgreSQL 16.15 Playwright journeys passed for title filters and the complete financial flow, including adjustment and report totals. The Testcontainers suite and current GitHub Actions run remain pending.
+- The financial E2E also exposed a missing newline between the optional tenant filter and `ORDER BY` in `JdbcTenantAccess`; the fix was compiled and the real selected-tenant journeys passed afterward. A stale double-encoded title assertion and broad status locator in Playwright were corrected based on their runtime snapshots.
+- Local branch was 13 commits ahead of `origin/main` before this uncommitted fix; no push was performed.
 
 ## Next work
 
-1. Run the V17 migration and the adjustment authorization, persistence, idempotency, and report-exclusion Testcontainers case; Docker/Maven are unavailable in the current environment.
-2. Run the financial Playwright journey against the real local API/PostgreSQL; the adjustment UI scenario is added but not executed here.
-3. Validate title filters with PostgreSQL and the full browser journey, then configure actual trusted proxy CIDRs and check current-revision GitHub Actions.
-4. Complete the remaining manual accessibility review.
+1. Run the Testcontainers migration and adjustment authorization/idempotency cases in CI; local runtime behavior and browser flow passed against PostgreSQL 16.15.
+2. Observe current GitHub Actions after synchronizing local commits; nothing was pushed from this workspace.
+3. Configure actual trusted proxy CIDRs and complete the remaining manual accessibility review.
