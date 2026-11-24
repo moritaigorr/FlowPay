@@ -41,7 +41,7 @@ test('new company imports a settled receipt without duplicating cash and reports
   await expect(page.getByRole('heading', { name: `Cliente ${id}` })).toBeVisible()
 
   await page.getByRole('button', { name: 'Contas financeiras', exact: true }).click()
-  await page.getByRole('button', { name: /Nova conta|Cadastrar primeira conta/ }).click()
+  await page.getByRole('button', { name: 'Nova conta', exact: true }).click()
   const accountForm = page.locator('form').filter({ has: page.getByLabel('Nome da conta') })
   await accountForm.getByLabel('Nome da conta').fill('Conta E2E')
   await accountForm.locator('[name="type"]').selectOption('BANK')
@@ -52,14 +52,14 @@ test('new company imports a settled receipt without duplicating cash and reports
   await expect(page.getByText('R$ 1.000,00', { exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'Categorias', exact: true }).click()
-  await page.getByRole('button', { name: /Nova categoria|Criar primeira categoria/ }).click()
+  await page.getByRole('button', { name: 'Nova categoria', exact: true }).click()
   const categoryForm = page.locator('form').filter({ has: page.getByLabel('Nome', { exact: true }) })
   await categoryForm.getByLabel('Nome', { exact: true }).fill(`Receita ${id}`)
   await categoryForm.locator('[name="direction"]').selectOption('INFLOW')
   await categoryForm.getByRole('button', { name: 'Salvar categoria', exact: true }).click()
   await expect(page.getByText(`Receita ${id}`, { exact: true })).toBeVisible()
 
-  await page.getByRole('button', { name: /Nova categoria|Criar primeira categoria/ }).click()
+  await page.getByRole('button', { name: 'Nova categoria', exact: true }).click()
   const expenseCategoryForm = page.locator('form').filter({ has: page.getByLabel('Nome', { exact: true }) })
   await expenseCategoryForm.getByLabel('Nome', { exact: true }).fill(`Despesa ${id}`)
   await expenseCategoryForm.locator('[name="direction"]').selectOption('OUTFLOW')
@@ -67,7 +67,7 @@ test('new company imports a settled receipt without duplicating cash and reports
   await expect(page.getByText(`Despesa ${id}`, { exact: true })).toBeVisible()
 
   await page.getByRole('button', { name: 'A receber', exact: true }).click()
-  await page.getByRole('button', { name: /Novo t|Cadastrar primeiro t/ }).click()
+  await page.getByRole('button', { name: 'Novo título', exact: true }).click()
   const titleForm = page.locator('form').filter({ has: page.locator('[name="description"]') })
   await titleForm.locator('[name="description"]').fill(`Servico ${id}`)
   await titleForm.locator('[name="contactId"]').selectOption({ label: `Cliente ${id}` })
@@ -118,7 +118,7 @@ test('new company imports a settled receipt without duplicating cash and reports
   await expect(cancellableTitle.getByRole('button', { name: 'Cancelar', exact: true })).toHaveCount(0)
 
   await page.getByRole('button', { name: 'A pagar', exact: true }).click()
-  await page.getByRole('button', { name: /Novo título|Cadastrar primeiro título/ }).click()
+  await page.getByRole('button', { name: 'Novo título', exact: true }).click()
   const payableForm = page.locator('form').filter({ has: page.locator('[name="description"]') })
   await payableForm.locator('[name="description"]').fill(`Despesa ${id}`)
   await payableForm.locator('[name="contactId"]').selectOption({ label: `Cliente ${id}` })
@@ -212,6 +212,7 @@ test('new company imports a settled receipt without duplicating cash and reports
   expect(reconciliationDocumentWidth).toBeLessThanOrEqual(390)
   await expectAutomaticallyAccessible(page, 'mobile reconciliation tables')
   await page.screenshot({ path: 'test-results/reconciliation-mobile.png', fullPage: true })
+  await page.setViewportSize({ width: 1440, height: 1000 })
   await page.getByRole('button', { name: 'Gerar prévia' }).click()
   await expect(page.getByRole('heading', { name: 'Resultado da prévia' })).toBeVisible()
   await page.getByRole('button', { name: 'Confirmar importação' }).click()

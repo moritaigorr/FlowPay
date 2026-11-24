@@ -10,6 +10,7 @@ import { apiFetch } from './shared/api'
 
 type Mode = 'register' | 'login'
 type TenantRole = 'OWNER' | 'MANAGER' | 'READER'
+type WorkspaceSection = 'dashboard' | 'reports' | 'contacts' | 'accounts' | 'categories' | 'receivables' | 'payables' | 'transactions' | 'statements'
 type TenantChoice = { id: string; name: string; role: TenantRole }
 type ContactRole = 'CUSTOMER' | 'SUPPLIER'
 type Contact = {
@@ -85,7 +86,9 @@ function App() {
   const [showContactForm, setShowContactForm] = useState(false)
   const [editing, setEditing] = useState<Contact | null>(null)
   const [contactsHeadingRef, requestContactsFocusReturn] = useFocusReturnOnClose(showContactForm)
-  const [activeSection, setActiveSection] = useState<'dashboard' | 'reports' | 'contacts' | 'accounts' | 'categories' | 'receivables' | 'payables' | 'transactions' | 'statements'>('dashboard')
+  const [activeSection, setActiveSection] = useState<WorkspaceSection>('dashboard')
+  const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false)
+  const mobileNavigationToggleRef = useRef<HTMLButtonElement>(null)
   const [accounts, setAccounts] = useState<AccountPage>({ items: [], total: 0, page: 0, size: 20 })
   const [accountsPage, setAccountsPage] = useState(0)
   const [accountsLoadedKey, setAccountsLoadedKey] = useState('')
@@ -779,6 +782,14 @@ function App() {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
   }
 
+  function navigateToSection(section: WorkspaceSection) {
+    setActiveSection(section)
+    setMobileNavigationOpen(false)
+    if (window.matchMedia('(max-width: 640px)').matches) {
+      window.requestAnimationFrame(() => mobileNavigationToggleRef.current?.focus())
+    }
+  }
+
   const isDemoEnvironment = companyName === 'FlowPay Demonstração'
 
   return (
@@ -797,18 +808,42 @@ function App() {
         <section className="auth-card"><h2>Empresas disponíveis</h2>{tenantChoices.length === 0 ? <p className="auth-intro">Esta conta ainda não tem acesso a uma empresa.</p> : <div className="tenant-choice-list">{tenantChoices.map((tenant) => <button key={tenant.id} type="button" className="tenant-choice" onClick={() => activateTenant(tenant.id)}><strong>{tenant.name}</strong><span>{tenant.role === 'READER' ? 'Acesso de leitura' : 'Acesso operacional'}</span></button>)}</div>}{message && <p className="form-message" role="status">{message}</p>}</section>
       </section> : authenticatedEmail ? <>
         <div className="workspace-layout">
-          <aside className="sidebar" aria-label="Navegação principal">
+          <button
+            ref={mobileNavigationToggleRef}
+            type="button"
+            className="sidebar-toggle"
+            aria-label={mobileNavigationOpen ? 'Fechar menu de navegação' : 'Abrir menu de navegação'}
+            aria-expanded={mobileNavigationOpen}
+            aria-controls="workspace-navigation"
+            onClick={() => setMobileNavigationOpen((open) => !open)}
+          >
+            {mobileNavigationOpen ? 'Fechar menu' : 'Menu'}
+          </button>
+          <nav
+            id="workspace-navigation"
+            className={`sidebar${mobileNavigationOpen ? ' sidebar--open' : ''}`}
+            aria-label="Navegação principal"
+            onKeyDown={(event) => {
+              if (event.key === 'Escape' && mobileNavigationOpen) {
+                setMobileNavigationOpen(false)
+                mobileNavigationToggleRef.current?.focus()
+              }
+            }}
+            onClick={(event) => {
+              if ((event.target as HTMLElement).closest('.nav-link')) setMobileNavigationOpen(false)
+            }}
+          >
             <p className="sidebar-label">Empresa</p>
-            <button type="button" className={`nav-link${activeSection === 'dashboard' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'dashboard' ? 'page' : undefined} onClick={() => setActiveSection('dashboard')}>Visão geral</button>
-            <button type="button" className={`nav-link${activeSection === 'reports' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'reports' ? 'page' : undefined} onClick={() => setActiveSection('reports')}>Relatório mensal</button>
-            <button type="button" className={`nav-link${activeSection === 'contacts' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'contacts' ? 'page' : undefined} onClick={() => setActiveSection('contacts')}>Contatos</button>
-            <button type="button" className={`nav-link${activeSection === 'accounts' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'accounts' ? 'page' : undefined} onClick={() => setActiveSection('accounts')}>Contas financeiras</button>
-            <button type="button" className={`nav-link${activeSection === 'categories' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'categories' ? 'page' : undefined} onClick={() => setActiveSection('categories')}>Categorias</button>
-            <button type="button" className={`nav-link${activeSection === 'transactions' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'transactions' ? 'page' : undefined} onClick={() => setActiveSection('transactions')}>Movimentos de caixa</button>
-            <button type="button" className={`nav-link${activeSection === 'statements' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'statements' ? 'page' : undefined} onClick={() => setActiveSection('statements')}>Extratos</button>
-            <button type="button" className={`nav-link${activeSection === 'receivables' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'receivables' ? 'page' : undefined} onClick={() => { setTitlesPage(0); setActiveSection('receivables') }}>A receber</button>
-            <button type="button" className={`nav-link${activeSection === 'payables' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'payables' ? 'page' : undefined} onClick={() => { setTitlesPage(0); setActiveSection('payables') }}>A pagar</button>
-          </aside>
+            <button type="button" className={`nav-link${activeSection === 'dashboard' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'dashboard' ? 'page' : undefined} onClick={() => navigateToSection('dashboard')}>Visão geral</button>
+            <button type="button" className={`nav-link${activeSection === 'reports' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'reports' ? 'page' : undefined} onClick={() => navigateToSection('reports')}>Relatório mensal</button>
+            <button type="button" className={`nav-link${activeSection === 'contacts' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'contacts' ? 'page' : undefined} onClick={() => navigateToSection('contacts')}>Contatos</button>
+            <button type="button" className={`nav-link${activeSection === 'accounts' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'accounts' ? 'page' : undefined} onClick={() => navigateToSection('accounts')}>Contas financeiras</button>
+            <button type="button" className={`nav-link${activeSection === 'categories' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'categories' ? 'page' : undefined} onClick={() => navigateToSection('categories')}>Categorias</button>
+            <button type="button" className={`nav-link${activeSection === 'transactions' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'transactions' ? 'page' : undefined} onClick={() => navigateToSection('transactions')}>Movimentos de caixa</button>
+            <button type="button" className={`nav-link${activeSection === 'statements' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'statements' ? 'page' : undefined} onClick={() => navigateToSection('statements')}>Extratos</button>
+            <button type="button" className={`nav-link${activeSection === 'receivables' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'receivables' ? 'page' : undefined} onClick={() => { setTitlesPage(0); navigateToSection('receivables') }}>A receber</button>
+            <button type="button" className={`nav-link${activeSection === 'payables' ? ' nav-link--active' : ''}`} aria-current={activeSection === 'payables' ? 'page' : undefined} onClick={() => { setTitlesPage(0); navigateToSection('payables') }}>A pagar</button>
+          </nav>
           {activeSection === 'dashboard' ? <Dashboard companyName={companyName} onNewMovement={() => { setActiveSection('transactions'); setShowCashTransactionForm(true) }} /> : activeSection === 'reports' ? <MonthlyReport companyName={companyName} /> : activeSection === 'statements' ? <StatementImportPreview companyName={companyName} /> : activeSection === 'contacts' ? <section className="workspace-content" id="contacts" aria-labelledby="contacts-title">
             <div className="workspace-heading">
               <div><p className="eyebrow">{companyName}</p><h1 id="contacts-title" ref={contactsHeadingRef} tabIndex={-1}>Clientes e fornecedores</h1><p className="welcome-copy">Mantenha os dados de quem faz parte da rotina da sua empresa.</p></div>
