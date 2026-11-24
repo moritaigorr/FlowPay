@@ -785,7 +785,7 @@ function App() {
   function navigateToSection(section: WorkspaceSection) {
     setActiveSection(section)
     setMobileNavigationOpen(false)
-    if (window.matchMedia('(max-width: 640px)').matches) {
+    if (window.matchMedia('(max-width: 1023px)').matches) {
       window.requestAnimationFrame(() => mobileNavigationToggleRef.current?.focus())
     }
   }

@@ -71,6 +71,9 @@ test('workspace skip link and responsive navigation work with keyboard', async (
   await menu.click()
   await expect(navigation).toBeVisible()
   await expectAutomaticallyAccessible(page, 'tablet workspace navigation open with synthetic API')
+  await navigation.getByRole('button', { name: 'Contatos' }).click()
+  await expect(page.getByRole('heading', { name: 'Clientes e fornecedores' })).toBeVisible()
+  await expect(menu).toBeFocused()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(800)
 
   await page.setViewportSize({ width: 1024, height: 900 })
