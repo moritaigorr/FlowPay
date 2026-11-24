@@ -137,13 +137,15 @@ Regras de banco:
 
 ## Portão 3 — identidade e empresas
 
-**Andamento (24/11/2026):** a primeira fatia cria conta e empresa com membership `OWNER`, e oferece login por sessão com CSRF da SPA. A matriz operacional foi decidida e aplicada no backend: `OWNER`/`MANAGER` escrevem e `READER` consulta; a SPA sinaliza leitura e oculta controles de alteração para `READER`. administração de memberships, limitação de abuso, verificação de e-mail e recuperação de senha continuam pendentes. O endpoint de cadastro agora é negado por padrão (`flowpay.identity.registration.enabled=false`); `application-local.yml` habilita o fluxo para desenvolvimento e a demo local. A SPA consulta `GET /api/auth/config` e só mostra cadastro quando habilitado; falha de configuração mantém apenas login. Limites contra abuso continuam pendentes antes de qualquer exposição pública.
+**Andamento (24/11/2026):** a primeira fatia cria conta e empresa com membership `OWNER`, e oferece login por sessão com CSRF da SPA. A matriz operacional foi decidida e aplicada no backend: `OWNER`/`MANAGER` escrevem e `READER` consulta; a SPA sinaliza leitura e oculta controles de alteração para `READER`. administração de memberships, verificação de e-mail, recuperação de senha, configuração de proxy confiável e mitigação distribuída de credential stuffing continuam pendentes. O endpoint de cadastro agora é negado por padrão (`flowpay.identity.registration.enabled=false`); `application-local.yml` habilita o fluxo para desenvolvimento e a demo local. A SPA consulta `GET /api/auth/config` e só mostra cadastro quando habilitado; falha de configuração mantém apenas login. Trusted-proxy handling and distributed abuse defenses remain open before public exposure.
 
 ### 3.1 Autenticação local segura
 
+**Implementation (2026-11-24):** shared PostgreSQL counters allow five login attempts per 15 minutes for each socket source and normalized identifier; successful login clears that bucket. Registration allows five attempts per hour per socket source. Throttled responses return 429 and `Retry-After`. The database stores an HMAC of the context, not a plain address or email, and expired rows are cleaned hourly. The backend trusts only `getRemoteAddr()` and ignores `X-Forwarded-For`; an explicit trusted-proxy model is still required before deployment behind a proxy. Outside the `local` profile, `FLOWPAY_RATE_LIMIT_HMAC_KEY` is required (minimum 32 bytes).
+
 - Definir cadastro inicial (convite ou proprietário primeiro), verificação de e-mail e recuperação de senha apenas se caberem ao produto demo; não inventar integração real sem necessidade.
 - Hash de senha com algoritmo gerenciado recomendado pelo Spring Security. Cookies HttpOnly/Secure/SameSite conforme ambiente; CSRF em mutações SPA; logout invalida sessão.
-- Respostas de login/recuperação evitam enumeração de usuários. Rate limit e bloqueio progressivo definidos sem permitir negação fácil de serviço.
+- Login throttling is temporary per source/identifier; it avoids a global account lock. Password recovery is not implemented and must adopt equivalent controls when added.
 - **Aceite:** usuário autentica, sessão persiste de forma segura, logout encerra acesso, ausência de CSRF em escrita falha.
 
 ### 3.2 Tenant e membership
@@ -402,7 +404,7 @@ Regras de banco:
 - Verificado no `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify`: testes MockMvc com sessão válida rejeitam CSRF ausente no upload multipart, impedem prévia de conta de outro tenant com CSRF válido e rejeitam arquivo acima de 10 MB sem persistência.
 - Limitar dados pessoais coletados; política de acesso/download/retention/exclusão segura de extratos definida antes de aceitar dados sensíveis.
 - Redação de logs; segredos só em configuração local/gerenciador; dependências verificadas e atualizadas.
-- Aberto antes de exposição pública: definir controle de abuso para login/cadastro junto ao modelo de proxy/implantação, retenção/exclusão de extratos e verificações do ambiente publicado.
+- Open before public exposure: validate trusted-proxy/client-address handling; run Testcontainers for V16 and concurrent limits; define statement retention/deletion and verify the deployed environment. Current throttles are a first layer and do not stop distributed credential stuffing.
 - **Aceite:** testes negativos de autorização, upload e CSRF; plano de correção de achados, sem prometer segurança absoluta.
 
 ### 11.3 Observabilidade

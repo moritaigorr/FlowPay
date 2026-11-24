@@ -9,6 +9,7 @@ import jakarta.validation.constraints.Size;
 import java.util.Locale;
 import java.util.UUID;
 import com.flowpay.identity.api.TenantAccess;
+import com.flowpay.identity.application.AuthenticationRateLimiter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -38,17 +39,20 @@ public class IdentityController {
     private final org.springframework.security.crypto.password.PasswordEncoder passwords;
     private final TenantAccess tenantAccess;
     private final boolean registrationEnabled;
+    private final AuthenticationRateLimiter rateLimiter;
 
     public IdentityController(JdbcTemplate jdbc, AuthenticationManager authenticationManager,
                               SecurityContextRepository contexts,
                               org.springframework.security.crypto.password.PasswordEncoder passwords,
                               TenantAccess tenantAccess,
+                              AuthenticationRateLimiter rateLimiter,
                               @Value("${flowpay.identity.registration.enabled:false}") boolean registrationEnabled) {
         this.jdbc = jdbc;
         this.authenticationManager = authenticationManager;
         this.contexts = contexts;
         this.passwords = passwords;
         this.tenantAccess = tenantAccess;
+        this.rateLimiter = rateLimiter;
         this.registrationEnabled = registrationEnabled;
     }
 
@@ -72,6 +76,11 @@ public class IdentityController {
                                   HttpServletRequest request, HttpServletResponse response) {
         if (!registrationEnabled) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Cadastro indisponível neste ambiente.");
+        }
+        var registrationLimit = rateLimiter.reserve("registration", clientAddress(request), 5, java.time.Duration.ofHours(1));
+        if (!registrationLimit.allowed()) {
+            response.setHeader("Retry-After", Integer.toString(registrationLimit.retryAfterSeconds()));
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "Limite de tentativas atingido. Tente novamente mais tarde.");
         }
         var email = input.email().trim().toLowerCase(Locale.ROOT);
         var password = input.password();
@@ -104,9 +113,16 @@ public class IdentityController {
     LoginResponse login(@Valid @RequestBody LoginRequest input,
                         HttpServletRequest request, HttpServletResponse response) {
         var email = input.email().trim().toLowerCase(Locale.ROOT);
+        var rateLimitIdentity = clientAddress(request) + "\u0000" + email;
+        var loginLimit = rateLimiter.reserve("login", rateLimitIdentity, 5, java.time.Duration.ofMinutes(15));
+        if (!loginLimit.allowed()) {
+            response.setHeader("Retry-After", Integer.toString(loginLimit.retryAfterSeconds()));
+            throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS, "E-mail ou senha inválidos.");
+        }
         try {
             var authentication = authenticationManager.authenticate(
                     UsernamePasswordAuthenticationToken.unauthenticated(email, input.password()));
+            rateLimiter.clear("login", rateLimitIdentity);
             request.getSession(true);
             request.changeSessionId();
             SecurityContext context = SecurityContextHolder.createEmptyContext();
@@ -117,6 +133,11 @@ public class IdentityController {
         } catch (org.springframework.security.core.AuthenticationException rejected) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "E-mail ou senha inválidos.");
         }
+    }
+
+    private static String clientAddress(HttpServletRequest request) {
+        String address = request.getRemoteAddr();
+        return address == null || address.isBlank() ? "unknown" : address;
     }
 
     record RegistrationRequest(@NotBlank @Email @Size(max = 254) String email,

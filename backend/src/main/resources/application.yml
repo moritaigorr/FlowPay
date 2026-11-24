@@ -9,6 +9,8 @@ server:
 
 debug: false
 flowpay:
+  security:
+    rate-limit-hmac-key: ${FLOWPAY_RATE_LIMIT_HMAC_KEY}
   identity:
     registration:
       enabled: false

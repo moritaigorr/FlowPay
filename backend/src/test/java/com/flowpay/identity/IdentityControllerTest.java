@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 
 import com.flowpay.identity.api.TenantAccess;
+import com.flowpay.identity.application.AuthenticationRateLimiter;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -22,7 +23,8 @@ class IdentityControllerTest {
         var contexts = mock(SecurityContextRepository.class);
         var passwords = mock(PasswordEncoder.class);
         var tenantAccess = mock(TenantAccess.class);
-        var controller = new IdentityController(jdbc, authenticationManager, contexts, passwords, tenantAccess, false);
+        var rateLimiter = mock(AuthenticationRateLimiter.class);
+        var controller = new IdentityController(jdbc, authenticationManager, contexts, passwords, tenantAccess, rateLimiter, false);
 
         assertThat(controller.config().registrationEnabled()).isFalse();
         assertThatThrownBy(() -> controller.register(
@@ -30,6 +32,6 @@ class IdentityControllerTest {
                 null, null))
                 .isInstanceOfSatisfying(ResponseStatusException.class,
                         error -> org.assertj.core.api.Assertions.assertThat(error.getStatusCode()).isEqualTo(NOT_FOUND));
-        verifyNoInteractions(jdbc, authenticationManager, contexts, passwords, tenantAccess);
+        verifyNoInteractions(jdbc, authenticationManager, contexts, passwords, tenantAccess, rateLimiter);
     }
 }

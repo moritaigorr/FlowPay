@@ -1,4 +1,4 @@
-# FlowPay security model and review
+﻿# FlowPay security model and review
 
 **Status:** partial source review; not a production security assessment or an ASVS conformance claim.
 **Reviewed:** 2026-11-23
@@ -43,7 +43,7 @@ Deployment assumptions such as TLS termination, proxy trust, database network is
 
 ## Open security work
 
-- Decide and implement abuse controls for public registration and login before exposing them to untrusted internet traffic. A robust rate limit depends on the deployment and trusted-proxy model; an in-memory limit would not protect a multi-instance deployment.
+- Partial (2026-11-24): login and registration use atomic PostgreSQL counters and HMAC fingerprints, not in-memory state. The API uses the socket peer address only and ignores forwarded headers. Trusted-proxy/client-address configuration, concurrent Testcontainers verification, distributed credential-stuffing defenses, and production thresholds remain open; this is not production approval.
 - Define retention, deletion, and access policy for original statement bytes and parsed rows before accepting real statements. Keep any future download private, tenant-scoped, and audited.
 - Verify TLS, trusted proxy headers, database reachability, secret delivery, sanitized production logs, backup retention, and restoration against the actual deployment environment.
 - Observe the GitHub Actions workflow on the remote branch; the full local backend `mvn verify` passed with Docker/Testcontainers, but no current remote CI run has been observed.

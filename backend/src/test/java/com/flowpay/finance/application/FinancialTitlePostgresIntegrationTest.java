@@ -45,6 +45,7 @@ class FinancialTitlePostgresIntegrationTest {
         properties.add("spring.datasource.url", postgres::getJdbcUrl);
         properties.add("spring.datasource.username", postgres::getUsername);
         properties.add("spring.datasource.password", postgres::getPassword);
+        properties.add("flowpay.security.rate-limit-hmac-key", () -> "integration-test-rate-limit-hmac-key-long-enough");
     }
 
     @Autowired JdbcTemplate jdbc;

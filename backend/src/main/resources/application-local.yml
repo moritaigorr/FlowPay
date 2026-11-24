@@ -7,6 +7,8 @@ spring:
     username: ${SPRING_DATASOURCE_USERNAME:flowpay_dev}
     password: ${SPRING_DATASOURCE_PASSWORD:flowpay_dev_only_local}
 flowpay:
+  security:
+    rate-limit-hmac-key: ${FLOWPAY_RATE_LIMIT_HMAC_KEY:local-only-rate-limit-hmac-key-not-for-production}
   identity:
     registration:
       enabled: true

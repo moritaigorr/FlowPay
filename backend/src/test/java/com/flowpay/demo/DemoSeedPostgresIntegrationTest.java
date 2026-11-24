@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.flowpay.FlowPayApplication;
+import com.flowpay.identity.application.AuthenticationRateLimiter;
 import jakarta.servlet.http.Cookie;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,7 @@ class DemoSeedPostgresIntegrationTest {
     @Autowired ApplicationRunner seedRunner;
     @Autowired PasswordEncoder passwordEncoder;
     @Autowired MockMvc mockMvc;
+    @Autowired AuthenticationRateLimiter rateLimiter;
 
     @Test
     void demoSessionReadsSeededDataAndValidCsrfProtectsLogin() throws Exception {
@@ -164,6 +166,86 @@ class DemoSeedPostgresIntegrationTest {
                 .andExpect(status().isForbidden());
         mockMvc.perform(get("/api/contacts").session(session).header("X-FlowPay-Tenant", "not-a-uuid"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @Transactional
+    void loginAttemptsAreLimitedByNetworkAndAccountWithoutPermanentLockout() throws Exception {
+        UUID userId = UUID.randomUUID();
+        String email = "login-limit-" + UUID.randomUUID() + "@flowpay.local";
+        String password = "Login-Limit-Testing-2026!";
+        jdbc.update("INSERT INTO app_user(id, email, password_hash) VALUES (?, ?, ?)", userId, email, passwordEncoder.encode(password));
+        UUID tenantId = UUID.randomUUID();
+        jdbc.update("INSERT INTO tenant(id, name) VALUES (?, 'Login limit company')", tenantId);
+        jdbc.update("INSERT INTO membership(tenant_id, user_id, role) VALUES (?, ?, 'OWNER')", tenantId, userId);
+        CsrfState csrf = csrfState();
+
+        for (int attempt = 0; attempt < 5; attempt++) {
+            mockMvc.perform(post("/api/auth/login").remoteAddress("203.0.113.61")
+                            .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"email\":\"" + email + "\",\"password\":\"incorrect-password\"}"))
+                    .andExpect(status().isUnauthorized());
+        }
+        mockMvc.perform(post("/api/auth/login").remoteAddress("203.0.113.61")
+                        .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(result -> assertThat(result.getResponse().getHeader("Retry-After")).isNotBlank());
+
+        for (int attempt = 0; attempt < 4; attempt++) {
+            mockMvc.perform(post("/api/auth/login").remoteAddress("203.0.113.62")
+                            .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"email\":\"" + email + "\",\"password\":\"incorrect-password\"}"))
+                    .andExpect(status().isUnauthorized());
+        }
+        mockMvc.perform(post("/api/auth/login").remoteAddress("203.0.113.62")
+                        .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"password\":\"" + password + "\"}"))
+                .andExpect(status().isOk());
+        for (int attempt = 0; attempt < 5; attempt++) {
+            mockMvc.perform(post("/api/auth/login").remoteAddress("203.0.113.62")
+                            .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"email\":\"" + email + "\",\"password\":\"incorrect-password\"}"))
+                    .andExpect(status().isUnauthorized());
+        }
+        mockMvc.perform(post("/api/auth/login").remoteAddress("203.0.113.62")
+                        .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"password\":\"incorrect-password\"}"))
+                .andExpect(status().isTooManyRequests());
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM authentication_rate_limit", Long.class)).isPositive();
+    }
+
+    @Test
+    @Transactional
+    void registrationAttemptsAreLimitedPerNetworkAddress() throws Exception {
+        CsrfState csrf = csrfState();
+        for (int attempt = 0; attempt < 5; attempt++) {
+            String email = "register-limit-" + UUID.randomUUID() + "@flowpay.local";
+            mockMvc.perform(post("/api/auth/register").remoteAddress("203.0.113.63")
+                            .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"email\":\"" + email + "\",\"companyName\":\"Rate limit test\",\"password\":\"Registration-Testing-2026!\"}"))
+                    .andExpect(status().isOk());
+        }
+        String email = "register-limit-final-" + UUID.randomUUID() + "@flowpay.local";
+        mockMvc.perform(post("/api/auth/register").remoteAddress("203.0.113.63")
+                        .cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"" + email + "\",\"companyName\":\"Rate limit test\",\"password\":\"Registration-Testing-2026!\"}"))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(result -> assertThat(result.getResponse().getHeader("Retry-After")).isNotBlank());
+    }
+
+    @Test
+    void concurrentLoginReservationsRespectTheSharedPostgresLimit() throws Exception {
+        String identity = "concurrent-" + UUID.randomUUID();
+        try (var executor = java.util.concurrent.Executors.newFixedThreadPool(8)) {
+            var attempts = new java.util.ArrayList<java.util.concurrent.Future<AuthenticationRateLimiter.Decision>>();
+            for (int i = 0; i < 20; i++) {
+                attempts.add(executor.submit(() -> rateLimiter.reserve("login", identity, 5, java.time.Duration.ofMinutes(15))));
+            }
+            long allowed = 0;
+            for (var attempt : attempts) if (attempt.get().allowed()) allowed++;
+            assertThat(allowed).isEqualTo(5);
+        }
     }
 
     @Test
