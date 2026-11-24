@@ -1,5 +1,6 @@
 package com.flowpay.identity;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -23,6 +24,7 @@ class IdentityControllerTest {
         var tenantAccess = mock(TenantAccess.class);
         var controller = new IdentityController(jdbc, authenticationManager, contexts, passwords, tenantAccess, false);
 
+        assertThat(controller.config().registrationEnabled()).isFalse();
         assertThatThrownBy(() -> controller.register(
                 new IdentityController.RegistrationRequest("owner@example.test", "Empresa teste", "Long-password-123"),
                 null, null))

@@ -129,6 +129,10 @@ class DemoSeedPostgresIntegrationTest {
 
     @Test
     void localProfileAllowsRegistrationWithValidCsrf() throws Exception {
+        mockMvc.perform(get("/api/auth/config"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.registrationEnabled").value(true));
+
         var email = "registration-" + UUID.randomUUID() + "@flowpay.local";
         var csrf = csrfState();
 

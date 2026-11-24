@@ -55,6 +55,9 @@ public class IdentityController {
     @GetMapping("/csrf")
     CsrfResponse csrf(CsrfToken token) { return new CsrfResponse(token.getToken()); }
 
+    @GetMapping("/config")
+    AuthConfigResponse config() { return new AuthConfigResponse(registrationEnabled); }
+
     @GetMapping("/session")
     SessionResponse session(@AuthenticationPrincipal UserDetails user) {
         var tenant = tenantAccess.requireSingleTenant(user.getUsername());
@@ -134,4 +137,5 @@ public class IdentityController {
     record CsrfResponse(String token) {
         @Override public String toString() { return "CsrfResponse[REDACTED]"; }
     }
+    record AuthConfigResponse(boolean registrationEnabled) {}
 }

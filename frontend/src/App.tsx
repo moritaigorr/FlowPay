@@ -66,7 +66,8 @@ function refreshCsrf(): Promise<void> {
 }
 
 function App() {
-  const [mode, setMode] = useState<Mode>('register')
+  const [mode, setMode] = useState<Mode>('login')
+  const [registrationEnabled, setRegistrationEnabled] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [authenticatedEmail, setAuthenticatedEmail] = useState('')
@@ -138,6 +139,22 @@ function App() {
 
   useEffect(() => {
     let active = true
+    fetch('/api/auth/config', { credentials: 'same-origin', cache: 'no-store' })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Authentication configuration unavailable')
+        return await response.json() as { registrationEnabled: boolean }
+      })
+      .then((config) => {
+        if (!active) return
+        setRegistrationEnabled(config.registrationEnabled)
+        setMode(config.registrationEnabled ? 'register' : 'login')
+      })
+      .catch(() => {
+        if (active) {
+          setRegistrationEnabled(false)
+          setMode('login')
+        }
+      })
     void (async () => {
       try {
         await refreshCsrf()
@@ -753,7 +770,7 @@ function App() {
             {mode === 'register' && <p className="password-hint">Use pelo menos 12 caracteres. Limite de 72 bytes em UTF-8.</p>}
             <button className="submit-button" type="submit" disabled={busy}>{busy ? 'Aguarde…' : mode === 'register' ? 'Criar empresa' : 'Entrar'}</button>
           </form>
-          <p className="auth-switch">{mode === 'register' ? 'Já tem uma conta?' : 'Primeiro acesso?'}{' '}<button type="button" onClick={() => { setMode(mode === 'register' ? 'login' : 'register'); setMessage('') }}>{mode === 'register' ? 'Entrar' : 'Criar empresa'}</button></p>
+          {registrationEnabled && <p className="auth-switch">{mode === 'register' ? 'Já tem uma conta?' : 'Primeiro acesso?'}{' '}<button type="button" onClick={() => { setMode(mode === 'register' ? 'login' : 'register'); setMessage('') }}>{mode === 'register' ? 'Entrar' : 'Criar empresa'}</button></p>}
           {message && <p className="form-message" role="status">{message}</p>}
         </section>
       </section>}

@@ -55,7 +55,7 @@ public class IdentityConfiguration {
                 .securityContext(context -> context.securityContextRepository(contexts))
                 .csrf(config -> config.csrfTokenRepository(csrf).spa())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/health", "/api/auth/register", "/api/auth/login", "/api/auth/csrf").permitAll()
+                        .requestMatchers("/actuator/health", "/api/auth/register", "/api/auth/login", "/api/auth/csrf", "/api/auth/config").permitAll()
                         .anyRequest().authenticated())
                 .formLogin(login -> login.disable())
                 .httpBasic(basic -> basic.disable())

@@ -23,7 +23,7 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 ## Continuação registrada em 24/11/2026
 
 - Segurança da identidade: cadastro por `POST /api/auth/register` negado por padrão (`flowpay.identity.registration.enabled=false`); `application-local.yml` habilita o fluxo local. Foi adicionado teste unitário para rejeitar o cadastro antes de persistência/autenticação quando desabilitado, além de teste MockMvc de sucesso no perfil local. Esses testes aguardam execução. Login continua disponível nos demais perfis. Rate limiting ainda não existe; não expor registro publicamente.
-- Validação do backend desta fatia aguarda Maven/JDK 21 disponíveis; frontend não mudou.
+- A SPA consulta `GET /api/auth/config` e oculta o cadastro quando desabilitado ou quando a configuração falha, mantendo login visível. O E2E demo espera o cadastro no perfil local. Frontend: lint/build e descoberta Playwright passaram; jornada de browser ainda não executada. O teste unitário afirma default false e o MockMvc local afirma true, mas os testes de backend aguardam execução (Maven/JDK 21/Docker).
 
 ## Estado do roadmap
 

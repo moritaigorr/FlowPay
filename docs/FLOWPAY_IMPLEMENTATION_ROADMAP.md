@@ -137,7 +137,7 @@ Regras de banco:
 
 ## Portão 3 — identidade e empresas
 
-**Andamento (24/11/2026):** a primeira fatia cria conta e empresa com membership `OWNER`, e oferece login por sessão com CSRF da SPA. Isso não fecha o portão: carregamento/troca do tenant ativo, permissões por papel, limitação de abuso, verificação de e-mail e recuperação de senha continuam pendentes. O endpoint de cadastro agora é negado por padrão (`flowpay.identity.registration.enabled=false`); `application-local.yml` habilita o fluxo para desenvolvimento e a demo local. Limites contra abuso continuam pendentes antes de qualquer exposição pública.
+**Andamento (24/11/2026):** a primeira fatia cria conta e empresa com membership `OWNER`, e oferece login por sessão com CSRF da SPA. Isso não fecha o portão: carregamento/troca do tenant ativo, permissões por papel, limitação de abuso, verificação de e-mail e recuperação de senha continuam pendentes. O endpoint de cadastro agora é negado por padrão (`flowpay.identity.registration.enabled=false`); `application-local.yml` habilita o fluxo para desenvolvimento e a demo local. A SPA consulta `GET /api/auth/config` e só mostra cadastro quando habilitado; falha de configuração mantém apenas login. Limites contra abuso continuam pendentes antes de qualquer exposição pública.
 
 ### 3.1 Autenticação local segura
 
