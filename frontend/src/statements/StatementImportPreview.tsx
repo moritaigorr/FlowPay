@@ -50,6 +50,18 @@ function csrfToken() {
   return value ? decodeURIComponent(value) : ''
 }
 
+function downloadExampleCsv() {
+  const now = new Date()
+  const date = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()}`
+  const csv = `\uFEFFdata;descricao;valor;direcao\r\n${date};Exemplo sintético de entrada;100,00;ENTRADA\r\n${date};Exemplo sintético de saída;25,50;SAIDA\r\n`
+  const url = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }))
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'flowpay-exemplo-extrato.csv'
+  link.click()
+  window.setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
 function ReconciliationSummaryPanel({ summary, error }: { summary: ReconciliationSummary | null; error: string }) {
   const hasActivityPeriod = Boolean(summary?.periodFrom && summary.periodTo && summary.asOf)
 
@@ -393,6 +405,7 @@ export function StatementImportPreview({ companyName }: { companyName: string })
       <form className="contact-form" onSubmit={(event) => { void submit(event) }}>
         <label>Conta financeira<select value={accountId} onChange={(event) => { setAccountId(event.target.value); setStatementOpeningBalance(''); setStatementOpeningDate(''); setStatementClosingBalance(''); setStatementClosingDate(''); setImportsPage(0); setImports({ items: [], total: 0, page: 0, size: 20 }); setPreview(null); setConfirmation(null); setSelectedImportId(''); setSavedLines(null); setSavedLinesPage(0); setSuggestionLineId(''); setSelectedLine(null); setSuggestions(null); setPendingDecision(null) }} required><option value="" disabled>Selecione uma conta ativa</option>{accounts.map((account) => <option value={account.id} key={account.id}>{account.name}</option>)}</select></label>
         <fieldset className="statement-balance-fields field--wide"><legend>Saldos do extrato (opcional)</legend><p className="field-hint">Informe os saldos ao fim do dia. O saldo de fechamento deve ser de uma data posterior; as linhas válidas do CSV precisam ficar entre essas datas.</p><div className="statement-balance-grid"><label>Saldo de abertura<input value={statementOpeningBalance} onChange={(event) => setStatementOpeningBalance(event.target.value)} inputMode="decimal" placeholder="0,00" /></label><label>Data do saldo de abertura<input value={statementOpeningDate} onChange={(event) => setStatementOpeningDate(event.target.value)} type="date" /></label><label>Saldo de fechamento<input value={statementClosingBalance} onChange={(event) => setStatementClosingBalance(event.target.value)} inputMode="decimal" placeholder="0,00" /></label><label>Data do saldo de fechamento<input value={statementClosingDate} onChange={(event) => setStatementClosingDate(event.target.value)} type="date" /></label></div></fieldset><label className="field--wide">Arquivo CSV<input type="file" accept=".csv,text/csv" onChange={(event) => { setFile(event.target.files?.[0] ?? null); setPreview(null); setConfirmation(null) }} required /><span className="field-hint">UTF-8, até 10 MB e 50.000 linhas de dados. Colunas: data;descricao;valor;direcao. Data dd/MM/aaaa, direção ENTRADA ou SAIDA.</span></label>
+        <div className="statement-example field--wide"><button type="button" className="refresh-button" onClick={downloadExampleCsv}>Baixar CSV de exemplo</button><span className="field-hint">Arquivo sintético para testar o formato; não representa movimentações reais e não altera o saldo.</span></div>
         <div className="contact-form-actions field--wide"><button className="submit-button" type="submit" disabled={busy || !accountId || !file}>{busy ? 'Lendo arquivo…' : 'Gerar prévia'}</button></div>
       </form>
     </section>

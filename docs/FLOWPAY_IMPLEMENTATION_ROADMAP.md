@@ -316,6 +316,7 @@ Regras de banco:
 ### 8.4 UI de importação
 
 - Etapas: conta → arquivo → mapeamento → prévia/erros → confirmar → rever duplicatas; foco e progresso acessíveis.
+- A tela oferece um CSV de exemplo sintético com o cabeçalho e formatos aceitos pelo parser; os registros são identificados como exemplos e o download não cria importação nem movimento de caixa. Playwright verificou o nome e conteúdo do arquivo no fluxo da tela usando API sintética.
 - **Aceite:** cancelar não confirma importação; mensagem diz que importar salva linhas e não cria caixa.
 
 ## Portão 9 — conciliação

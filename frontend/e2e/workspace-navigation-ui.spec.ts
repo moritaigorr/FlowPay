@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises'
 import { expect, test } from '@playwright/test'
 import { expectAutomaticallyAccessible } from './accessibility'
 
@@ -76,4 +77,17 @@ test('workspace skip link and responsive navigation work with keyboard', async (
   await expect(menu).toBeHidden()
   await expect(navigation).toBeVisible()
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(1024)
+
+  await navigation.getByRole('button', { name: 'Extratos' }).click()
+  await expect(page.getByRole('heading', { name: 'Prévia de extrato' })).toBeVisible()
+  const downloadPromise = page.waitForEvent('download')
+  await page.getByRole('button', { name: 'Baixar CSV de exemplo' }).click()
+  const download = await downloadPromise
+  expect(download.suggestedFilename()).toBe('flowpay-exemplo-extrato.csv')
+  const path = await download.path()
+  expect(path).toBeTruthy()
+  const rows = (await readFile(path!, 'utf8')).replace(/^\uFEFF/, '').trimEnd().split(/\r?\n/)
+  expect(rows[0]).toBe('data;descricao;valor;direcao')
+  expect(rows[1]).toMatch(/^\d{2}\/\d{2}\/\d{4};Exemplo sintético de entrada;100,00;ENTRADA$/)
+  expect(rows[2]).toMatch(/^\d{2}\/\d{2}\/\d{4};Exemplo sintético de saída;25,50;SAIDA$/)
 })
