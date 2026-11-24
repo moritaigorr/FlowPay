@@ -115,12 +115,17 @@ class FinancialTitlePostgresIntegrationTest {
     }
 
     @Test
-    void titleListFiltersByStatusContactAndDueDateWithinTenant() {
+    void titleListFiltersByStatusContactAndDueDate() {
         var today = LocalDate.now(ZoneId.of("America/Sao_Paulo"));
+        jdbc.update("UPDATE financial_title SET due_date = ? WHERE tenant_id = ? AND id = ?", today, tenantId, titleId);
         var matching = titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null, null,
                 contactId, today, today, 0, 20);
         assertThat(matching.total()).isEqualTo(1);
         assertThat(matching.items()).extracting(FinancialTitleService.TitleView::id).containsExactly(titleId);
+
+        var open = titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null,
+                FinancialTitleService.TitleStatus.OPEN, contactId, today, today, 0, 20);
+        assertThat(open.total()).isEqualTo(1);
 
         var anotherContact = titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null, null,
                 UUID.randomUUID(), null, null, 0, 20);
@@ -131,6 +136,27 @@ class FinancialTitlePostgresIntegrationTest {
                 FinancialTitleService.TitleStatus.OVERDUE, contactId, null, today.minusDays(1), 0, 20);
         assertThat(overdue.total()).isEqualTo(1);
         assertThat(overdue.items().getFirst().status()).isEqualTo(FinancialTitleService.TitleStatus.OVERDUE);
+
+        titles.settle(email, titleId, UUID.randomUUID(), new FinancialTitleService.SettlementInput(accountId, 7000, today));
+        var partiallySettled = titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null,
+                FinancialTitleService.TitleStatus.PARTIALLY_SETTLED, null, null, null, 0, 20);
+        assertThat(partiallySettled.total()).isEqualTo(1);
+        assertThat(partiallySettled.items().getFirst().status()).isEqualTo(FinancialTitleService.TitleStatus.PARTIALLY_SETTLED);
+
+        titles.settle(email, titleId, UUID.randomUUID(), new FinancialTitleService.SettlementInput(accountId, 3000, today));
+        var settled = titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null,
+                FinancialTitleService.TitleStatus.SETTLED, null, null, null, 0, 20);
+        assertThat(settled.total()).isEqualTo(1);
+        assertThat(settled.items().getFirst().status()).isEqualTo(FinancialTitleService.TitleStatus.SETTLED);
+
+        var cancelled = titles.create(email, FinancialTitleService.TitleKind.RECEIVABLE, UUID.randomUUID(),
+                new FinancialTitleService.TitleInput("Título cancelado para filtro", contactId, categoryId,
+                        accountId, 5000, today, null)).title();
+        titles.cancel(email, cancelled.id(), "Solicitação de teste");
+        var cancelledTitles = titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null,
+                FinancialTitleService.TitleStatus.CANCELLED, null, null, null, 0, 20);
+        assertThat(cancelledTitles.total()).isEqualTo(1);
+        assertThat(cancelledTitles.items().getFirst().id()).isEqualTo(cancelled.id());
 
         assertThatThrownBy(() -> titles.list(email, FinancialTitleService.TitleKind.RECEIVABLE, null, null,
                 null, today, today.minusDays(1), 0, 20))

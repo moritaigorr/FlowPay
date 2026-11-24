@@ -78,6 +78,20 @@ test('demo owner signs in and sees the seeded financial workspace', async ({ pag
   await expect(page.getByLabel('Vencimento a partir de')).toHaveValue('')
   await expect(page.getByLabel('Vencimento até')).toHaveValue('')
 
+  const emptyFilteredRequest = page.waitForRequest((filtered) => {
+    const url = new URL(filtered.url())
+    return url.pathname === '/api/financial-titles'
+      && url.searchParams.get('dueFrom') === '2000-01-01'
+      && url.searchParams.get('dueTo') === '2000-12-31'
+  })
+  await page.getByLabel('Vencimento a partir de').fill('2000-01-01')
+  await page.getByLabel('Vencimento até').fill('2000-12-31')
+  await emptyFilteredRequest
+  await expect(page.getByRole('heading', { name: 'Nenhum título encontrado' })).toBeVisible()
+  await expect(page.getByText('Ajuste os filtros ou limpe-os para ver outros títulos.')).toBeVisible()
+  await page.getByRole('button', { name: 'Limpar filtros' }).click()
+  await expect(page.getByRole('heading', { name: 'Projeto demonstraÃ§Ã£o' })).toBeVisible()
+
   await page.getByRole('button', { name: 'A pagar', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Licença de software' })).toBeVisible()
 
