@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { expectAutomaticallyAccessible } from './accessibility'
 
 const tenantId = '8efbba1a-9139-4b5c-bc44-164b3c045c45'
 
@@ -43,6 +44,7 @@ test('workspace skip link and responsive navigation work with keyboard', async (
   await page.getByLabel('Senha').fill('Synthetic-Only-Password')
   await page.getByRole('button', { name: 'Entrar', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
+  await expectAutomaticallyAccessible(page, 'workspace with synthetic API')
 
   const skipLink = page.getByRole('link', { name: 'Pular para o conteúdo principal' })
   await skipLink.focus()
@@ -67,6 +69,7 @@ test('workspace skip link and responsive navigation work with keyboard', async (
   await expect(navigation).toBeHidden()
   await menu.click()
   await expect(navigation).toBeVisible()
+  await expectAutomaticallyAccessible(page, 'tablet workspace navigation open with synthetic API')
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(800)
 
   await page.setViewportSize({ width: 1024, height: 900 })
