@@ -120,13 +120,20 @@ public final class StatementCsvParser {
             else if (c == '\r' || c == '\n') {
                 if (c == '\r' && i + 1 < text.length() && text.charAt(i + 1) == '\n') i++;
                 row.add(field.toString()); field.setLength(0); afterQuote = false;
-                if (!(row.size() == 1 && row.getFirst().isBlank())) result.add(List.copyOf(row));
+                if (!(row.size() == 1 && row.getFirst().isBlank())) addRecord(result, row);
                 row.clear();
             } else { field.append(c); afterQuote = false; }
         }
         if (quoted) throw new CsvException("CSV inválido: campo entre aspas não foi fechado.");
-        if (field.length() > 0 || !row.isEmpty() || afterQuote) { row.add(field.toString()); result.add(List.copyOf(row)); }
+        if (field.length() > 0 || !row.isEmpty() || afterQuote) { row.add(field.toString()); addRecord(result, row); }
         return result;
+    }
+
+    private static void addRecord(List<List<String>> records, List<String> row) {
+        if (records.size() >= MAX_DATA_ROWS + 1) {
+            throw new CsvException("O arquivo excede o limite de 50.000 linhas.");
+        }
+        records.add(List.copyOf(row));
     }
 
     public record Preview(int acceptedCount, int rejectedCount, int duplicateCount, List<RowPreview> rows) {}

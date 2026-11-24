@@ -49,4 +49,16 @@ class StatementCsvParserTest {
         assertThatThrownBy(() -> parser.parse(new byte[StatementCsvParser.MAX_FILE_BYTES + 1]))
                 .isInstanceOf(StatementCsvParser.CsvException.class).hasMessageContaining("10 MB");
     }
+
+    @Test
+    void stopsParsingAsSoonAsTheDataRowLimitIsExceeded() {
+        var csv = new StringBuilder("data;descricao;valor;direcao\n");
+        for (int i = 0; i < StatementCsvParser.MAX_DATA_ROWS; i++) {
+            csv.append("01/01/2026;Servico;1,00;ENTRADA\n");
+        }
+        csv.append("excesso;linha;1,00;ENTRADA\n\"CSV malformado depois do limite");
+
+        assertThatThrownBy(() -> parser.parse(csv.toString().getBytes(StandardCharsets.UTF_8)))
+                .isInstanceOf(StatementCsvParser.CsvException.class).hasMessageContaining("50.000 linhas");
+    }
 }
