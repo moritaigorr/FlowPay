@@ -9196,7 +9196,10 @@
         "type": "object",
         "properties": {
           "categoryId": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uuid"
           },
           "categoryName": {
