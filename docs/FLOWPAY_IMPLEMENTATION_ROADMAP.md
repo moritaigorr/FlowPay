@@ -371,6 +371,7 @@ Regras de banco:
 9. Consulta resumo mensal.
 
 - **Aceite:** execução E2E reprodutível com tenant de demonstração e dados fictícios; snapshots de estado confirmados no banco; outra empresa não lê esses dados.
+- Resultado remoto mais recente (run #7, commit `046e302`, 24/11/2026): backend passou; validação OpenAPI, typecheck, lint e build passaram; a etapa E2E parou antes de executar os testes porque o workflow não passava `FLOWPAY_E2E_DEMO_PASSWORD` aos specs, embora já gerasse `FLOWPAY_DEMO_PASSWORD` para o seed. O workflow foi corrigido para compartilhar a senha efêmera entre processo API e Playwright. A nova execução com essa correção ainda está pendente.
 
 ### 10.2 Dados seed e ambiente demo
 
@@ -407,6 +408,7 @@ Regras de banco:
 - UI: formulários, cache separado por empresa, erro/retry, tabelas e estados acessíveis.
 - E2E: jornada MVP e isolamento de tenant.
 - Parcial: a suíte Playwright completa passou localmente em Chrome com API e PostgreSQL descartável. Em 24/11/2026, a execução mais recente passou os cinco testes no banco descartável PostgreSQL 16.15; cobriu login, dashboard, leitor real, isolamento entre empresas, navegação móvel por teclado, operações financeiras e conciliação. A fixture `READER` opt-in confirmou troca real de empresa, header por tenant, saldo isolado na API e UI somente leitura; a jornada financeira principal também passou com transferências e ajuste auditado em execução anterior. CI habilita essa fixture apenas no banco descartável do job. Testes PostgreSQL de concorrência de baixas, constraints e disputa por movimento executaram localmente com Testcontainers. O teste que inicia duas conciliações de linhas distintas contra o mesmo movimento, sincronizadas por barreira, verificou um único vínculo persistido. O último workflow remoto conhecido ainda está no commit antigo `78836f7`; o resultado de CI para os commits locais atuais permanece pendente.
+- Resultado remoto mais recente (run #7, commit `046e302`, 24/11/2026): backend verify passou; no job frontend, OpenAPI, typecheck, lint, build e instalação do Chromium passaram, mas E2E falhou antes dos testes pela variável `FLOWPAY_E2E_DEMO_PASSWORD` ausente. O workflow foi corrigido; CI atualizado ainda precisa confirmar a jornada.
 - **Aceite:** CI executa a suíte necessária; resultados e limitações são reportados.
 
 ### 11.2 Modelagem de segurança e privacidade
