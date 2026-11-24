@@ -119,7 +119,7 @@ export function MonthlyReport({ companyName }: { companyName: string }) {
           <div className="report-movement-body"><div><span>{movement.accountName} · {movement.categoryName}</span><span>{formatLocalDate(movement.effectiveDate)}</span></div>
             <strong className={movement.direction === 'INFLOW' ? 'dashboard-amount--inflow' : 'dashboard-amount--outflow'}>{movement.direction === 'INFLOW' ? '+' : '−'}{formatMinor(movement.amountMinor)}</strong></div>
         </article>)}</div>}
-        {data.totalMovements > data.size && <div className="pagination"><span>Página {data.page + 1} de {Math.ceil(data.totalMovements / data.size)}</span><div>
+        {data.totalMovements > data.size && <div className="pagination"><span role="status">Página {data.page + 1} de {Math.ceil(data.totalMovements / data.size)}</span><div>
           <button type="button" className="refresh-button" disabled={page === 0 || loading} onClick={() => setPage((value) => value - 1)}>Anterior</button>
           <button type="button" className="refresh-button" disabled={(page + 1) * data.size >= data.totalMovements || loading} onClick={() => setPage((value) => value + 1)}>Próxima</button>
         </div></div>}
