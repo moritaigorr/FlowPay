@@ -44,7 +44,7 @@ Deployment assumptions such as TLS termination, proxy trust, database network is
 
 ## Open security work
 
-- Partial (2026-11-24): login and registration use atomic PostgreSQL counters and HMAC fingerprints, not in-memory state. The API uses the socket peer as trust anchor and reads X-Forwarded-For only from configured trusted proxy CIDRs. Seven focused proxy resolver tests pass. Deployment CIDRs and proxy append behavior, concurrent Testcontainers verification, distributed credential-stuffing defenses, and production thresholds remain open; this is not production approval.
+- Partial (2026-11-24): login and registration use atomic PostgreSQL counters and HMAC fingerprints, not in-memory state. The API uses the socket peer as trust anchor and reads X-Forwarded-For only from configured trusted proxy CIDRs. Seven focused proxy resolver tests and 13 PostgreSQL integration tests in `DemoSeedPostgresIntegrationTest` passed locally with Testcontainers; the integration suite includes concurrent limit reservations and 429/`Retry-After` behavior. Deployment CIDRs and proxy append behavior, distributed credential-stuffing defenses, and production thresholds remain open; this is not production approval.
 - Define retention, deletion, and access policy for original statement bytes and parsed rows before accepting real statements. Keep any future download private, tenant-scoped, and audited.
 - Verify TLS, trusted proxy headers, database reachability, secret delivery, sanitized production logs, backup retention, and restoration against the actual deployment environment.
 - Observe the GitHub Actions workflow on the remote branch; the full local backend `mvn verify` passed with Docker/Testcontainers, but no current remote CI run has been observed.

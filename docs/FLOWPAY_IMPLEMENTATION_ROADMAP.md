@@ -414,7 +414,7 @@ Regras de banco:
 - Verificado no `mvn --batch-mode --no-transfer-progress -f backend/pom.xml verify`: testes MockMvc com sessão válida rejeitam CSRF ausente no upload multipart, impedem prévia de conta de outro tenant com CSRF válido e rejeitam arquivo acima de 10 MB sem persistência.
 - Limitar dados pessoais coletados; política de acesso/download/retention/exclusão segura de extratos definida antes de aceitar dados sensíveis.
 - Redação de logs; segredos só em configuração local/gerenciador; dependências verificadas e atualizadas.
-- Open before public exposure: validate trusted-proxy/client-address handling; run Testcontainers for V16 and concurrent limits; define statement retention/deletion and verify the deployed environment. Current throttles are a first layer and do not stop distributed credential stuffing.
+- Verificado localmente em 24/11/2026: `ClientAddressResolverTest` (7 testes) e `DemoSeedPostgresIntegrationTest` (13 testes) passaram com Maven/Testcontainers e PostgreSQL 16; a cobertura inclui a cadeia de proxy confiável, limites de login/cadastro, resposta 429 com `Retry-After` e reservas concorrentes no PostgreSQL. Antes de exposição pública ainda é preciso configurar e validar os CIDRs e o comportamento de append do proxy reais, definir retenção/exclusão de extratos e verificar o ambiente implantado. Os limites atuais são uma primeira camada e não impedem credential stuffing distribuído.
 - **Aceite:** testes negativos de autorização, upload e CSRF; plano de correção de achados, sem prometer segurança absoluta.
 
 ### 11.3 Observabilidade
