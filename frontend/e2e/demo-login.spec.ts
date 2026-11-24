@@ -37,6 +37,13 @@ test('demo owner signs in and sees the seeded financial workspace', async ({ pag
   await expect(page.getByText('R$ 25.000,00', { exact: true })).toBeVisible()
   await expectAutomaticallyAccessible(page, 'dashboard')
 
+  // A 1440px desktop at 200% zoom has roughly a 720px CSS layout viewport.
+  await page.setViewportSize({ width: 720, height: 900 })
+  const zoomedDashboardWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+  expect(zoomedDashboardWidth).toBeLessThanOrEqual(720)
+  await expect(page.getByText('R$ 25.000,00', { exact: true })).toBeVisible()
+  await page.setViewportSize({ width: 1440, height: 1000 })
+
   await page.getByRole('button', { name: 'Contatos', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Cliente Exemplo Ltda.' })).toBeVisible()
   await expect(page.getByRole('heading', { name: 'Fornecedor Exemplo Ltda.' })).toBeVisible()
