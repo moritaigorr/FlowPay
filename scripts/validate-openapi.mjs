@@ -63,28 +63,100 @@ for (const [route, pathItem] of Object.entries(spec.paths ?? {})) {
         (!operation.responses?.['200'] || !operation.responses?.['201'])) {
       problems.push(`${operationName}: idempotent operation must document create (201) and replay (200)`);
     }
+    for (const [status, response] of Object.entries(operation.responses ?? {})) {
+      if (!response.headers?.['X-Request-Id']) {
+        problems.push(`${operationName} ${status}: missing X-Request-Id response header`);
+      }
+    }
   }
 }
 
 const implemented = new Set();
+const implementedParameters = new Map();
+const implementedJsonBodies = new Map();
 for (const file of await javaFiles(sourceRoot)) {
   const source = await readFile(file, 'utf8');
   const base = source.match(/@RequestMapping\s*\(\s*"([^"]+)"\s*\)/)?.[1];
   if (!base) continue;
   const mappings = /@(Get|Post|Put|Delete|Patch)Mapping(?:\s*\(\s*"([^"]*)"\s*\))?/g;
-  for (const [, verb, suffix = ''] of source.matchAll(mappings)) {
+  for (const match of source.matchAll(mappings)) {
+    const [, verb, suffix = ''] = match;
     const route = `${base}${suffix}`.replace(/\/{2,}/g, '/');
-    implemented.add(`${verb.toLowerCase()} ${route}`);
+    const method = verb.toLowerCase();
+    const key = `${method} ${route}`;
+    implemented.add(key);
+    const signatureStart = source.indexOf('(', match.index + match[0].length);
+    const bodyStart = source.indexOf('{', signatureStart);
+    const signature = source.slice(signatureStart + 1, source.lastIndexOf(')', bodyStart));
+    implementedJsonBodies.set(key, signature.includes('@RequestBody'));
+    const parameters = [];
+    for (const argument of signature.split(',')) {
+      const annotation = argument.match(/@RequestParam\s*(?:\(([^)]*)\))?/);
+      if (!annotation) continue;
+      const name = argument.trim().match(/([A-Za-z_]\w*)\s*$/)?.[1];
+      if (name) parameters.push({
+        name,
+        required: !/required\s*=\s*false/.test(annotation[1] ?? '') && !/defaultValue\s*=/.test(annotation[1] ?? ''),
+      });
+    }
+    implementedParameters.set(key, parameters);
   }
 }
 
 // Spring Security configures logout outside an MVC controller.
 implemented.add('post /api/auth/logout');
+if (!documented.has('post /api/statement-imports/confirm') ||
+    !spec.paths['/api/statement-imports/confirm'].post.responses['200']) {
+  problems.push('Statement confirmation must document checksum replay with HTTP 200');
+}
+const categoryList = spec.paths['/api/financial-categories'].get;
+for (const name of ['direction', 'page', 'size']) {
+  if (!(categoryList.parameters ?? []).some(parameter => parameter.in === 'query' && parameter.name === name)) {
+    problems.push(`GET /api/financial-categories: missing ${name} query parameter`);
+  }
+}
 for (const route of implemented) {
   if (!documented.has(route)) problems.push(`Implemented route missing from OpenAPI: ${route}`);
 }
 for (const route of documented) {
   if (!implemented.has(route)) problems.push(`OpenAPI route not found in controllers/security config: ${route}`);
+}
+for (const [route, expected] of implementedParameters) {
+  const [method, path] = route.split(' ');
+  const operation = spec.paths[path]?.[method];
+  if (!operation) continue;
+  const formProperties = Object.values(operation.requestBody?.content ?? {})
+    .filter(content => content.schema?.$ref)
+    .map(content => resolvePointer(content.schema.$ref)?.properties ?? {})
+    .flatMap(properties => Object.keys(properties));
+  const formSchemas = Object.values(operation.requestBody?.content ?? {})
+    .filter(content => content.schema?.$ref)
+    .map(content => resolvePointer(content.schema.$ref));
+  const formRequired = new Set(formSchemas.flatMap(schema => schema?.required ?? []));
+  if (formProperties.length && !operation.requestBody?.required) {
+    problems.push(`${route}: multipart request body must be required`);
+  }
+  if (implementedJsonBodies.get(route) && !operation.requestBody?.required) {
+    problems.push(`${route}: @RequestBody must be documented as required`);
+  }
+  const actual = operation.parameters ?? [];
+  for (const parameter of expected) {
+    const formField = formProperties.includes(parameter.name);
+    const documentedParameter = actual.find(item => item.name === parameter.name && item.in === 'query');
+    if (formField && formRequired.has(parameter.name) !== parameter.required) {
+      problems.push(`${route}: incorrect required flag for multipart field ${parameter.name}`);
+    }
+    if (!documentedParameter && !formField) {
+      problems.push(`${route}: missing @RequestParam ${parameter.name}`);
+    } else if (documentedParameter && documentedParameter.required !== parameter.required) {
+      problems.push(`${route}: incorrect required flag for ${parameter.name}`);
+    }
+  }
+  for (const parameter of actual.filter(item => item.in === 'query')) {
+    if (!expected.some(item => item.name === parameter.name)) {
+      problems.push(`${route}: undocumented @RequestParam ${parameter.name}`);
+    }
+  }
 }
 
 if (problems.length) {

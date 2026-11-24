@@ -48,6 +48,11 @@
                   "$ref": "#/components/schemas/Csrf"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -57,6 +62,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -68,6 +78,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -77,6 +92,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -88,6 +108,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -98,6 +123,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -107,6 +137,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -129,6 +164,11 @@
                   "$ref": "#/components/schemas/AuthConfig"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -138,6 +178,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -149,6 +194,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -158,6 +208,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -169,6 +224,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -179,6 +239,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -188,6 +253,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -216,6 +286,11 @@
                   "$ref": "#/components/schemas/Session"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -225,6 +300,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -236,6 +316,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -245,6 +330,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -256,6 +346,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -266,6 +361,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -275,6 +375,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -307,6 +412,11 @@
                   "$ref": "#/components/schemas/Registration"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -316,6 +426,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -327,6 +442,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -336,6 +456,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -347,10 +472,35 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
             "description": "RFC 9457 problem response. See API Error Contract.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Response uses application/problem+json.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            },
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -366,6 +516,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -415,6 +570,11 @@
                   "$ref": "#/components/schemas/Login"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -424,6 +584,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -435,6 +600,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -444,6 +614,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -455,10 +630,42 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
             "description": "RFC 9457 problem response. See API Error Contract.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblem"
+                }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded. Response uses application/problem+json.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "Retry-After": {
+                "description": "Seconds until the caller may retry.",
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -474,6 +681,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -524,7 +736,12 @@
         ],
         "responses": {
           "204": {
-            "description": "Session invalidated; no response body."
+            "description": "Session invalidated; no response body.",
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
+            }
           },
           "401": {
             "description": "RFC 9457 problem response. See API Error Contract.",
@@ -533,6 +750,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -544,6 +766,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -553,6 +780,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -587,7 +819,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 0
             }
           },
           {
@@ -596,7 +829,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 20
             }
           },
           {
@@ -619,6 +853,11 @@
                   "$ref": "#/components/schemas/ContactPage"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -628,6 +867,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -639,6 +883,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -648,6 +897,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -659,6 +913,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -669,6 +928,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -678,6 +942,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -736,6 +1005,18 @@
                   "$ref": "#/components/schemas/Contact"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              },
+              "Location": {
+                "description": "URI of the created contact.",
+                "schema": {
+                  "type": "string",
+                  "format": "uri-reference"
+                }
+              }
             }
           },
           "400": {
@@ -745,6 +1026,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -756,6 +1042,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -765,6 +1056,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -776,6 +1072,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -786,6 +1087,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -795,6 +1101,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -843,6 +1154,11 @@
                   "$ref": "#/components/schemas/Contact"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -852,6 +1168,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -863,6 +1184,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -872,6 +1198,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -883,6 +1214,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -893,6 +1229,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -902,6 +1243,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -969,6 +1315,11 @@
                   "$ref": "#/components/schemas/Contact"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -978,6 +1329,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -989,6 +1345,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -998,6 +1359,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1009,6 +1375,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -1019,6 +1390,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -1028,6 +1404,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -1053,7 +1434,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 0
             }
           },
           {
@@ -1062,7 +1444,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 20
             }
           },
           {
@@ -1085,6 +1468,11 @@
                   "$ref": "#/components/schemas/AccountPage"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -1094,6 +1482,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1105,6 +1498,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -1114,6 +1512,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1125,6 +1528,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -1135,6 +1543,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -1144,6 +1557,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -1211,6 +1629,11 @@
                   "$ref": "#/components/schemas/Account"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -1220,6 +1643,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/Account"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1231,6 +1659,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -1240,6 +1673,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1251,6 +1689,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -1260,6 +1703,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1271,6 +1719,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -1280,6 +1733,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -1328,6 +1786,11 @@
                   "$ref": "#/components/schemas/Account"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -1337,6 +1800,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1348,6 +1816,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -1357,6 +1830,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1368,6 +1846,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -1378,6 +1861,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -1387,6 +1875,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -1454,6 +1947,11 @@
                   "$ref": "#/components/schemas/Account"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -1463,6 +1961,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1474,6 +1977,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -1483,6 +1991,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1494,6 +2007,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -1504,6 +2022,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -1513,6 +2036,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -1533,6 +2061,38 @@
         ],
         "parameters": [
           {
+            "name": "direction",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "INFLOW",
+                "OUTFLOW"
+              ]
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          },
+          {
             "name": "X-FlowPay-Tenant",
             "in": "header",
             "required": false,
@@ -1552,6 +2112,11 @@
                   "$ref": "#/components/schemas/CategoryPage"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -1561,6 +2126,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1572,6 +2142,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -1581,6 +2156,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1592,6 +2172,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -1602,6 +2187,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -1611,6 +2201,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -1669,6 +2264,11 @@
                   "$ref": "#/components/schemas/Category"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -1678,6 +2278,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1689,6 +2294,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -1698,6 +2308,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1709,6 +2324,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -1719,6 +2339,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -1728,6 +2353,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -1776,6 +2406,11 @@
                   "$ref": "#/components/schemas/Category"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -1785,6 +2420,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1796,6 +2436,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -1805,6 +2450,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1816,6 +2466,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -1826,6 +2481,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -1835,6 +2495,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -1902,6 +2567,11 @@
                   "$ref": "#/components/schemas/Category"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -1911,6 +2581,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1922,6 +2597,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -1931,6 +2611,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -1942,6 +2627,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -1952,6 +2642,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -1961,6 +2656,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -2049,7 +2749,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 0
             }
           },
           {
@@ -2058,7 +2759,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 20
             }
           },
           {
@@ -2081,6 +2783,11 @@
                   "$ref": "#/components/schemas/TitlePage"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -2090,6 +2797,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2101,6 +2813,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -2110,6 +2827,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2121,6 +2843,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -2131,6 +2858,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -2140,6 +2872,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -2212,6 +2949,11 @@
                   "$ref": "#/components/schemas/Title"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -2221,6 +2963,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/Title"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2237,6 +2984,11 @@
                   }
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -2246,6 +2998,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2257,6 +3014,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -2266,6 +3028,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2277,6 +3044,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -2286,6 +3058,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -2334,6 +3111,11 @@
                   "$ref": "#/components/schemas/Title"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -2343,6 +3125,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2354,6 +3141,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -2363,6 +3155,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2374,6 +3171,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -2384,6 +3186,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -2393,6 +3200,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -2460,6 +3272,11 @@
                   "$ref": "#/components/schemas/Title"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -2469,6 +3286,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2480,6 +3302,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -2489,6 +3316,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2500,6 +3332,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -2510,6 +3347,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -2519,6 +3361,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -2588,6 +3435,11 @@
                   "$ref": "#/components/schemas/Title"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -2597,6 +3449,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2608,6 +3465,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -2617,6 +3479,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2628,6 +3495,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -2638,6 +3510,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -2647,6 +3524,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -2695,6 +3577,11 @@
                   "$ref": "#/components/schemas/SettlementList"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -2704,6 +3591,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2715,6 +3607,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -2724,6 +3621,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2735,6 +3637,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -2745,6 +3652,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -2754,6 +3666,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -2830,6 +3747,11 @@
                   "$ref": "#/components/schemas/Title"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -2839,6 +3761,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/Title"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2850,6 +3777,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -2859,6 +3791,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2870,6 +3807,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -2879,6 +3821,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -2890,6 +3837,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -2899,6 +3851,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -2986,6 +3943,11 @@
                   "$ref": "#/components/schemas/Title"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -2995,6 +3957,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/Title"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3006,6 +3973,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -3015,6 +3987,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3026,6 +4003,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -3035,6 +4017,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3046,6 +4033,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -3055,6 +4047,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -3080,7 +4077,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 0
             }
           },
           {
@@ -3089,7 +4087,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 20
             }
           },
           {
@@ -3112,6 +4111,11 @@
                   "$ref": "#/components/schemas/TransactionPage"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -3121,6 +4125,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3132,6 +4141,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -3141,6 +4155,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3152,6 +4171,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -3162,6 +4186,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -3171,6 +4200,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -3238,6 +4272,11 @@
                   "$ref": "#/components/schemas/Transaction"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -3247,6 +4286,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/Transaction"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3258,6 +4302,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -3267,6 +4316,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3278,6 +4332,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -3287,6 +4346,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3298,6 +4362,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -3307,6 +4376,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -3381,6 +4455,11 @@
                   "$ref": "#/components/schemas/TransferResult"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -3390,6 +4469,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/TransferResult"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3401,6 +4485,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -3410,6 +4499,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3421,6 +4515,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -3430,6 +4529,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3441,6 +4545,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -3450,6 +4559,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -3519,6 +4633,11 @@
                   "$ref": "#/components/schemas/Transaction"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -3528,6 +4647,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/Transaction"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3539,6 +4663,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -3548,6 +4677,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3559,6 +4693,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -3568,6 +4707,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3579,6 +4723,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -3588,6 +4737,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -3653,6 +4807,11 @@
                   "$ref": "#/components/schemas/Dashboard"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -3662,6 +4821,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3673,6 +4837,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -3682,6 +4851,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3693,6 +4867,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -3703,6 +4882,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -3712,6 +4896,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -3754,7 +4943,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 0
             }
           },
           {
@@ -3763,7 +4953,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 20
             }
           },
           {
@@ -3786,6 +4977,11 @@
                   "$ref": "#/components/schemas/MonthlyReport"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -3795,6 +4991,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3806,6 +5007,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -3815,6 +5021,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3826,6 +5037,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -3836,6 +5052,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -3845,6 +5066,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -3905,6 +5131,11 @@
                   "$ref": "#/components/schemas/Preview"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -3914,6 +5145,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3925,6 +5161,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -3934,6 +5175,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -3945,6 +5191,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -3955,6 +5206,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -3964,6 +5220,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -4024,6 +5285,11 @@
                   "$ref": "#/components/schemas/ImportResult"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -4033,6 +5299,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ImportResult"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4044,6 +5315,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -4053,6 +5329,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4064,6 +5345,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -4073,6 +5359,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4084,6 +5375,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -4093,6 +5389,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -4127,7 +5428,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 0
             }
           },
           {
@@ -4136,7 +5438,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 20
             }
           },
           {
@@ -4159,6 +5462,11 @@
                   "$ref": "#/components/schemas/ImportPage"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -4168,6 +5476,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4179,6 +5492,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -4188,6 +5506,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4199,6 +5522,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -4209,6 +5537,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -4218,6 +5551,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -4252,7 +5590,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 0
             }
           },
           {
@@ -4261,7 +5600,8 @@
             "required": false,
             "schema": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "default": 50
             }
           },
           {
@@ -4284,6 +5624,11 @@
                   "$ref": "#/components/schemas/StatementLinePage"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -4293,6 +5638,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4304,6 +5654,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -4313,6 +5668,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4324,6 +5684,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -4334,6 +5699,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -4343,6 +5713,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -4399,6 +5774,11 @@
                   "$ref": "#/components/schemas/Summary"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -4408,6 +5788,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4419,6 +5804,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -4428,6 +5818,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4439,6 +5834,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -4449,6 +5849,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -4458,6 +5863,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -4536,6 +5946,11 @@
                   "$ref": "#/components/schemas/ReviewResult"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -4545,6 +5960,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ReviewResult"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4556,6 +5976,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -4565,6 +5990,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4576,6 +6006,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -4585,6 +6020,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4596,6 +6036,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -4605,6 +6050,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -4653,6 +6103,11 @@
                   "$ref": "#/components/schemas/SuggestionList"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -4662,6 +6117,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4673,6 +6133,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -4682,6 +6147,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4693,6 +6163,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -4703,6 +6178,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -4712,6 +6192,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -4790,6 +6275,11 @@
                   "$ref": "#/components/schemas/MatchResult"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -4799,6 +6289,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/MatchResult"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4810,6 +6305,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -4819,6 +6319,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4830,6 +6335,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -4839,6 +6349,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4850,6 +6365,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -4859,6 +6379,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -4937,6 +6462,11 @@
                   "$ref": "#/components/schemas/UnlinkResult"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -4946,6 +6476,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/UnlinkResult"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4957,6 +6492,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -4966,6 +6506,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4977,6 +6522,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -4986,6 +6536,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -4997,6 +6552,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -5006,6 +6566,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -5093,6 +6658,11 @@
                   "$ref": "#/components/schemas/CandidateResult"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -5102,6 +6672,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/CandidateResult"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -5113,6 +6688,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -5122,6 +6702,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -5133,6 +6718,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -5142,6 +6732,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -5153,6 +6748,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -5162,6 +6762,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -5249,6 +6854,11 @@
                   "$ref": "#/components/schemas/CandidateResult"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "201": {
@@ -5258,6 +6868,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/CandidateResult"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -5269,6 +6884,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "401": {
@@ -5278,6 +6898,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -5289,6 +6914,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "404": {
@@ -5298,6 +6928,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -5309,6 +6944,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -5318,6 +6958,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -5369,6 +7014,11 @@
                   "$ref": "#/components/schemas/ActiveMatchList"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "400": {
@@ -5378,6 +7028,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -5389,6 +7044,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "403": {
@@ -5398,6 +7058,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           },
@@ -5409,6 +7074,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "409": {
@@ -5419,6 +7089,11 @@
                   "$ref": "#/components/schemas/ApiProblem"
                 }
               }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
+              }
             }
           },
           "500": {
@@ -5428,6 +7103,11 @@
                 "schema": {
                   "$ref": "#/components/schemas/ApiProblem"
                 }
+              }
+            },
+            "headers": {
+              "X-Request-Id": {
+                "$ref": "#/components/headers/RequestId"
               }
             }
           }
@@ -5576,16 +7256,25 @@
             }
           },
           "email": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "email",
             "maxLength": 254
           },
           "phone": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 32
           },
           "notes": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 1000
           },
           "createdAt": {
@@ -5958,11 +7647,17 @@
             "type": "string"
           },
           "plannedAccountId": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uuid"
           },
           "plannedAccountName": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "originalAmountMinor": {
             "type": "string",
@@ -5990,7 +7685,10 @@
             "format": "date"
           },
           "notes": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 1000
           },
           "status": {
@@ -6004,7 +7702,10 @@
             ]
           },
           "cancellationReason": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 500
           },
           "asOf": {
@@ -6096,19 +7797,26 @@
             "format": "uuid"
           },
           "plannedAccountId": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uuid"
           },
           "originalAmountMinor": {
             "type": "string",
-            "pattern": "^[0-9]{1,16}$"
+            "pattern": "^[0-9]{1,16}$",
+            "description": "Positive integer centavos; maximum 9000000000000000. Sent as a decimal string to preserve precision."
           },
           "dueDate": {
             "type": "string",
             "format": "date"
           },
           "notes": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 1000
           }
         },
@@ -6137,19 +7845,26 @@
             "format": "uuid"
           },
           "plannedAccountId": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uuid"
           },
           "originalAmountMinor": {
             "type": "string",
-            "pattern": "^[0-9]{1,16}$"
+            "pattern": "^[0-9]{1,16}$",
+            "description": "Positive integer centavos; maximum 9000000000000000. Sent as a decimal string to preserve precision."
           },
           "dueDate": {
             "type": "string",
             "format": "date"
           },
           "notes": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "maxLength": 1000
           }
         },
@@ -6182,7 +7897,8 @@
           },
           "amountMinor": {
             "type": "string",
-            "pattern": "^[0-9]{1,16}$"
+            "pattern": "^[0-9]{1,16}$",
+            "description": "Positive integer centavos; maximum 9000000000000000."
           },
           "effectiveDate": {
             "type": "string",
@@ -6200,7 +7916,8 @@
         "properties": {
           "amountMinor": {
             "type": "string",
-            "pattern": "^[0-9]{1,16}$"
+            "pattern": "^[0-9]{1,16}$",
+            "description": "Positive integer centavos; maximum 9000000000000000."
           },
           "effectiveDate": {
             "type": "string",
@@ -6291,14 +8008,23 @@
             "type": "string"
           },
           "adjustmentReason": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "categoryId": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uuid"
           },
           "categoryName": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "accountId": {
             "type": "string",
@@ -6308,7 +8034,10 @@
             "type": "string"
           },
           "counterpartyAccountName": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -6492,7 +8221,8 @@
           "password": {
             "type": "string",
             "minLength": 12,
-            "maxLength": 72
+            "maxLength": 72,
+            "description": "Minimum 12 characters; maximum 72 UTF-8 bytes. The byte limit is enforced by the API."
           }
         },
         "required": [
@@ -6555,11 +8285,11 @@
       "TenantAccess": {
         "type": "object",
         "properties": {
-          "tenantId": {
+          "id": {
             "type": "string",
             "format": "uuid"
           },
-          "companyName": {
+          "name": {
             "type": "string"
           },
           "role": {
@@ -6572,8 +8302,8 @@
           }
         },
         "required": [
-          "tenantId",
-          "companyName",
+          "id",
+          "name",
           "role"
         ]
       },
@@ -6668,19 +8398,29 @@
             "format": "int32"
           },
           "date": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "date"
           },
           "description": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 250
           },
           "amountMinor": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "pattern": "^-?[0-9]{1,16}$",
             "description": "Integer centavos as a decimal string; currency BRL unless otherwise stated."
           },
           "direction": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "enum": [
               "INFLOW",
               "OUTFLOW"
@@ -6840,21 +8580,30 @@
             "format": "int32"
           },
           "date": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "date"
           },
           "description": {
             "type": "string"
           },
           "direction": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "enum": [
               "INFLOW",
               "OUTFLOW"
             ]
           },
           "amountMinor": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "pattern": "^-?[0-9]{1,16}$",
             "description": "Integer centavos as a decimal string; currency BRL unless otherwise stated."
           },
@@ -6862,13 +8611,19 @@
             "type": "string"
           },
           "validationErrors": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "reviewStatus": {
             "type": "string"
           },
           "reviewReason": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "required": [
@@ -6994,30 +8749,48 @@
             "description": "Integer centavos as a decimal string; currency BRL unless otherwise stated."
           },
           "statementOpeningBalanceDate": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "date"
           },
           "statementOpeningBalanceMinor": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "pattern": "^-?[0-9]{1,16}$",
             "description": "Integer centavos as a decimal string; currency BRL unless otherwise stated."
           },
           "statementClosingBalanceDate": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "date"
           },
           "statementClosingBalanceMinor": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "pattern": "^-?[0-9]{1,16}$",
             "description": "Integer centavos as a decimal string; currency BRL unless otherwise stated."
           },
           "statementBalanceDifferenceMinor": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "pattern": "^-?[0-9]{1,16}$",
             "description": "Integer centavos as a decimal string; currency BRL unless otherwise stated."
           },
           "statementBalanceRollForwardDifferenceMinor": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "pattern": "^-?[0-9]{1,16}$",
             "description": "Integer centavos as a decimal string; currency BRL unless otherwise stated."
           },
@@ -7065,7 +8838,8 @@
         },
         "required": [
           "action"
-        ]
+        ],
+        "description": "reason is required for IGNORE_LINE; MARK_REVIEWED and REOPEN may omit it."
       },
       "ReviewResult": {
         "type": "object",
@@ -7098,17 +8872,24 @@
             ]
           },
           "cashTransactionId": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uuid"
           },
           "categoryId": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uuid"
           }
         },
         "required": [
           "decision"
-        ]
+        ],
+        "description": "LINK_EXISTING requires cashTransactionId and omits categoryId. CREATE_MOVEMENT requires categoryId and omits cashTransactionId."
       },
       "MatchResult": {
         "type": "object",
@@ -7465,11 +9246,17 @@
             "type": "string"
           },
           "categoryId": {
-            "type": "string",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uuid"
           },
           "categoryName": {
-            "type": "string"
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "accountId": {
             "type": "string",
@@ -7778,6 +9565,16 @@
             "type": "string",
             "format": "date"
           }
+        },
+        "description": "Opening and closing balance values and their dates are optional metadata. Each balance and its corresponding date must be supplied together."
+      }
+    },
+    "headers": {
+      "RequestId": {
+        "description": "Server-generated correlation identifier; matches the X-Request-Id used in request logs.",
+        "schema": {
+          "type": "string",
+          "format": "uuid"
         }
       }
     }
