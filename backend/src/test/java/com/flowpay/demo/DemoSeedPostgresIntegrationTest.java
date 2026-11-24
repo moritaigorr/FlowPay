@@ -334,6 +334,61 @@ class DemoSeedPostgresIntegrationTest {
 
     @Test
     @Transactional
+    void balanceAdjustmentIsReasonedAuthorizedIdempotentAndExcludedFromOperatingFlows() throws Exception {
+        UUID managerId = UUID.randomUUID();
+        UUID readerId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
+        String managerEmail = "adjustment-manager-" + UUID.randomUUID() + "@flowpay.local";
+        String readerEmail = "adjustment-reader-" + UUID.randomUUID() + "@flowpay.local";
+        String password = "Adjustment-Testing-2026!";
+        jdbc.update("INSERT INTO app_user(id, email, password_hash) VALUES (?, ?, ?)", managerId, managerEmail, passwordEncoder.encode(password));
+        jdbc.update("INSERT INTO app_user(id, email, password_hash) VALUES (?, ?, ?)", readerId, readerEmail, passwordEncoder.encode(password));
+        jdbc.update("INSERT INTO tenant(id, name) VALUES (?, ?)", tenantId, "Adjustment test company");
+        jdbc.update("INSERT INTO membership(tenant_id, user_id, role) VALUES (?, ?, 'MANAGER')", tenantId, managerId);
+        jdbc.update("INSERT INTO membership(tenant_id, user_id, role) VALUES (?, ?, 'READER')", tenantId, readerId);
+        insertAccount(tenantId, accountId, "Adjustment account");
+        insertOpeningBalance(tenantId, accountId, 10_000);
+
+        CsrfState csrf = csrfState();
+        MockHttpSession managerSession = login(managerEmail, password, csrf);
+        MockHttpSession readerSession = login(readerEmail, password, csrf);
+        UUID key = UUID.randomUUID();
+        String request = "{\"direction\":\"OUTFLOW\",\"accountId\":\"" + accountId
+                + "\",\"amountMinor\":\"1250\",\"effectiveDate\":\"2026-11-24\",\"reason\":\"Conferência física do caixa\"}";
+
+        mockMvc.perform(post("/api/cash-transactions/adjustments")
+                        .session(managerSession).cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
+                        .header("Idempotency-Key", key).contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.origin").value("ADJUSTMENT"))
+                .andExpect(jsonPath("$.adjustmentReason").value("Conferência física do caixa"));
+        mockMvc.perform(post("/api/cash-transactions/adjustments")
+                        .session(managerSession).cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
+                        .header("Idempotency-Key", key).contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isOk());
+        mockMvc.perform(post("/api/cash-transactions/adjustments")
+                        .session(managerSession).cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
+                        .header("Idempotency-Key", key).contentType(MediaType.APPLICATION_JSON).content(request.replace("1250", "1300")))
+                .andExpect(status().isConflict());
+        mockMvc.perform(post("/api/cash-transactions/adjustments")
+                        .session(readerSession).cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
+                        .header("Idempotency-Key", UUID.randomUUID()).contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isForbidden());
+
+        assertThat(accountBalance(tenantId, accountId)).isEqualTo(8_750L);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM cash_transaction WHERE tenant_id = ? AND origin = 'ADJUSTMENT'", Long.class, tenantId)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT created_by_user_id FROM cash_transaction WHERE tenant_id = ? AND origin = 'ADJUSTMENT'", UUID.class, tenantId)).isEqualTo(managerId);
+        assertThat(jdbc.queryForObject("SELECT adjustment_reason FROM cash_transaction WHERE tenant_id = ? AND origin = 'ADJUSTMENT'", String.class, tenantId))
+                .isEqualTo("Conferência física do caixa");
+        mockMvc.perform(get("/api/dashboard").session(managerSession).param("from", "2026-11-24").param("to", "2026-11-24").param("timezone", "UTC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.periodInflowsMinor").value("0"))
+                .andExpect(jsonPath("$.periodOutflowsMinor").value("0"));
+    }
+
+    @Test
+    @Transactional
     void managerCanManageBusinessDataWhileReaderHasTenantScopedReadOnlyAccess() throws Exception {
         UUID managerId = UUID.randomUUID();
         UUID readerId = UUID.randomUUID();

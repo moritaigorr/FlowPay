@@ -20,8 +20,8 @@ public class JdbcFinanceReportingReader implements FinanceReportingReader {
     @Transactional(readOnly = true)
     public CashSummary cashSummary(UUID tenantId, LocalDate from, LocalDate to, LocalDate asOf) {
         return jdbc.queryForObject("""
-                SELECT COALESCE(sum(amount_minor) FILTER (WHERE origin NOT IN ('OPENING_BALANCE', 'TRANSFER') AND direction = 'INFLOW' AND effective_date BETWEEN ? AND ?), 0)::text AS inflows,
-                       COALESCE(sum(amount_minor) FILTER (WHERE origin NOT IN ('OPENING_BALANCE', 'TRANSFER') AND direction = 'OUTFLOW' AND effective_date BETWEEN ? AND ?), 0)::text AS outflows,
+                SELECT COALESCE(sum(amount_minor) FILTER (WHERE origin NOT IN ('OPENING_BALANCE', 'TRANSFER', 'ADJUSTMENT') AND direction = 'INFLOW' AND effective_date BETWEEN ? AND ?), 0)::text AS inflows,
+                       COALESCE(sum(amount_minor) FILTER (WHERE origin NOT IN ('OPENING_BALANCE', 'TRANSFER', 'ADJUSTMENT') AND direction = 'OUTFLOW' AND effective_date BETWEEN ? AND ?), 0)::text AS outflows,
                        COALESCE(sum(CASE direction WHEN 'INFLOW' THEN amount_minor ELSE -amount_minor END)
                                 FILTER (WHERE effective_date <= ?), 0)::text AS balance
                 FROM cash_transaction
@@ -34,8 +34,8 @@ public class JdbcFinanceReportingReader implements FinanceReportingReader {
     @Transactional(readOnly = true)
     public CashSummary accountCashSummary(UUID tenantId, UUID accountId, LocalDate from, LocalDate to, LocalDate asOf) {
         return jdbc.queryForObject("""
-                SELECT COALESCE(sum(amount_minor) FILTER (WHERE origin NOT IN ('OPENING_BALANCE', 'TRANSFER') AND direction = 'INFLOW' AND effective_date BETWEEN ? AND ?), 0)::text AS inflows,
-                       COALESCE(sum(amount_minor) FILTER (WHERE origin NOT IN ('OPENING_BALANCE', 'TRANSFER') AND direction = 'OUTFLOW' AND effective_date BETWEEN ? AND ?), 0)::text AS outflows,
+                SELECT COALESCE(sum(amount_minor) FILTER (WHERE origin NOT IN ('OPENING_BALANCE', 'TRANSFER', 'ADJUSTMENT') AND direction = 'INFLOW' AND effective_date BETWEEN ? AND ?), 0)::text AS inflows,
+                       COALESCE(sum(amount_minor) FILTER (WHERE origin NOT IN ('OPENING_BALANCE', 'TRANSFER', 'ADJUSTMENT') AND direction = 'OUTFLOW' AND effective_date BETWEEN ? AND ?), 0)::text AS outflows,
                        COALESCE(sum(CASE direction WHEN 'INFLOW' THEN amount_minor ELSE -amount_minor END)
                                 FILTER (WHERE effective_date <= ?), 0)::text AS balance
                 FROM cash_transaction
@@ -72,7 +72,7 @@ public class JdbcFinanceReportingReader implements FinanceReportingReader {
                        ct.direction, sum(ct.amount_minor)::text AS amount_minor, count(*) AS movement_count
                 FROM cash_transaction ct
                 LEFT JOIN financial_category cat ON cat.tenant_id = ct.tenant_id AND cat.id = ct.category_id
-                WHERE ct.tenant_id = ? AND ct.origin NOT IN ('OPENING_BALANCE', 'TRANSFER') AND ct.effective_date BETWEEN ? AND ?
+                WHERE ct.tenant_id = ? AND ct.origin NOT IN ('OPENING_BALANCE', 'TRANSFER', 'ADJUSTMENT') AND ct.effective_date BETWEEN ? AND ?
                 GROUP BY ct.category_id, COALESCE(cat.name, 'Sem categoria'), ct.direction
                 ORDER BY ct.direction, lower(COALESCE(cat.name, 'Sem categoria')), ct.category_id NULLS FIRST
                 """, (rs, row) -> new CategoryFlow(rs.getObject("category_id", UUID.class), rs.getString("category_name"),

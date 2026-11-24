@@ -78,4 +78,8 @@ test('member selects and switches companies with server-validated tenant context
   await expect.poll(() => dashboardRequests.some((request) => request.tenant === tenantTwo)).toBe(true)
   expect(businessRequests.every((request) => request.tenant === tenantOne || request.tenant === tenantTwo)).toBe(true)
   await expectAutomaticallyAccessible(page, 'read-only company workspace')
+
+  await page.getByRole('button', { name: 'Movimentos de caixa', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Movimentos de caixa' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Ajustar saldo', exact: true })).toBeHidden()
 })

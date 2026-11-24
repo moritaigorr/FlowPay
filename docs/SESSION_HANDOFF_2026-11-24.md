@@ -32,8 +32,16 @@ Recorded in local commit `Add persistent authentication throttling`; the branch 
 - The API is mocked in this browser test; this proves the SPA flow, not server authorization or PostgreSQL behavior. `npm.cmd run lint`, `npm.cmd run build`, and the focused Playwright case passed.
 - Current local branch is eleven commits ahead of `origin/main`; no changes have been pushed. This browser test and its documentation update are pending a local commit.
 
+## Current increment: audited balance adjustment
+
+- Added migration V17, a tenant-scoped idempotent `ADJUSTMENT` cash movement, and a required reason plus authenticated actor FK on the immutable cash record. Only `OWNER`/`MANAGER` can create it; the account must be active.
+- Added the UI form and transaction-history reason display. `READER` sees the workspace in read-only mode with write actions hidden. Adjustments change controlled balances but are excluded from operating inflow/outflow and category totals.
+- Added PostgreSQL integration coverage for manager/reader access, actor/reason persistence, idempotent replay/conflict, and report totals, plus a real-API E2E scenario. The focused mocked browser journey also passed and verifies the adjustment action is hidden for `READER`.
+- Java 21 compilation of changed service/controller/reporting and integration test sources passed. Frontend lint and production build passed. PostgreSQL migration/Testcontainers and the real-API E2E remain unverified because Docker/Maven and the API are unavailable.
+
 ## Next work
 
-1. Run migration V16 and authentication Testcontainers tests, including concurrent reservations.
-2. Configure and verify the actual trusted proxy CIDRs and upstream header behavior.
-3. Check current-revision GitHub Actions and complete the remaining manual accessibility review.
+1. Run the V17 migration and the adjustment authorization, persistence, idempotency, and report-exclusion Testcontainers case; Docker/Maven are unavailable in the current environment.
+2. Run the financial Playwright journey against the real local API/PostgreSQL; the adjustment UI scenario is added but not executed here.
+3. Validate title filters with PostgreSQL and the full browser journey, then configure actual trusted proxy CIDRs and check current-revision GitHub Actions.
+4. Complete the remaining manual accessibility review.

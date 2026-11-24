@@ -35,7 +35,7 @@ public class CashTransactionService {
         var total = jdbc.queryForObject("SELECT count(*) FROM cash_transaction WHERE tenant_id = ?", Long.class, tenant.id());
         var items = jdbc.query("""
                 SELECT ct.id, ct.direction, ct.amount_minor::text AS amount_minor, ct.effective_date,
-                       ct.origin, ct.description, ct.category_id, cat.name AS category_name,
+                       ct.origin, ct.description, ct.adjustment_reason, ct.category_id, cat.name AS category_name,
                        ct.financial_account_id, a.name AS account_name, counterparty.name AS counterparty_account_name
                 FROM cash_transaction ct
                 JOIN financial_account a ON a.tenant_id = ct.tenant_id AND a.id = ct.financial_account_id
@@ -62,7 +62,7 @@ public class CashTransactionService {
         jdbc.query("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))",
                 (org.springframework.jdbc.core.ResultSetExtractor<Void>) rs -> { rs.next(); return null; },
                 tenant.id() + ":MANUAL_CASH_TRANSACTION:" + key);
-        var prior = findByKey(tenant.id(), key);
+        var prior = findByKey(tenant.id(), key, "MANUAL");
         if (prior != null) {
             if (!sameHash(prior.hash(), hash)) throw idempotencyConflict();
             return new CreateResult(get(tenant.id(), prior.id()), true);
@@ -83,6 +83,43 @@ public class CashTransactionService {
                 VALUES (?, ?, ?, ?, ?, ?, 'MANUAL', ?, ?, ?, ?, ?)
                 """, id, tenant.id(), input.accountId(), input.direction().name(), input.amountMinor(), input.effectiveDate(),
                 description, input.categoryId(), input.direction().name(), key, hash);
+        return new CreateResult(get(tenant.id(), id), false);
+    }
+
+    @Transactional
+    public CreateResult adjust(String email, UUID key, AdjustmentInput input) {
+        var tenant = tenantAccess.requireSingleTenant(email);
+        if (!TenantRole.canManageBusinessData(tenant.role())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite ajustar o saldo.");
+        }
+        if (input.amountMinor() <= 0 || input.amountMinor() > MAX_AMOUNT_MINOR) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O valor precisa ser positivo e estar dentro do limite permitido.");
+        }
+        var reason = input.reason().trim();
+        if (reason.isEmpty() || reason.length() > 500) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe um motivo de até 500 caracteres.");
+        }
+        var hash = adjustmentPayloadHash(input, reason);
+        jdbc.query("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))",
+                (org.springframework.jdbc.core.ResultSetExtractor<Void>) rs -> { rs.next(); return null; },
+                tenant.id() + ":CASH_ADJUSTMENT:" + key);
+        var prior = findByKey(tenant.id(), key, "ADJUSTMENT");
+        if (prior != null) {
+            if (!sameHash(prior.hash(), hash)) throw idempotencyConflict();
+            return new CreateResult(get(tenant.id(), prior.id()), true);
+        }
+        var accountStatus = jdbc.query("SELECT status FROM financial_account WHERE tenant_id = ? AND id = ? FOR UPDATE",
+                (rs, row) -> rs.getString("status"), tenant.id(), input.accountId()).stream().findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selecione uma conta desta empresa."));
+        if (!"ACTIVE".equals(accountStatus)) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A conta selecionada está arquivada.");
+        var id = UUID.randomUUID();
+        jdbc.update("""
+                INSERT INTO cash_transaction
+                  (id, tenant_id, financial_account_id, direction, amount_minor, effective_date, origin,
+                   description, idempotency_key, payload_hash, adjustment_reason, created_by_user_id)
+                VALUES (?, ?, ?, ?, ?, ?, 'ADJUSTMENT', 'Ajuste de saldo', ?, ?, ?, ?)
+                """, id, tenant.id(), input.accountId(), input.direction().name(), input.amountMinor(),
+                input.effectiveDate(), key, hash, reason, tenantAccess.requireUserId(email));
         return new CreateResult(get(tenant.id(), id), false);
     }
 
@@ -149,7 +186,7 @@ public class CashTransactionService {
     private TransactionView getTransferLeg(UUID tenantId, UUID transferId, String direction) {
         return jdbc.query("""
                 SELECT ct.id, ct.direction, ct.amount_minor::text AS amount_minor, ct.effective_date,
-                       ct.origin, ct.description, ct.category_id, cat.name AS category_name,
+                       ct.origin, ct.description, ct.adjustment_reason, ct.category_id, cat.name AS category_name,
                        ct.financial_account_id, a.name AS account_name, counterparty.name AS counterparty_account_name
                 FROM cash_transaction ct
                 JOIN financial_account a ON a.tenant_id = ct.tenant_id AND a.id = ct.financial_account_id
@@ -169,16 +206,16 @@ public class CashTransactionService {
         catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException("SHA-256 is unavailable", impossible); }
     }
 
-    private Existing findByKey(UUID tenantId, UUID key) {
-        return jdbc.query("SELECT id, payload_hash FROM cash_transaction WHERE tenant_id = ? AND origin = 'MANUAL' AND idempotency_key = ?",
-                (rs, row) -> new Existing(rs.getObject("id", UUID.class), rs.getString("payload_hash")), tenantId, key)
+    private Existing findByKey(UUID tenantId, UUID key, String origin) {
+        return jdbc.query("SELECT id, payload_hash FROM cash_transaction WHERE tenant_id = ? AND origin = ? AND idempotency_key = ?",
+                (rs, row) -> new Existing(rs.getObject("id", UUID.class), rs.getString("payload_hash")), tenantId, origin, key)
                 .stream().findFirst().orElse(null);
     }
 
     private TransactionView get(UUID tenantId, UUID id) {
         return jdbc.query("""
                 SELECT ct.id, ct.direction, ct.amount_minor::text AS amount_minor, ct.effective_date,
-                       ct.origin, ct.description, ct.category_id, cat.name AS category_name,
+                       ct.origin, ct.description, ct.adjustment_reason, ct.category_id, cat.name AS category_name,
                        ct.financial_account_id, a.name AS account_name, counterparty.name AS counterparty_account_name
                 FROM cash_transaction ct
                 JOIN financial_account a ON a.tenant_id = ct.tenant_id AND a.id = ct.financial_account_id
@@ -194,13 +231,20 @@ public class CashTransactionService {
     private static TransactionView map(java.sql.ResultSet rs, int row) throws java.sql.SQLException {
         return new TransactionView(rs.getObject("id", UUID.class), Direction.valueOf(rs.getString("direction")),
                 rs.getString("amount_minor"), rs.getDate("effective_date").toLocalDate(), rs.getString("origin"),
-                rs.getString("description"), rs.getObject("category_id", UUID.class), rs.getString("category_name"),
+                rs.getString("description"), rs.getString("adjustment_reason"), rs.getObject("category_id", UUID.class), rs.getString("category_name"),
                 rs.getObject("financial_account_id", UUID.class), rs.getString("account_name"), rs.getString("counterparty_account_name"));
     }
 
     private static String payloadHash(Direction direction, UUID accountId, UUID categoryId, long amountMinor, LocalDate date, String description) {
         var canonical = String.join("\u0000", direction.name(), accountId.toString(), categoryId.toString(),
                 Long.toString(amountMinor), date.toString(), description);
+        try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8))); }
+        catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException("SHA-256 is unavailable", impossible); }
+    }
+
+    private static String adjustmentPayloadHash(AdjustmentInput input, String reason) {
+        var canonical = String.join("\u0000", input.direction().name(), input.accountId().toString(),
+                Long.toString(input.amountMinor()), input.effectiveDate().toString(), reason);
         try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8))); }
         catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException("SHA-256 is unavailable", impossible); }
     }
@@ -215,8 +259,9 @@ public class CashTransactionService {
 
     public enum Direction { INFLOW, OUTFLOW }
     public record TransactionInput(Direction direction, UUID accountId, UUID categoryId, long amountMinor, LocalDate effectiveDate, String description) {}
+    public record AdjustmentInput(Direction direction, UUID accountId, long amountMinor, LocalDate effectiveDate, String reason) {}
     public record TransactionView(UUID id, Direction direction, String amountMinor, LocalDate effectiveDate, String origin,
-                                  String description, UUID categoryId, String categoryName, UUID accountId, String accountName,
+                                  String description, String adjustmentReason, UUID categoryId, String categoryName, UUID accountId, String accountName,
                                   String counterpartyAccountName) {}
     public record TransactionPage(List<TransactionView> items, long total, int page, int size) {}
     public record CreateResult(TransactionView transaction, boolean replay) {}

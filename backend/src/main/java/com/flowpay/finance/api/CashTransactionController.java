@@ -2,6 +2,7 @@ package com.flowpay.finance.api;
 
 import com.flowpay.finance.application.CashTransactionService;
 import com.flowpay.finance.application.CashTransactionService.Direction;
+import com.flowpay.finance.application.CashTransactionService.AdjustmentInput;
 import com.flowpay.finance.application.CashTransactionService.TransactionInput;
 import com.flowpay.finance.application.CashTransactionService.TransactionPage;
 import com.flowpay.finance.application.CashTransactionService.TransactionView;
@@ -60,6 +61,14 @@ public class CashTransactionController {
         return ResponseEntity.status(result.replay() ? HttpStatus.OK : HttpStatus.CREATED).body(result);
     }
 
+    @PostMapping("/adjustments")
+    ResponseEntity<TransactionView> adjust(@AuthenticationPrincipal UserDetails user,
+                                           @RequestHeader("Idempotency-Key") UUID key,
+                                           @Valid @RequestBody AdjustmentRequest request) {
+        var result = transactions.adjust(user.getUsername(), key, request.toInput());
+        return ResponseEntity.status(result.replay() ? HttpStatus.OK : HttpStatus.CREATED).body(result.transaction());
+    }
+
     record TransactionRequest(@NotNull Direction direction,
                               @NotNull UUID accountId,
                               @NotNull UUID categoryId,
@@ -89,5 +98,20 @@ public class CashTransactionController {
             return new TransferInput(sourceAccountId, destinationAccountId, amount, effectiveDate, description);
         }
         @Override public String toString() { return "TransferRequest[REDACTED]"; }
+    }
+
+    record AdjustmentRequest(@NotNull Direction direction,
+                             @NotNull UUID accountId,
+                             @NotBlank @Pattern(regexp = "[0-9]{1,16}") String amountMinor,
+                             @NotNull LocalDate effectiveDate,
+                             @NotBlank @Size(max = 500) String reason) {
+        AdjustmentInput toInput() {
+            final long amount;
+            try { amount = Long.parseLong(amountMinor); }
+            catch (NumberFormatException invalid) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor fora do limite permitido."); }
+            if (amount <= 0 || amount > MAX_AMOUNT_MINOR) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O valor precisa ser positivo e estar dentro do limite permitido.");
+            return new AdjustmentInput(direction, accountId, amount, effectiveDate, reason);
+        }
+        @Override public String toString() { return "AdjustmentRequest[REDACTED]"; }
     }
 }
