@@ -376,7 +376,7 @@ Regras de banco:
 ### 10.3 Usabilidade e acessibilidade
 
 - Parcial: a jornada seed foi exercitada em Chrome desktop e mobile; no viewport de 390 px não há rolagem horizontal no dashboard e na entrada de extratos. Isso não substitui auditoria de teclado, contraste, zoom ou leitor de tela.
-- Parcial: scans automatizados do axe-core com tags WCAG 2.1 A/AA passaram em login, dashboard, contatos, entrada de extratos, pagamento, linhas/resumo/saldos de conciliação e relatório mensal. O estado financeiro conciliado foi escaneado em desktop e a 390 px; o teste também confirma alternador e envio do login via Tab/Enter. Não comprova conformidade WCAG.
+- Parcial: scans automatizados do axe-core com tags WCAG 2.1 A/AA passaram em login, dashboard, contatos, entrada de extratos, pagamento, linhas/resumo/saldos de conciliação e relatório mensal. O estado financeiro conciliado foi escaneado em desktop e a 390 px; o teste também confirma alternador e envio do login via Tab/Enter. Não comprova conformidade WCAG. Em 24/11/2026, a nova jornada Playwright também escaneou por axe a seleção da empresa e o workspace de leitura.
 
 - Parcial: ao salvar ou cancelar os formulários de contatos, contas, categorias, títulos, movimentos avulsos, baixas/reversões e confirmação de conciliação, o foco retorna a um título da seção; campos de valor recebem foco ao abrir baixa/reversão.
 - Pendente: auditar manualmente teclado, zoom, contraste, leitor de tela e fluxos além do demo em toda a jornada.
@@ -394,7 +394,7 @@ Regras de banco:
 - Concorrência: dupla baixa, chave repetida, checksum repetido e match disputado; sincronização determinística e consulta dos efeitos finais.
 - UI: formulários, cache separado por empresa, erro/retry, tabelas e estados acessíveis.
 - E2E: jornada MVP e isolamento de tenant.
-- Parcial: a suíte Playwright completa (login demo e fluxo financeiro) passou localmente em Chrome com PostgreSQL descartável em 23/11/2026. CI configura PostgreSQL descartável, inicia API nos perfis `local,demo` e executa Playwright com senha efêmera. O run remoto no SHA `def2abf` passou no frontend, mas falhou no backend por inicializar a integração com `webEnvironment=NONE`; o checkout local já usa `MOCK` e o relatório PostgreSQL registra 12 testes sem falhas. Nova execução do Actions no checkout atualizado segue pendente.
+- Parcial: a suíte Playwright completa (login demo e fluxo financeiro) passou localmente em Chrome com PostgreSQL descartável em 23/11/2026. CI configura PostgreSQL descartável, inicia API nos perfis `local,demo` e executa Playwright com senha efêmera. O run remoto no SHA `def2abf` passou no frontend, mas falhou no backend por inicializar a integração com `webEnvironment=NONE`; o checkout local já usa `MOCK` e o relatório PostgreSQL registra 12 testes sem falhas. Nova execução do Actions no checkout atualizado segue pendente. Em 24/11/2026, uma jornada isolada com API mockada verificou escolha/troca de empresa, header por tenant e papel READER; ela não substitui autorização real nem integração PostgreSQL.
 - **Aceite:** CI executa a suíte necessária; resultados e limitações são reportados.
 
 ### 11.2 Modelagem de segurança e privacidade

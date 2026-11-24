@@ -25,6 +25,13 @@ Recorded in local commit `Add persistent authentication throttling`; the branch 
 - Testcontainers were not run: Maven and Docker are unavailable. A read-only PostgreSQL probe reached localhost but authentication with the documented local defaults failed; no schema or application data was changed. Migration/runtime behavior and the concurrency test remain unverified.
 - Do not expose registration publicly before trusted-proxy handling and deployed limits are verified.
 
+## Additional verified increment: company switching in the browser
+
+- Added an isolated Playwright journey for choosing a company, switching to another authorized company, and rendering a `READER` workspace.
+- The test confirms no business API call occurs before company selection and checks the tenant header on dashboard requests. Axe scans passed for the chooser and read-only workspace.
+- The API is mocked in this browser test; this proves the SPA flow, not server authorization or PostgreSQL behavior. `npm.cmd run lint`, `npm.cmd run build`, and the focused Playwright case passed.
+- Current local branch is eleven commits ahead of `origin/main`; no changes have been pushed. This browser test and its documentation update are pending a local commit.
+
 ## Next work
 
 1. Run migration V16 and authentication Testcontainers tests, including concurrent reservations.
