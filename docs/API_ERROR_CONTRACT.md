@@ -23,4 +23,4 @@ FlowPay API errors use `application/problem+json` and the RFC 9457 problem-detai
 - Authentication failures return 401; authorization and CSRF failures return 403. Both use generic details and never echo security exception messages.
 - Unexpected controller failures return 500 with a generic detail. The server logs the request ID and exception type, without exception message or request data.
 
-The complete resource-by-resource OpenAPI document, including request and success-response schemas, remains a separate contract increment.
+The resource-level API contract is published in [openapi.json](openapi.json). Its route coverage and local schema references can be checked with `node scripts/validate-openapi.mjs`; the document remains a manually maintained snapshot and must be updated alongside controller or DTO changes.

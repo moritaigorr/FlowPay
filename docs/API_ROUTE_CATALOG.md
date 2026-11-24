@@ -1,6 +1,6 @@
 # API Route Catalog
 
-This catalog records the routes currently implemented in the Spring controllers. It is an inventory, not an OpenAPI contract; request and success-response schemas remain to be published in OpenAPI. Verify the controllers before relying on this list after API changes.
+This catalog is a readable inventory of the routes in the [OpenAPI contract](openapi.json). The specification is a manually maintained snapshot; verify controller mappings and DTOs when changing the API.
 
 ## Cross-cutting behavior
 

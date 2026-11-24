@@ -10,6 +10,10 @@ The authenticated workspace currently supports tenant-scoped contacts, financial
 
 The product records financial activity completed outside FlowPay; it does not move money or connect to banks. Contact deletion, invitations, email verification, and password recovery are not implemented. Login attempts are limited to five per 15 minutes for each HMAC-protected combination of socket source address and normalized account identifier; successful login clears that bucket. Registration is limited to five attempts per hour per socket source. Counts are atomic in PostgreSQL and expired rows are removed hourly. The API uses `getRemoteAddr()` as its trust anchor and reads `X-Forwarded-For` only when that peer belongs to `FLOWPAY_TRUSTED_PROXY_CIDRS`; it walks the chain from the nearest proxy and fails back to the socket peer on malformed headers. Configure narrow actual proxy ranges and verify that the proxy appends the real peer address before public deployment. Supply `FLOWPAY_RATE_LIMIT_HMAC_KEY` with at least 32 bytes outside the local profile. The SPA lets users select among their companies; `X-FlowPay-Tenant` is validated against the authenticated identity membership on every business request and is never authorization by itself. The `/api/auth/register` endpoint is disabled by default (`flowpay.identity.registration.enabled=false`); `application-local.yml` enables it for local development. Do not expose registration publicly until trusted-proxy handling and deployed limits are verified. The `demo` Spring profile creates a reproducible synthetic dataset; Portão 10 still has manual accessibility and current-revision CI acceptance work open. See the [implementation roadmap](docs/FLOWPAY_IMPLEMENTATION_ROADMAP.md), [API route catalog](docs/API_ROUTE_CATALOG.md), and [API error contract](docs/API_ERROR_CONTRACT.md) for current status and contracts.
 
+## API contract
+
+The current API snapshot is [docs/openapi.json](docs/openapi.json). Check its operation coverage, schema references, tenant headers, CSRF requirements, and idempotency responses with `node scripts/validate-openapi.mjs` from the repository root.
+
 ## Prerequisites
 
 - Java 21
@@ -120,6 +124,7 @@ From the repository root:
 ```powershell
 mvn -f backend/pom.xml verify
 node scripts/validate-agent-assets.mjs
+node scripts/validate-openapi.mjs
 ```
 
 From `frontend/`:
