@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit;
 public class RequestCorrelationFilter extends OncePerRequestFilter {
 
     public static final String RESPONSE_HEADER = "X-Request-Id";
+    public static final String REQUEST_ID_ATTRIBUTE = RequestCorrelationFilter.class.getName() + ".requestId";
     private static final String MDC_KEY = "request_id";
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestCorrelationFilter.class);
 
@@ -28,6 +29,7 @@ public class RequestCorrelationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
         var requestId = UUID.randomUUID().toString();
+        request.setAttribute(REQUEST_ID_ATTRIBUTE, requestId);
         var startedAt = System.nanoTime();
         var previousRequestId = MDC.get(MDC_KEY);
         MDC.put(MDC_KEY, requestId);

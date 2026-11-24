@@ -106,6 +106,8 @@ Registrar decisão curta ou ADR para:
 
 ### 2.1 Erros, IDs e contratos da API
 
+**Implementado (24/11/2026):** erros de controller/domínio, validação, JSON malformado, erros HTTP do Spring MVC, falhas inesperadas, autenticação, autorização e CSRF usam `application/problem+json` com formato RFC 9457, `requestId` correlacionado ao header `X-Request-Id` e lista estável de campos inválidos sem valores rejeitados. Sete testes JUnit verificam payloads, status, redação e validação; uma execução da API com PostgreSQL descartável confirmou 401, 403 sem CSRF e 401 com token CSRF válido sem sessão. Detalhes internos de exceções inesperadas não são retornados. Contrato documentado em [API Error Contract](API_ERROR_CONTRACT.md). Ainda falta o OpenAPI completo com schemas de request e sucesso para cada recurso.
+
 - Definir envelope de erro estável, validação de campos e correlation/request ID.
 - Definir serialização monetária: recomendação a decidir é transmitir centavos como inteiro dentro do limite acordado ou string decimal exata; Java BIGINT pode exceder precisão segura do `number` JavaScript.
 - Datas de vencimento como `YYYY-MM-DD`; instantes ISO-8601 UTC. Respostas de relatório incluem período/timezone/`as_of`.
@@ -398,7 +400,7 @@ Regras de banco:
 - Concorrência: dupla baixa, chave repetida, checksum repetido e match disputado; sincronização determinística e consulta dos efeitos finais.
 - UI: formulários, cache separado por empresa, erro/retry, tabelas e estados acessíveis.
 - E2E: jornada MVP e isolamento de tenant.
-- Parcial: a suíte Playwright completa (login demo e fluxo financeiro) passou localmente em Chrome com PostgreSQL descartável em 23/11/2026. CI configura PostgreSQL descartável, inicia API nos perfis `local,demo` e executa Playwright com senha efêmera. O run remoto no SHA `def2abf` passou no frontend, mas falhou no backend por inicializar a integração com `webEnvironment=NONE`; o checkout local já usa `MOCK` e o relatório PostgreSQL registra 12 testes sem falhas. Nova execução do Actions no checkout atualizado segue pendente. Em 24/11/2026, uma jornada isolada com API mockada verificou escolha/troca de empresa, header por tenant e papel READER; ela não substitui autorização real nem integração PostgreSQL.
+- Parcial: a suíte Playwright completa passou localmente em Chrome com API e PostgreSQL descartável. Em 24/11/2026, uma nova jornada E2E com fixture `READER` opt-in confirmou troca real de empresa, header por tenant, saldo isolado na API e UI somente leitura; a jornada principal também passou com transferências e ajuste auditado. CI habilita esse fixture apenas no banco descartável do job. Testes PostgreSQL de concorrência de baixas e constraints estão no código, mas sua execução depende de Docker/CI. O workflow remoto atualizado e o resultado do commit local ainda precisam ser observados.
 - **Aceite:** CI executa a suíte necessária; resultados e limitações são reportados.
 
 ### 11.2 Modelagem de segurança e privacidade

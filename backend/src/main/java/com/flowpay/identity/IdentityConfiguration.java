@@ -1,5 +1,6 @@
 package com.flowpay.identity;
 
+import com.flowpay.api.ApiSecurityProblemHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -48,12 +49,14 @@ public class IdentityConfiguration {
 
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, DaoAuthenticationProvider provider,
-                                            SecurityContextRepository contexts) throws Exception {
+                                            SecurityContextRepository contexts,
+                                            ApiSecurityProblemHandler apiProblems) throws Exception {
         var csrf = CookieCsrfTokenRepository.withHttpOnlyFalse();
         csrf.setCookiePath("/");
         http.authenticationProvider(provider)
                 .securityContext(context -> context.securityContextRepository(contexts))
                 .csrf(config -> config.csrfTokenRepository(csrf).spa())
+                .exceptionHandling(config -> config.authenticationEntryPoint(apiProblems).accessDeniedHandler(apiProblems))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health", "/api/auth/register", "/api/auth/login", "/api/auth/csrf", "/api/auth/config").permitAll()
                         .anyRequest().authenticated())
