@@ -141,3 +141,12 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - README explica uso local e limita explicitamente o procedimento: sem politica de retencao, criptografia, RPO/RTO de producao ou backup de object storage.
 - Verificacoes: parser PowerShell aprovou ambos scripts; guards de nome e arquivo foram exercitados; mock de CLI validou sequencia backup/restore, contagem de migrations e recusa de alvo existente. Ainda falta ensaio real com Docker/PostgreSQL: CLI Docker nao esta no PATH nesta sessao.
 - Proximo passo: executar o ensaio com Docker Compose em banco local descartavel e comparar as migrations restauradas; manter politicas de backup de producao em aberto ate definir requisitos operacionais.
+
+## Retomada de 24/11/2026 - Transferencias internas
+
+- Decisao de implementacao para o MVP: registrar transferencias entre contas proprias como uma saida e uma entrada pareadas. FlowPay documenta a operacao feita fora do produto; nao movimenta o dinheiro.
+- Migration V15, endpoint idempotente e formulario de transferencia foram adicionados. O banco vincula tenant, valor, data e descricao das pernas; o servico exige contas distintas e ativas e bloqueia-as em ordem estavel.
+- Saldo por conta reflete as pernas; caixa consolidado fica igual. Dashboard e categorias mensais excluem transferencias das entradas/saidas operacionais; o historico indica as contas envolvidas.
+- Incluida cobertura PostgreSQL MockMvc para criacao, replay, conflito de chave, mesma conta, saldos por conta e consolidados e totais operacionais. A jornada E2E agora cria outra conta e transfere R$ 25,00.
+- Verificacoes nesta retomada: npm run lint, npm run build e listagem Playwright passaram. javac --release 21 compilou os tres arquivos Java alterados e o teste de integracao usando o classpath Maven em cache. A execucao PostgreSQL e a jornada browser aguardam Docker/Maven e servicos locais; Docker e Maven nao estao no PATH desta sessao.
+- Proximo passo: executar mvn verify e a jornada Playwright completa em PostgreSQL descartavel quando Docker/Maven estiverem disponiveis; entao avancar para os itens de qualidade/operacao e decidir separadamente a politica de ajuste manual de saldo.

@@ -131,6 +131,8 @@ sequenceDiagram
 
 **Fonte de verdade:** `CashTransaction` é o único fato que altera **saldo controlado**. `ReceivableSettlement` e `PayableSettlement` representam quitação e referenciam uma ou mais movimentações. `StatementLine` é evidência externa, mas **não altera saldo** quando apenas importada. Ao confirmar conciliação, criar novo movimento **ou** vincular a um existente, nunca ambos inadvertidamente.
 
+Transferência entre contas próprias é registrada por um fato `CashTransfer` e duas `CashTransaction` pareadas (saída da origem e entrada no destino), na mesma transação PostgreSQL. A chave idempotente pertence ao tenant; as duas pernas compartilham valor, data e descrição sob FK composta. O saldo de cada conta muda, o saldo consolidado da empresa não, e os relatórios operacionais excluem as pernas de entradas/saídas e totais por categoria.
+
 **Concorrência:** bloquear o título financeiro (`SELECT FOR UPDATE`) antes de registrar baixas concorrentes; validar `sum(baixas válidas) <= valor original`; unique constraint garante match ativo único por linha; transação atômica grava mudança, auditoria e outbox. Reversão é explícita e não apaga registros confirmados.
 
 **Alocação parcial:** uma movimentação pode quitar mais de um título, mas `sum(alocações ativas) <= amount_minor da CashTransaction`; o valor não alocado permanece reconhecido no caixa com categoria `não classificado`/pendente e pode ser alocado depois. Para conciliação parcial, a primeira versão exige que uma linha do extrato represente uma movimentação completa; múltiplas linhas para um mesmo movimento e match parcial entram em evolução posterior, com contrato explícito de valores e invariantes.

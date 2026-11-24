@@ -35,10 +35,13 @@ public class CashTransactionService {
         var items = jdbc.query("""
                 SELECT ct.id, ct.direction, ct.amount_minor::text AS amount_minor, ct.effective_date,
                        ct.origin, ct.description, ct.category_id, cat.name AS category_name,
-                       ct.financial_account_id, a.name AS account_name
+                       ct.financial_account_id, a.name AS account_name, counterparty.name AS counterparty_account_name
                 FROM cash_transaction ct
                 JOIN financial_account a ON a.tenant_id = ct.tenant_id AND a.id = ct.financial_account_id
                 LEFT JOIN financial_category cat ON cat.tenant_id = ct.tenant_id AND cat.id = ct.category_id
+                LEFT JOIN cash_transfer tr ON tr.tenant_id = ct.tenant_id AND tr.id = ct.cash_transfer_id
+                LEFT JOIN financial_account counterparty ON counterparty.tenant_id = tr.tenant_id
+                    AND counterparty.id = CASE WHEN ct.direction = 'OUTFLOW' THEN tr.destination_account_id ELSE tr.source_account_id END
                 WHERE ct.tenant_id = ?
                 ORDER BY ct.effective_date DESC, ct.created_at DESC, ct.id DESC
                 LIMIT ? OFFSET ?
@@ -82,6 +85,89 @@ public class CashTransactionService {
         return new CreateResult(get(tenant.id(), id), false);
     }
 
+    @Transactional
+    public TransferResult transfer(String email, UUID key, TransferInput input) {
+        var tenant = tenantAccess.requireSingleTenant(email);
+        if (!"OWNER".equals(tenant.role())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite criar movimentos.");
+        if (input.sourceAccountId().equals(input.destinationAccountId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Escolha contas diferentes para a transferência.");
+        }
+        if (input.amountMinor() <= 0 || input.amountMinor() > MAX_AMOUNT_MINOR) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O valor precisa ser positivo e estar dentro do limite permitido.");
+        }
+        var description = input.description().trim();
+        var hash = transferPayloadHash(input, description);
+        jdbc.query("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))",
+                (org.springframework.jdbc.core.ResultSetExtractor<Void>) rs -> { rs.next(); return null; },
+                tenant.id() + ":CASH_TRANSFER:" + key);
+        var prior = jdbc.query("SELECT id, payload_hash FROM cash_transfer WHERE tenant_id = ? AND idempotency_key = ?",
+                (rs, row) -> new Existing(rs.getObject("id", UUID.class), rs.getString("payload_hash")), tenant.id(), key)
+                .stream().findFirst().orElse(null);
+        if (prior != null) {
+            if (!sameHash(prior.hash(), hash)) throw idempotencyConflict();
+            return new TransferResult(getTransferLeg(tenant.id(), prior.id(), "OUTFLOW"),
+                    getTransferLeg(tenant.id(), prior.id(), "INFLOW"), true);
+        }
+
+        var accounts = jdbc.query("""
+                        SELECT id, status FROM financial_account
+                        WHERE tenant_id = ? AND id IN (?, ?)
+                        ORDER BY id FOR UPDATE
+                        """, (rs, row) -> new AccountState(rs.getObject("id", UUID.class), rs.getString("status")),
+                tenant.id(), input.sourceAccountId(), input.destinationAccountId());
+        if (accounts.size() != 2) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Selecione duas contas desta empresa.");
+        if (accounts.stream().anyMatch(account -> !"ACTIVE".equals(account.status()))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "As contas selecionadas precisam estar ativas.");
+        }
+
+        var transferId = UUID.randomUUID();
+        jdbc.update("""
+                INSERT INTO cash_transfer
+                  (id, tenant_id, source_account_id, destination_account_id, amount_minor, effective_date,
+                   description, idempotency_key, payload_hash)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, transferId, tenant.id(), input.sourceAccountId(), input.destinationAccountId(),
+                input.amountMinor(), input.effectiveDate(), description, key, hash);
+        insertTransferLeg(tenant.id(), transferId, input.sourceAccountId(), "OUTFLOW", input, description);
+        insertTransferLeg(tenant.id(), transferId, input.destinationAccountId(), "INFLOW", input, description);
+        return new TransferResult(getTransferLeg(tenant.id(), transferId, "OUTFLOW"),
+                getTransferLeg(tenant.id(), transferId, "INFLOW"), false);
+    }
+
+    private void insertTransferLeg(UUID tenantId, UUID transferId, UUID accountId, String direction,
+                                   TransferInput input, String description) {
+        jdbc.update("""
+                INSERT INTO cash_transaction
+                  (id, tenant_id, financial_account_id, direction, amount_minor, effective_date, origin,
+                   description, cash_transfer_id)
+                VALUES (?, ?, ?, ?, ?, ?, 'TRANSFER', ?, ?)
+                """, UUID.randomUUID(), tenantId, accountId, direction, input.amountMinor(),
+                input.effectiveDate(), description, transferId);
+    }
+
+    private TransactionView getTransferLeg(UUID tenantId, UUID transferId, String direction) {
+        return jdbc.query("""
+                SELECT ct.id, ct.direction, ct.amount_minor::text AS amount_minor, ct.effective_date,
+                       ct.origin, ct.description, ct.category_id, cat.name AS category_name,
+                       ct.financial_account_id, a.name AS account_name, counterparty.name AS counterparty_account_name
+                FROM cash_transaction ct
+                JOIN financial_account a ON a.tenant_id = ct.tenant_id AND a.id = ct.financial_account_id
+                LEFT JOIN financial_category cat ON cat.tenant_id = ct.tenant_id AND cat.id = ct.category_id
+                LEFT JOIN cash_transfer tr ON tr.tenant_id = ct.tenant_id AND tr.id = ct.cash_transfer_id
+                LEFT JOIN financial_account counterparty ON counterparty.tenant_id = tr.tenant_id
+                    AND counterparty.id = CASE WHEN ct.direction = 'OUTFLOW' THEN tr.destination_account_id ELSE tr.source_account_id END
+                WHERE ct.tenant_id = ? AND ct.cash_transfer_id = ? AND ct.direction = ?
+                """, CashTransactionService::map, tenantId, transferId, direction).stream().findFirst()
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.CONFLICT, "A transferência não tem as duas pernas esperadas."));
+    }
+
+    private static String transferPayloadHash(TransferInput input, String description) {
+        var canonical = String.join("\u0000", input.sourceAccountId().toString(), input.destinationAccountId().toString(),
+                Long.toString(input.amountMinor()), input.effectiveDate().toString(), description);
+        try { return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8))); }
+        catch (NoSuchAlgorithmException impossible) { throw new IllegalStateException("SHA-256 is unavailable", impossible); }
+    }
+
     private Existing findByKey(UUID tenantId, UUID key) {
         return jdbc.query("SELECT id, payload_hash FROM cash_transaction WHERE tenant_id = ? AND origin = 'MANUAL' AND idempotency_key = ?",
                 (rs, row) -> new Existing(rs.getObject("id", UUID.class), rs.getString("payload_hash")), tenantId, key)
@@ -92,10 +178,13 @@ public class CashTransactionService {
         return jdbc.query("""
                 SELECT ct.id, ct.direction, ct.amount_minor::text AS amount_minor, ct.effective_date,
                        ct.origin, ct.description, ct.category_id, cat.name AS category_name,
-                       ct.financial_account_id, a.name AS account_name
+                       ct.financial_account_id, a.name AS account_name, counterparty.name AS counterparty_account_name
                 FROM cash_transaction ct
                 JOIN financial_account a ON a.tenant_id = ct.tenant_id AND a.id = ct.financial_account_id
                 LEFT JOIN financial_category cat ON cat.tenant_id = ct.tenant_id AND cat.id = ct.category_id
+                LEFT JOIN cash_transfer tr ON tr.tenant_id = ct.tenant_id AND tr.id = ct.cash_transfer_id
+                LEFT JOIN financial_account counterparty ON counterparty.tenant_id = tr.tenant_id
+                    AND counterparty.id = CASE WHEN ct.direction = 'OUTFLOW' THEN tr.destination_account_id ELSE tr.source_account_id END
                 WHERE ct.tenant_id = ? AND ct.id = ?
                 """, CashTransactionService::map, tenantId, id).stream().findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Movimento não encontrado."));
@@ -105,7 +194,7 @@ public class CashTransactionService {
         return new TransactionView(rs.getObject("id", UUID.class), Direction.valueOf(rs.getString("direction")),
                 rs.getString("amount_minor"), rs.getDate("effective_date").toLocalDate(), rs.getString("origin"),
                 rs.getString("description"), rs.getObject("category_id", UUID.class), rs.getString("category_name"),
-                rs.getObject("financial_account_id", UUID.class), rs.getString("account_name"));
+                rs.getObject("financial_account_id", UUID.class), rs.getString("account_name"), rs.getString("counterparty_account_name"));
     }
 
     private static String payloadHash(Direction direction, UUID accountId, UUID categoryId, long amountMinor, LocalDate date, String description) {
@@ -126,8 +215,13 @@ public class CashTransactionService {
     public enum Direction { INFLOW, OUTFLOW }
     public record TransactionInput(Direction direction, UUID accountId, UUID categoryId, long amountMinor, LocalDate effectiveDate, String description) {}
     public record TransactionView(UUID id, Direction direction, String amountMinor, LocalDate effectiveDate, String origin,
-                                  String description, UUID categoryId, String categoryName, UUID accountId, String accountName) {}
+                                  String description, UUID categoryId, String categoryName, UUID accountId, String accountName,
+                                  String counterpartyAccountName) {}
     public record TransactionPage(List<TransactionView> items, long total, int page, int size) {}
     public record CreateResult(TransactionView transaction, boolean replay) {}
+    public record TransferInput(UUID sourceAccountId, UUID destinationAccountId, long amountMinor,
+                                LocalDate effectiveDate, String description) {}
+    public record TransferResult(TransactionView outgoingMovement, TransactionView incomingMovement, boolean replay) {}
     private record Existing(UUID id, String hash) {}
+    private record AccountState(UUID id, String status) {}
 }

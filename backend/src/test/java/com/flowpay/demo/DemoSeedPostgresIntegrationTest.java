@@ -27,6 +27,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -152,6 +153,66 @@ class DemoSeedPostgresIntegrationTest {
     }
 
     @Test
+    @Transactional
+    void internalTransferMovesValueBetweenAccountsWithoutChangingCompanyCashOrOperatingFlows() throws Exception {
+        UUID userId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+        UUID sourceAccountId = UUID.randomUUID();
+        UUID destinationAccountId = UUID.randomUUID();
+        String email = "transfer-" + UUID.randomUUID() + "@flowpay.local";
+        String password = "Transfer-Testing-2026!";
+        jdbc.update("INSERT INTO app_user(id, email, password_hash) VALUES (?, ?, ?)", userId, email, passwordEncoder.encode(password));
+        jdbc.update("INSERT INTO tenant(id, name) VALUES (?, ?)", tenantId, "Transfer test company");
+        jdbc.update("INSERT INTO membership(tenant_id, user_id, role) VALUES (?, ?, 'OWNER')", tenantId, userId);
+        insertAccount(tenantId, sourceAccountId, "Source account");
+        insertAccount(tenantId, destinationAccountId, "Destination account");
+        insertOpeningBalance(tenantId, sourceAccountId, 10_000);
+        insertOpeningBalance(tenantId, destinationAccountId, 5_000);
+
+        CsrfState csrf = csrfState();
+        MockHttpSession session = login(email, password, csrf);
+        UUID key = UUID.randomUUID();
+        String request = "{\"sourceAccountId\":\"" + sourceAccountId + "\",\"destinationAccountId\":\""
+                + destinationAccountId + "\",\"amountMinor\":\"2000\",\"effectiveDate\":\"2026-11-24\",\"description\":\"Transfer between own accounts\"}";
+
+        mockMvc.perform(post("/api/cash-transactions/transfers")
+                        .session(session).cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
+                        .header("Idempotency-Key", key).contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.outgoingMovement.origin").value("TRANSFER"))
+                .andExpect(jsonPath("$.outgoingMovement.direction").value("OUTFLOW"))
+                .andExpect(jsonPath("$.outgoingMovement.counterpartyAccountName").value("Destination account"))
+                .andExpect(jsonPath("$.incomingMovement.direction").value("INFLOW"));
+
+        mockMvc.perform(post("/api/cash-transactions/transfers")
+                        .session(session).cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
+                        .header("Idempotency-Key", key).contentType(MediaType.APPLICATION_JSON).content(request))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.replay").value(true));
+
+        mockMvc.perform(post("/api/cash-transactions/transfers")
+                        .session(session).cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
+                        .header("Idempotency-Key", key).contentType(MediaType.APPLICATION_JSON).content(request.replace("2000", "3000")))
+                .andExpect(status().isConflict());
+        mockMvc.perform(post("/api/cash-transactions/transfers")
+                        .session(session).cookie(csrf.cookie()).header("X-XSRF-TOKEN", csrf.token())
+                        .header("Idempotency-Key", UUID.randomUUID()).contentType(MediaType.APPLICATION_JSON)
+                        .content(request.replace(destinationAccountId.toString(), sourceAccountId.toString())))
+                .andExpect(status().isBadRequest());
+
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM cash_transfer WHERE tenant_id = ?", Long.class, tenantId)).isEqualTo(1);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM cash_transaction WHERE tenant_id = ? AND origin = 'TRANSFER'", Long.class, tenantId)).isEqualTo(2);
+        assertThat(accountBalance(tenantId, sourceAccountId)).isEqualTo(8_000L);
+        assertThat(accountBalance(tenantId, destinationAccountId)).isEqualTo(5_000L + 2_000L);
+        assertThat(jdbc.queryForObject("SELECT sum(CASE direction WHEN 'INFLOW' THEN amount_minor ELSE -amount_minor END) FROM cash_transaction WHERE tenant_id = ?", Long.class, tenantId))
+                .isEqualTo(15_000L);
+        mockMvc.perform(get("/api/dashboard").session(session).param("from", "2026-11-24").param("to", "2026-11-24").param("timezone", "UTC"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.periodInflowsMinor").value("0"))
+                .andExpect(jsonPath("$.periodOutflowsMinor").value("0"));
+    }
+
+    @Test
     void authenticatedStatementPreviewRequiresCsrfAndDoesNotPersistWithoutIt() throws Exception {
         UUID accountId = demoAccountId();
         CsrfState csrf = csrfState();
@@ -224,6 +285,27 @@ class DemoSeedPostgresIntegrationTest {
                 "SELECT password_hash FROM app_user WHERE email = 'demo@flowpay.local'", String.class);
         assertThat(passwordHash).isNotEqualTo(DEMO_PASSWORD);
         assertThat(passwordEncoder.matches(DEMO_PASSWORD, passwordHash)).isTrue();
+    }
+
+    private void insertAccount(UUID tenantId, UUID id, String name) {
+        jdbc.update("""
+                INSERT INTO financial_account(id, tenant_id, name, account_type, opening_balance_date, creation_key, creation_payload_hash)
+                VALUES (?, ?, ?, 'BANK', DATE '2026-11-24', ?, ?)
+                """, id, tenantId, name, UUID.randomUUID(), "0".repeat(64));
+    }
+
+    private void insertOpeningBalance(UUID tenantId, UUID accountId, long amountMinor) {
+        jdbc.update("""
+                INSERT INTO cash_transaction(id, tenant_id, financial_account_id, direction, amount_minor, effective_date, origin, description)
+                VALUES (?, ?, ?, 'INFLOW', ?, DATE '2026-11-24', 'OPENING_BALANCE', 'Opening balance')
+                """, UUID.randomUUID(), tenantId, accountId, amountMinor);
+    }
+
+    private long accountBalance(UUID tenantId, UUID accountId) {
+        return jdbc.queryForObject("""
+                SELECT COALESCE(sum(CASE direction WHEN 'INFLOW' THEN amount_minor ELSE -amount_minor END), 0)
+                FROM cash_transaction WHERE tenant_id = ? AND financial_account_id = ?
+                """, Long.class, tenantId, accountId);
     }
 
     private long count(String query) {

@@ -5,6 +5,8 @@ import com.flowpay.finance.application.CashTransactionService.Direction;
 import com.flowpay.finance.application.CashTransactionService.TransactionInput;
 import com.flowpay.finance.application.CashTransactionService.TransactionPage;
 import com.flowpay.finance.application.CashTransactionService.TransactionView;
+import com.flowpay.finance.application.CashTransactionService.TransferInput;
+import com.flowpay.finance.application.CashTransactionService.TransferResult;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -50,6 +52,14 @@ public class CashTransactionController {
         return ResponseEntity.status(result.replay() ? HttpStatus.OK : HttpStatus.CREATED).body(result.transaction());
     }
 
+    @PostMapping("/transfers")
+    ResponseEntity<TransferResult> transfer(@AuthenticationPrincipal UserDetails user,
+                                           @RequestHeader("Idempotency-Key") UUID key,
+                                           @Valid @RequestBody TransferRequest request) {
+        var result = transactions.transfer(user.getUsername(), key, request.toInput());
+        return ResponseEntity.status(result.replay() ? HttpStatus.OK : HttpStatus.CREATED).body(result);
+    }
+
     record TransactionRequest(@NotNull Direction direction,
                               @NotNull UUID accountId,
                               @NotNull UUID categoryId,
@@ -64,5 +74,20 @@ public class CashTransactionController {
             return new TransactionInput(direction, accountId, categoryId, amount, effectiveDate, description);
         }
         @Override public String toString() { return "TransactionRequest[REDACTED]"; }
+    }
+
+    record TransferRequest(@NotNull UUID sourceAccountId,
+                           @NotNull UUID destinationAccountId,
+                           @NotBlank @Pattern(regexp = "[0-9]{1,16}") String amountMinor,
+                           @NotNull LocalDate effectiveDate,
+                           @NotBlank @Size(max = 160) String description) {
+        TransferInput toInput() {
+            final long amount;
+            try { amount = Long.parseLong(amountMinor); }
+            catch (NumberFormatException invalid) { throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Valor fora do limite permitido."); }
+            if (amount <= 0 || amount > MAX_AMOUNT_MINOR) throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O valor precisa ser positivo e estar dentro do limite permitido.");
+            return new TransferInput(sourceAccountId, destinationAccountId, amount, effectiveDate, description);
+        }
+        @Override public String toString() { return "TransferRequest[REDACTED]"; }
     }
 }

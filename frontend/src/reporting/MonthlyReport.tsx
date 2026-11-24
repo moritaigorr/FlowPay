@@ -34,6 +34,7 @@ function originLabel(origin: string) {
     case 'OPENING_BALANCE': return 'Saldo inicial'
     case 'TITLE_SETTLEMENT': return 'Baixa de título'
     case 'SETTLEMENT_REVERSAL': return 'Reversão de baixa'
+    case 'TRANSFER': return 'Transferência interna'
     default: return 'Avulso'
   }
 }

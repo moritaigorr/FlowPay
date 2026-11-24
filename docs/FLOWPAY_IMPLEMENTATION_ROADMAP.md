@@ -241,9 +241,12 @@ Regras de banco:
 
 ### 6.3 Transferências e ajustes
 
-- Antes de implementar, decidir se transferência entre contas entra no MVP. Caso afirmativo, representar duas pernas em operação atômica com valor pareado e sem alterar caixa total da empresa.
-- Ajuste de saldo exige razão/motivo e trilha de auditoria.
-- **Aceite:** relatório não interpreta transferência interna como receita ou despesa consolidada.
+**Decisão de implementação (24/11/2026):** transferências internas entre contas fazem parte do MVP de acompanhamento. O FlowPay apenas registra a operação já realizada fora do sistema. Cada transferência cria uma saída e uma entrada do mesmo valor, data e descrição em contas diferentes, na mesma transação local; isso preserva o saldo consolidado sem classificar a operação como receita ou despesa.
+
+- Implementado: endpoint idempotente exige duas contas ativas do mesmo tenant, bloqueadas em ordem estável. A migration V15 cria o fato de transferência, vincula as duas pernas e impõe por FK composta que tenant, valor, data e descrição coincidam. Índice único impede pernas repetidas por direção. O histórico identifica conta de origem/destino; dashboard e totais por categoria excluem transferências das somas operacionais, enquanto saldos de cada conta refletem as duas pernas.
+- Cobertura adicionada para criar/repetir/conflitar a chave, rejeitar a mesma conta, comparar saldo por conta e consolidado e verificar que dashboard não infla entradas/saídas. Testes PostgreSQL ainda aguardam execução neste ambiente.
+- Ajuste de saldo fora da transferência continua pendente: antes dele, definir motivo, permissão e trilha auditável.
+- **Aceite desta fatia:** duas pernas atômicas e pareadas; soma dos saldos da empresa permanece igual; relatório não interpreta transferência interna como receita ou despesa consolidada.
 
 ## Portão 7 — dashboard e relatórios de uso diário
 
