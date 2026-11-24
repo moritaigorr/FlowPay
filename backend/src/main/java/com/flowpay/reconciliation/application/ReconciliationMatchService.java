@@ -3,6 +3,7 @@ package com.flowpay.reconciliation.application;
 import com.flowpay.finance.api.FinanceReconciliationReader;
 import com.flowpay.finance.api.FinanceReconciliationWriter;
 import com.flowpay.identity.api.TenantAccess;
+import com.flowpay.identity.api.TenantRole;
 import com.flowpay.statements.api.StatementLineReader;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -172,7 +173,7 @@ public class ReconciliationMatchService {
     }
 
     private static void requireManager(String role) {
-        if (!"OWNER".equals(role) && !"MANAGER".equals(role))
+        if (!TenantRole.canManageBusinessData(role))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite confirmar conciliações.");
     }
 

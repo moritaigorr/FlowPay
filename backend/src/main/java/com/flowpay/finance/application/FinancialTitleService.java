@@ -1,6 +1,7 @@
 package com.flowpay.finance.application;
 
 import com.flowpay.identity.api.TenantAccess;
+import com.flowpay.identity.api.TenantRole;
 import com.flowpay.finance.domain.FinancialAmountRules;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -95,7 +96,7 @@ public class FinancialTitleService {
     @Transactional
     public CreateResult create(String email, TitleKind kind, UUID key, TitleInput input) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var normalized = normalizeInput(input);
         var hash = payloadHash(kind, normalized);
         var prior = findCreation(tenant.id(), kind, key);
@@ -125,7 +126,7 @@ public class FinancialTitleService {
     @Transactional
     public TitleView update(String email, UUID id, TitleInput input) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var current = jdbc.query("SELECT kind, status FROM financial_title WHERE tenant_id = ? AND id = ? FOR UPDATE",
                 (rs, row) -> new TitleState(TitleKind.valueOf(rs.getString("kind")), rs.getString("status")), tenant.id(), id)
                 .stream().findFirst().orElseThrow(FinancialTitleService::notFound);
@@ -147,7 +148,7 @@ public class FinancialTitleService {
     @Transactional
     public TitleView cancel(String email, UUID id, String reason) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var status = jdbc.query("SELECT status FROM financial_title WHERE tenant_id = ? AND id = ? FOR UPDATE",
                 (rs, row) -> rs.getString("status"), tenant.id(), id).stream().findFirst().orElseThrow(FinancialTitleService::notFound);
         if (!"OPEN".equals(status)) throw new ResponseStatusException(HttpStatus.CONFLICT, "O título já foi cancelado.");
@@ -163,7 +164,7 @@ public class FinancialTitleService {
     @Transactional
     public SettlementResult settle(String email, UUID titleId, UUID key, SettlementInput input) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var hash = settlementHash(titleId, input);
         jdbc.query("SELECT pg_advisory_xact_lock(hashtextextended(?, 0))",
                 (org.springframework.jdbc.core.ResultSetExtractor<Void>) rs -> { rs.next(); return null; },
@@ -226,7 +227,7 @@ public class FinancialTitleService {
     @Transactional
     public ReversalResult reverse(String email, UUID titleId, UUID settlementId, UUID key, ReversalInput input) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var normalizedReason = input.reason().trim();
         var normalized = new ReversalInput(input.amountMinor(), input.effectiveDate(), normalizedReason);
         var hash = reversalHash(titleId, settlementId, normalized);
@@ -428,8 +429,8 @@ public class FinancialTitleService {
         }
     }
 
-    private static void requireOwner(String role) {
-        if (!"OWNER".equals(role)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite alterar títulos.");
+    private static void requireBusinessWriter(String role) {
+        if (!TenantRole.canManageBusinessData(role)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite alterar títulos.");
     }
 
     private static ResponseStatusException notFound() {

@@ -1,6 +1,7 @@
 package com.flowpay.finance.application;
 
 import com.flowpay.identity.api.TenantAccess;
+import com.flowpay.identity.api.TenantRole;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -44,7 +45,7 @@ public class FinancialAccountService {
     @Transactional
     public CreateResult create(String email, UUID key, AccountInput input) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var name = input.name().trim();
         var hash = payloadHash(name, input.type(), input.openingBalanceMinor(), input.openingBalanceDate());
         var id = UUID.randomUUID();
@@ -80,7 +81,7 @@ public class FinancialAccountService {
     @Transactional
     public AccountView update(String email, UUID id, String name, AccountStatus status) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var changed = jdbc.update("""
                 UPDATE financial_account SET name = ?, status = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE tenant_id = ? AND id = ?
@@ -131,8 +132,8 @@ public class FinancialAccountService {
         }
     }
 
-    private static void requireOwner(String role) {
-        if (!"OWNER".equals(role)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite alterar contas financeiras.");
+    private static void requireBusinessWriter(String role) {
+        if (!TenantRole.canManageBusinessData(role)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite alterar contas financeiras.");
     }
 
     private static ResponseStatusException notFound() {

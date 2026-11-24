@@ -61,7 +61,7 @@ public class IdentityController {
     @GetMapping("/session")
     SessionResponse session(@AuthenticationPrincipal UserDetails user) {
         var tenant = tenantAccess.requireSingleTenant(user.getUsername());
-        return new SessionResponse(user.getUsername(), tenant.id(), tenant.name());
+        return new SessionResponse(user.getUsername(), tenant.id(), tenant.name(), tenant.role());
     }
 
     @PostMapping("/register")
@@ -131,7 +131,7 @@ public class IdentityController {
     record LoginResponse(String email) {
         @Override public String toString() { return "LoginResponse[REDACTED]"; }
     }
-    record SessionResponse(String email, UUID tenantId, String companyName) {
+    record SessionResponse(String email, UUID tenantId, String companyName, String role) {
         @Override public String toString() { return "SessionResponse[REDACTED]"; }
     }
     record CsrfResponse(String token) {

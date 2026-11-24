@@ -469,3 +469,4 @@ h1 {
   .dashboard-list-heading span { text-align: left; }
   .dashboard-error { align-items: flex-start; flex-direction: column; }
 }
+.page-shell[data-read-only="true"] .workspace-content :is(.submit-button, .new-contact-button, .edit-button, .text-action, .contact-form-card) { display: none; }

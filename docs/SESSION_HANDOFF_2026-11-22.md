@@ -150,3 +150,10 @@ Implementar os estagios restantes do roadmap em incrementos pequenos, mantendo a
 - Incluida cobertura PostgreSQL MockMvc para criacao, replay, conflito de chave, mesma conta, saldos por conta e consolidados e totais operacionais. A jornada E2E agora cria outra conta e transfere R$ 25,00.
 - Verificacoes nesta retomada: npm run lint, npm run build e listagem Playwright passaram. javac --release 21 compilou os tres arquivos Java alterados e o teste de integracao usando o classpath Maven em cache. A execucao PostgreSQL e a jornada browser aguardam Docker/Maven e servicos locais; Docker e Maven nao estao no PATH desta sessao.
 - Proximo passo: executar mvn verify e a jornada Playwright completa em PostgreSQL descartavel quando Docker/Maven estiverem disponiveis; entao avancar para os itens de qualidade/operacao e decidir separadamente a politica de ajuste manual de saldo.
+
+## Retomada de 24/11/2026 - Permissoes por papel
+
+- Formalizada a decisao MVP: OWNER e MANAGER podem escrever dados operacionais; READER tem acesso somente de leitura. Administracao de membros permanece fora do recorte enquanto nao existe convite/gestao de membership.
+- Criada politica central TenantRole.canManageBusinessData e aplicada a contatos, contas, categorias, titulos, movimentos, importacao e conciliacao. Isso alinha as escritas antes OWNER-only com a capacidade de MANAGER ja existente em importacao e conciliacao.
+- Cobertura adicionada para a matriz de papel e para sessao MockMvc: manager cria contato, conta, categoria, movimento e titulo; reader le contato/movimento e recebe 403 nas escritas.
+- Verificacao: javac --release 21 compilou a politica, os servicos alterados e os testes; npm run lint/build e descoberta Playwright passaram. O MockMvc/Testcontainers ainda nao rodou: Maven e Docker nao estao no PATH desta sessao. Proximo passo: executar mvn verify e as jornadas browser em PostgreSQL descartavel quando Docker/Maven estiverem disponiveis.

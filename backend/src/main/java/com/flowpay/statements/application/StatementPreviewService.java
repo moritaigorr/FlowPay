@@ -2,6 +2,7 @@ package com.flowpay.statements.application;
 
 import com.flowpay.finance.api.FinanceAccountReader;
 import com.flowpay.identity.api.TenantAccess;
+import com.flowpay.identity.api.TenantRole;
 import com.flowpay.statements.domain.StatementCsvParser;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -214,7 +215,7 @@ public class StatementPreviewService {
     }
 
     private static void requireImporter(String role) {
-        if (!"OWNER".equals(role) && !"MANAGER".equals(role))
+        if (!TenantRole.canManageBusinessData(role))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite importar extratos.");
     }
 

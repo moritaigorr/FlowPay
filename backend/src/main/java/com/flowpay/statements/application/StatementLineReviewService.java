@@ -1,6 +1,7 @@
 package com.flowpay.statements.application;
 
 import com.flowpay.identity.api.TenantAccess;
+import com.flowpay.identity.api.TenantRole;
 import com.flowpay.statements.api.StatementLineReader;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -26,7 +27,7 @@ public class StatementLineReviewService {
     @Transactional
     public ReviewResult review(String email, UUID lineId, UUID key, ReviewRequest request) {
         var tenant = tenants.requireSingleTenant(email);
-        if (!"OWNER".equals(tenant.role()) && !"MANAGER".equals(tenant.role()))
+        if (!TenantRole.canManageBusinessData(tenant.role()))
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite revisar extratos.");
         if (key == null || request == null || request.action() == null || request.reason() == null
                 || request.reason().isBlank() || request.reason().length() > 500)

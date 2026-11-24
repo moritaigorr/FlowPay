@@ -1,6 +1,7 @@
 package com.flowpay.contacts.application;
 
 import com.flowpay.identity.api.TenantAccess;
+import com.flowpay.identity.api.TenantRole;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -51,7 +52,7 @@ public class ContactService {
     @Transactional
     public ContactView create(String email, ContactInput input) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var id = UUID.randomUUID();
         var roles = input.roles();
         jdbc.update("""
@@ -65,7 +66,7 @@ public class ContactService {
     @Transactional
     public ContactView update(String email, UUID id, ContactInput input) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var roles = input.roles();
         var changed = jdbc.update("""
                 UPDATE contact
@@ -105,8 +106,8 @@ public class ContactService {
         }
     }
 
-    private static void requireOwner(String role) {
-        if (!"OWNER".equals(role)) {
+    private static void requireBusinessWriter(String role) {
+        if (!TenantRole.canManageBusinessData(role)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite alterar contatos.");
         }
     }

@@ -8,6 +8,7 @@ import { StatementImportPreview } from './statements/StatementImportPreview'
 import { useFocusReturnOnClose } from './shared/useFocusReturnOnClose'
 
 type Mode = 'register' | 'login'
+type TenantRole = 'OWNER' | 'MANAGER' | 'READER'
 type ContactRole = 'CUSTOMER' | 'SUPPLIER'
 type Contact = {
   id: string
@@ -72,6 +73,7 @@ function App() {
   const [message, setMessage] = useState('')
   const [authenticatedEmail, setAuthenticatedEmail] = useState('')
   const [companyName, setCompanyName] = useState('')
+  const [tenantRole, setTenantRole] = useState<TenantRole | ''>('')
   const [contacts, setContacts] = useState<ContactPage>({ items: [], total: 0, page: 0, size: 20 })
   const [contactsLoadedKey, setContactsLoadedKey] = useState('')
   const [query, setQuery] = useState('')
@@ -162,10 +164,11 @@ function App() {
         await refreshCsrf()
         const response = await fetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' })
         if (!response.ok) return
-        const session = await response.json() as { email: string; companyName: string }
+        const session = await response.json() as { email: string; companyName: string; role: TenantRole }
         if (active) {
           setAuthenticatedEmail(session.email)
           setCompanyName(session.companyName)
+          setTenantRole(session.role)
         }
       } catch {
         if (active) setMessage('Não foi possível conectar à API.')
@@ -319,7 +322,7 @@ function App() {
       if (!response.ok) throw new Error(response.status === 401 ? 'E-mail ou senha inválidos.' : 'Não foi possível concluir. Confira os dados e tente novamente.')
       const sessionResponse = await fetch('/api/auth/session', { credentials: 'same-origin', cache: 'no-store' })
       if (!sessionResponse.ok) throw new Error('A sessão foi iniciada, mas não foi possível carregar a empresa.')
-      const session = await sessionResponse.json() as { email: string; companyName: string }
+      const session = await sessionResponse.json() as { email: string; companyName: string; role: TenantRole }
       setContacts({ items: [], total: 0, page: 0, size: 20 })
       setContactsLoadedKey('')
       setAccounts({ items: [], total: 0, page: 0, size: 20 })
@@ -348,6 +351,7 @@ function App() {
       setActiveSection('dashboard')
       setAuthenticatedEmail(session.email)
       setCompanyName(session.companyName)
+      setTenantRole(session.role)
       await refreshCsrf()
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'Falha de conexão com a API.')
@@ -666,6 +670,7 @@ function App() {
       if (!response.ok) throw new Error('Não foi possível encerrar a sessão. Tente novamente.')
       setAuthenticatedEmail('')
       setCompanyName('')
+      setTenantRole('')
       setContacts({ items: [], total: 0, page: 0, size: 20 })
       setContactsLoadedKey('')
       setAccounts({ items: [], total: 0, page: 0, size: 20 })
@@ -715,13 +720,13 @@ function App() {
   const isDemoEnvironment = companyName === 'FlowPay Demonstração'
 
   return (
-    <main className={`page-shell${authenticatedEmail ? ' page-shell--workspace' : ''}`}>
+    <main className={`page-shell${authenticatedEmail ? ' page-shell--workspace' : ''}`} data-read-only={tenantRole === 'READER'}>
       <header className="topbar">
         <a className="brand" href="/">
           <span className="brand-mark" aria-hidden="true">F</span><span>flowpay</span>
         </a>
         {authenticatedEmail
-          ? <div className="topbar-account"><span className="environment-label">{isDemoEnvironment ? 'Ambiente de demonstração' : companyName}</span><button type="button" className="topbar-logout" onClick={logout} disabled={busy}>Sair</button></div>
+          ? <div className="topbar-account">{tenantRole === 'READER' && <span className="environment-label">Acesso de leitura</span>}<span className="environment-label">{isDemoEnvironment ? 'Ambiente de demonstração' : companyName}</span><button type="button" className="topbar-logout" onClick={logout} disabled={busy}>Sair</button></div>
           : <span className="environment-label">Ambiente local</span>}
       </header>
 

@@ -137,7 +137,7 @@ Regras de banco:
 
 ## Portão 3 — identidade e empresas
 
-**Andamento (24/11/2026):** a primeira fatia cria conta e empresa com membership `OWNER`, e oferece login por sessão com CSRF da SPA. Isso não fecha o portão: carregamento/troca do tenant ativo, permissões por papel, limitação de abuso, verificação de e-mail e recuperação de senha continuam pendentes. O endpoint de cadastro agora é negado por padrão (`flowpay.identity.registration.enabled=false`); `application-local.yml` habilita o fluxo para desenvolvimento e a demo local. A SPA consulta `GET /api/auth/config` e só mostra cadastro quando habilitado; falha de configuração mantém apenas login. Limites contra abuso continuam pendentes antes de qualquer exposição pública.
+**Andamento (24/11/2026):** a primeira fatia cria conta e empresa com membership `OWNER`, e oferece login por sessão com CSRF da SPA. A matriz operacional foi decidida e aplicada no backend: `OWNER`/`MANAGER` escrevem e `READER` consulta; a SPA sinaliza leitura e oculta controles de alteração para `READER`. Carregamento/troca do tenant ativo, administração de memberships, limitação de abuso, verificação de e-mail e recuperação de senha continuam pendentes. O endpoint de cadastro agora é negado por padrão (`flowpay.identity.registration.enabled=false`); `application-local.yml` habilita o fluxo para desenvolvimento e a demo local. A SPA consulta `GET /api/auth/config` e só mostra cadastro quando habilitado; falha de configuração mantém apenas login. Limites contra abuso continuam pendentes antes de qualquer exposição pública.
 
 ### 3.1 Autenticação local segura
 
@@ -149,7 +149,7 @@ Regras de banco:
 ### 3.2 Tenant e membership
 
 - Proprietário cria empresa e vira membro inicial. Nome, documento empresarial e informações opcionais precisam política de minimização; não coletar CNPJ sem uso concreto.
-- Definir papéis e matriz de permissão: documentos exemplificam proprietário/gestor/leitor, mas ainda não fecham ações por papel.
+- **Decisão de implementação (24/11/2026):** `OWNER` e `MANAGER` podem criar e alterar dados operacionais do tenant (contatos, contas, categorias, títulos, movimentos, importação e conciliação); `READER` consulta esses dados, mas não altera. O papel `OWNER` fica reservado para controles de empresa/membership futuros; endpoints de convite e administração de membros seguem fora do MVP atual. As escritas validam a membership no backend.
 - Convite de membro futuro pode ser adiado; MVP de demonstração pode iniciar com proprietário e leitor seed/local.
 - **Aceite:** troca de empresa atualiza contexto e dados; usuário sem membership não pode ler nem operar tenant.
 

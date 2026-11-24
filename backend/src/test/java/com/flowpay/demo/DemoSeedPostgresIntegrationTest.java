@@ -72,7 +72,8 @@ class DemoSeedPostgresIntegrationTest {
         mockMvc.perform(get("/api/auth/session").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("demo@flowpay.local"))
-                .andExpect(jsonPath("$.companyName").value("FlowPay Demonstração"));
+                .andExpect(jsonPath("$.companyName").value("FlowPay Demonstração"))
+                .andExpect(jsonPath("$.role").value("OWNER"));
         mockMvc.perform(get("/api/contacts").session(session))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(2));
@@ -210,6 +211,77 @@ class DemoSeedPostgresIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.periodInflowsMinor").value("0"))
                 .andExpect(jsonPath("$.periodOutflowsMinor").value("0"));
+    }
+
+    @Test
+    @Transactional
+    void managerCanManageBusinessDataWhileReaderHasTenantScopedReadOnlyAccess() throws Exception {
+        UUID managerId = UUID.randomUUID();
+        UUID readerId = UUID.randomUUID();
+        UUID tenantId = UUID.randomUUID();
+        String managerEmail = "manager-" + UUID.randomUUID() + "@flowpay.local";
+        String readerEmail = "reader-" + UUID.randomUUID() + "@flowpay.local";
+        String password = "Role-Testing-2026!";
+        jdbc.update("INSERT INTO app_user(id, email, password_hash) VALUES (?, ?, ?)", managerId, managerEmail, passwordEncoder.encode(password));
+        jdbc.update("INSERT INTO app_user(id, email, password_hash) VALUES (?, ?, ?)", readerId, readerEmail, passwordEncoder.encode(password));
+        jdbc.update("INSERT INTO tenant(id, name) VALUES (?, ?)", tenantId, "Role policy test company");
+        jdbc.update("INSERT INTO membership(tenant_id, user_id, role) VALUES (?, ?, 'MANAGER')", tenantId, managerId);
+        jdbc.update("INSERT INTO membership(tenant_id, user_id, role) VALUES (?, ?, 'READER')", tenantId, readerId);
+
+        CsrfState csrf = csrfState();
+        MockHttpSession managerSession = login(managerEmail, password, csrf);
+        MockHttpSession readerSession = login(readerEmail, password, csrf);
+        mockMvc.perform(get("/api/auth/session").session(managerSession)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("MANAGER"));
+        mockMvc.perform(get("/api/auth/session").session(readerSession)).andExpect(status().isOk())
+                .andExpect(jsonPath("$.role").value("READER"));
+
+        MvcResult contactResult = mockMvc.perform(post("/api/contacts").session(managerSession).cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Manager customer\",\"roles\":[\"CUSTOMER\"],\"email\":null,\"phone\":null,\"notes\":null}"))
+                .andExpect(status().isCreated()).andReturn();
+        UUID contactId = UUID.fromString(com.jayway.jsonpath.JsonPath.read(contactResult.getResponse().getContentAsString(), "$.id"));
+        mockMvc.perform(get("/api/contacts").session(readerSession))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1));
+        mockMvc.perform(post("/api/contacts").session(readerSession).cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Reader must not create\",\"roles\":[\"CUSTOMER\"]}"))
+                .andExpect(status().isForbidden());
+
+        MvcResult accountResult = mockMvc.perform(post("/api/financial-accounts").session(managerSession).cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token()).header("Idempotency-Key", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Manager account\",\"type\":\"BANK\",\"openingBalanceMinor\":\"0\",\"openingBalanceDate\":\"2026-11-24\"}"))
+                .andExpect(status().isCreated()).andReturn();
+        UUID accountId = UUID.fromString(com.jayway.jsonpath.JsonPath.read(accountResult.getResponse().getContentAsString(), "$.id"));
+        MvcResult categoryResult = mockMvc.perform(post("/api/financial-categories").session(managerSession).cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Manager inflow\",\"direction\":\"INFLOW\"}"))
+                .andExpect(status().isCreated()).andReturn();
+        UUID categoryId = UUID.fromString(com.jayway.jsonpath.JsonPath.read(categoryResult.getResponse().getContentAsString(), "$.id"));
+        String movement = "{\"direction\":\"INFLOW\",\"accountId\":\"" + accountId + "\",\"categoryId\":\"" + categoryId
+                + "\",\"amountMinor\":\"1500\",\"effectiveDate\":\"2026-11-24\",\"description\":\"Manager inflow\"}";
+        mockMvc.perform(post("/api/cash-transactions").session(managerSession).cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token()).header("Idempotency-Key", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON).content(movement))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/cash-transactions").session(readerSession).cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token()).header("Idempotency-Key", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON).content(movement))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/api/cash-transactions").session(readerSession))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.total").value(1));
+
+        String title = "{\"kind\":\"RECEIVABLE\",\"description\":\"Manager title\",\"contactId\":\"" + contactId
+                + "\",\"categoryId\":\"" + categoryId + "\",\"originalAmountMinor\":\"2500\",\"dueDate\":\"2026-12-01\"}";
+        mockMvc.perform(post("/api/financial-titles").session(managerSession).cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token()).header("Idempotency-Key", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON).content(title))
+                .andExpect(status().isCreated());
+        mockMvc.perform(post("/api/financial-titles").session(readerSession).cookie(csrf.cookie())
+                        .header("X-XSRF-TOKEN", csrf.token()).header("Idempotency-Key", UUID.randomUUID())
+                        .contentType(MediaType.APPLICATION_JSON).content(title))
+                .andExpect(status().isForbidden());
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.flowpay.finance.application;
 
 import com.flowpay.identity.api.TenantAccess;
+import com.flowpay.identity.api.TenantRole;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.Instant;
@@ -47,7 +48,7 @@ public class FinancialCategoryService {
     @Transactional
     public CategoryView create(String email, String name, CategoryDirection direction) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var id = UUID.randomUUID();
         lockCategoryWrites(tenant.id(), direction);
         if (nameExists(tenant.id(), direction, name.trim(), null)) throw conflict();
@@ -59,7 +60,7 @@ public class FinancialCategoryService {
     @Transactional
     public CategoryView update(String email, UUID id, String name, CategoryStatus status) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        requireOwner(tenant.role());
+        requireBusinessWriter(tenant.role());
         var direction = jdbc.query("SELECT direction FROM financial_category WHERE tenant_id = ? AND id = ?",
                 (rs, row) -> CategoryDirection.valueOf(rs.getString("direction")), tenant.id(), id)
                 .stream().findFirst().orElseThrow(FinancialCategoryService::notFound);
@@ -103,8 +104,8 @@ public class FinancialCategoryService {
         }
     }
 
-    private static void requireOwner(String role) {
-        if (!"OWNER".equals(role)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite alterar categorias.");
+    private static void requireBusinessWriter(String role) {
+        if (!TenantRole.canManageBusinessData(role)) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite alterar categorias.");
     }
 
     private static ResponseStatusException notFound() {

@@ -1,6 +1,7 @@
 package com.flowpay.finance.application;
 
 import com.flowpay.identity.api.TenantAccess;
+import com.flowpay.identity.api.TenantRole;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -52,7 +53,7 @@ public class CashTransactionService {
     @Transactional
     public CreateResult create(String email, UUID key, TransactionInput input) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        if (!"OWNER".equals(tenant.role())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite criar movimentos.");
+        if (!TenantRole.canManageBusinessData(tenant.role())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite criar movimentos.");
         if (input.amountMinor() <= 0 || input.amountMinor() > MAX_AMOUNT_MINOR) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O valor precisa ser positivo e estar dentro do limite permitido.");
         }
@@ -88,7 +89,7 @@ public class CashTransactionService {
     @Transactional
     public TransferResult transfer(String email, UUID key, TransferInput input) {
         var tenant = tenantAccess.requireSingleTenant(email);
-        if (!"OWNER".equals(tenant.role())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite criar movimentos.");
+        if (!TenantRole.canManageBusinessData(tenant.role())) throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu papel não permite criar movimentos.");
         if (input.sourceAccountId().equals(input.destinationAccountId())) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Escolha contas diferentes para a transferência.");
         }
