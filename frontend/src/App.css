@@ -2,6 +2,11 @@
   min-height: 100vh;
 }
 
+.skip-link { position: absolute; z-index: 1000; top: -64px; left: 24px; padding: 10px 14px; border-radius: 8px; color: var(--surface); background: var(--primary); font-weight: 650; text-decoration: none; }
+.skip-link:focus { top: 12px; outline: 3px solid var(--focus-ring); outline-offset: 3px; }
+.workspace-main { min-width: 0; }
+.workspace-main:focus { outline: 3px solid var(--focus-ring); outline-offset: 4px; }
+
 .page-shell {
   width: min(100% - 48px, 1080px);
   min-height: 100vh;

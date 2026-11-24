@@ -26,6 +26,12 @@ test('mobile navigation disclosure supports keyboard and returns focus', async (
   await expect(menu).toHaveAttribute('aria-expanded', 'false')
   await expect(navigation).toBeHidden()
 
+  const skipLink = page.getByRole('link', { name: 'Pular para o conteúdo principal' })
+  await skipLink.focus()
+  await expect(skipLink).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.locator('#workspace-content')).toBeFocused()
+
   await menu.focus()
   await menu.press('Enter')
   await expect(page.getByRole('button', { name: 'Fechar menu de navegação' })).toHaveAttribute('aria-expanded', 'true')
