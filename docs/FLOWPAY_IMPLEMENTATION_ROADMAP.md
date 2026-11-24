@@ -271,6 +271,7 @@ Regras de banco:
 **Andamento (22/11/2026; revisão visual em 24/11/2026):** a área autenticada abre em “Visão geral”, com filtro por datas, timezone do navegador, KPIs de saldo controlado, previsto, realizado e vencido, além de listas de próximos vencimentos e movimentos recentes. Estados de carregamento, erro, período inválido e listas vazias foram implementados; o layout adapta de quatro colunas a uma coluna em telas menores. A inspeção visual em Chrome a 1440×1000 e 390×844 confirmou que os dados e valores continuam legíveis e não há rolagem horizontal. Ela também identificou navegação móvel excessivamente espalhada; a interface agora oferece um menu recolhível.
 
 - Cabeçalho de período e “Novo lançamento”; KPIs; fluxo previsto × realizado; próximos vencimentos; movimentos recentes e pendências de conciliação.
+- A navegação recolhe em menu até 1023 px e volta à sidebar a partir de 1024 px. A jornada Playwright foi ampliada para verificar menu por teclado, axe e ausência de rolagem horizontal em 390 px e 800 px, além da sidebar persistente em 1024 px; a execução desta ampliação aguarda um JDK acessível para iniciar a API local.
 - Se houver saldo importado, exibir separado com data e diferença a conciliar.
 - **Aceite:** sem dado, exibir empty state; erro explica próximo passo; desktop e mobile preservam valor/status/vencimento.
 
