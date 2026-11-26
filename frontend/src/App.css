@@ -159,6 +159,7 @@
 .password-hint { margin: -9px 0 0; font-size: 12px; }
 .submit-button { min-height: 46px; border: 0; border-radius: 7px; color: var(--primary-foreground); background: var(--primary); font-weight: 650; cursor: pointer; }
 .submit-button:hover:not(:disabled) { background: #064c54; }
+.submit-button:focus-visible { outline: 3px solid var(--focus-ring); outline-offset: 3px; }
 .submit-button:disabled { opacity: .65; cursor: wait; }
 .logout-button { width: 100%; margin-top: 10px; }
 .auth-switch { margin: 20px 0 0; color: var(--muted-foreground); font-size: 14px; }
