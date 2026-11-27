@@ -70,6 +70,12 @@ test('workspace skip link and responsive navigation work with keyboard', async (
   await expect(navigation).toBeHidden()
   await menu.click()
   await expect(navigation).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(menu).toBeFocused()
+  await expect(navigation).toBeHidden()
+
+  await menu.click()
+  await expect(navigation).toBeVisible()
   await expectAutomaticallyAccessible(page, 'tablet workspace navigation open with synthetic API')
   await navigation.getByRole('button', { name: 'Contatos' }).click()
   await expect(page.getByRole('heading', { name: 'Clientes e fornecedores' })).toBeVisible()

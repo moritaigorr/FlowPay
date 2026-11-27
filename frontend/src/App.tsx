@@ -808,7 +808,15 @@ function App() {
         <div className="welcome"><p className="eyebrow">Sessão autenticada</p><h1 id="tenant-chooser-title">Escolha uma empresa</h1><p className="welcome-copy">Selecione a empresa cujos dados deseja consultar.</p></div>
         <section className="auth-card"><h2>Empresas disponíveis</h2>{tenantChoices.length === 0 ? <p className="auth-intro">Esta conta ainda não tem acesso a uma empresa.</p> : <div className="tenant-choice-list">{tenantChoices.map((tenant) => <button key={tenant.id} type="button" className="tenant-choice" onClick={() => activateTenant(tenant.id)}><strong>{tenant.name}</strong><span>{tenant.role === 'READER' ? 'Acesso de leitura' : 'Acesso operacional'}</span></button>)}</div>}{message && <p className="form-message" role="status">{message}</p>}</section>
       </section> : authenticatedEmail ? <>
-        <div className="workspace-layout">
+        <div
+          className="workspace-layout"
+          onKeyDown={(event) => {
+            if (event.key === 'Escape' && mobileNavigationOpen) {
+              setMobileNavigationOpen(false)
+              mobileNavigationToggleRef.current?.focus()
+            }
+          }}
+        >
           <button
             ref={mobileNavigationToggleRef}
             type="button"
@@ -824,12 +832,6 @@ function App() {
             id="workspace-navigation"
             className={`sidebar${mobileNavigationOpen ? ' sidebar--open' : ''}`}
             aria-label="Navegação principal"
-            onKeyDown={(event) => {
-              if (event.key === 'Escape' && mobileNavigationOpen) {
-                setMobileNavigationOpen(false)
-                mobileNavigationToggleRef.current?.focus()
-              }
-            }}
             onClick={(event) => {
               if ((event.target as HTMLElement).closest('.nav-link')) setMobileNavigationOpen(false)
             }}

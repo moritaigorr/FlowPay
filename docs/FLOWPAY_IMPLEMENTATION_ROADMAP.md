@@ -4,7 +4,7 @@
 **Objetivo:** decompor FlowPay em entregas pequenas, demonstráveis e com critérios de aceite.  
 **Regra de uso:** avançar por portões; reavaliar o plano ao descobrir o código existente. Não executar todas as etapas de uma vez.
 
-## Situação consolidada do checkout (25/11/2026)
+## Situação consolidada do checkout (26/11/2026)
 
 Esta tabela resume o estado observado no checkout local e nas verificações registradas abaixo. “Entregue” significa que a funcionalidade está no código e há evidência de validação registrada; não equivale a aprovação de produção. Os resultados remotos de CI só são considerados confirmados até o commit indicado em cada seção.
 
@@ -24,7 +24,7 @@ Esta tabela resume o estado observado no checkout local e nas verificações reg
 | 11. Qualidade, segurança e operação | Parcial | Há testes por camada, revisão de segurança, correlação de requisições e ensaio de backup/restore; deploy, operação real, retenção e validação de proxy continuam abertos. |
 | 12–14. Evolução posterior | Não iniciado | OFX, contratos, cobranças, recorrência, notificações, API pública, sandbox de pagamentos e evolução baseada em métricas permanecem fora do MVP atual. |
 
-O próximo marco é fechar o Portão 10: sincronizar os commits locais posteriores a `origin/main`, observar uma execução remota completa e concluir a auditoria manual de acessibilidade. Consulta somente leitura à API do GitHub em 25/11/2026 confirmou que o run #7, no SHA `046e302`, continua sendo a execução mais recente; o `main` local está três commits à frente desse ref remoto. Isso não exige iniciar os portões 12–14.
+O Portão 10 ainda não está fechado. A execução remota #8 do CI, em `60b01b7` (26/11/2026), passou no backend, OpenAPI, typecheck, lint e build, mas falhou no E2E tablet: ao abrir o menu a 800 px pelo botão e pressionar Escape sem mover o foco, o drawer permanecia aberto. A correção moveu o tratamento de Escape ao contêiner do workspace e a regressão foi acrescentada ao teste sintético de navegação. O teste local exibiu o caso passando; a execução foi interrompida depois porque o processo local do Vite não encerrou. Ainda falta validar todos os seis E2E no CI atualizado e completar a auditoria manual de zoom e leitor de tela.
 
 ## Como ler este plano
 
@@ -392,7 +392,7 @@ Regras de banco:
 9. Consulta resumo mensal.
 
 - **Aceite:** execução E2E reprodutível com tenant de demonstração e dados fictícios; snapshots de estado confirmados no banco; outra empresa não lê esses dados.
-- Resultado remoto mais recente consultado em 25/11/2026 (run #7, commit `046e302`): backend passou; validação OpenAPI, typecheck, lint e build passaram; a etapa E2E parou antes dos testes porque o workflow não passava `FLOWPAY_E2E_DEMO_PASSWORD` aos specs. Consulta à API do GitHub confirmou que não existe execução posterior. Correção registrada localmente em `e332280`: a senha efêmera é compartilhada entre a API e Playwright. A navegação em drawer até 1023 px recebeu correção de foco em `e9e6dd8`, com cobertura adicional em `e8ccc2f`. Esses commits estão no `main` local, três commits à frente de `origin/main` (`046e302`); ainda não há resultado remoto que os valide.
+- CI remoto (26/11/2026, run #8, commit `60b01b7`): backend, validação OpenAPI, typecheck, lint e build passaram. Cinco testes E2E passaram; `mobile-navigation.spec.ts` falhou no Escape a 800 px porque o foco continuava no botão que abre o drawer e o handler estava somente na navegação. A correção foi movida ao contêiner do workspace e a regressão foi coberta na jornada sintética. A validação completa precisa ser repetida em um novo run.
 
 ### 10.2 Dados seed e ambiente demo
 
@@ -411,11 +411,12 @@ Regras de banco:
 - Cobertura automatizada complementar (24/11/2026): a jornada demo valida o dashboard a 720 px de largura CSS, sem rolagem horizontal e com o saldo seed visível. É uma verificação de layout responsivo que aproxima uma tela desktop com zoom, mas não altera a escala do navegador nem substitui teste manual a 200%.
 - Sondagem complementar (24/11/2026): no login em Chrome a 1280 × 900, a navegação por Tab alcançou marca, e-mail, senha e botão de entrada, com foco visível de 3 px; pares de texto e fundo inspecionados ficaram acima dos limites de contraste verificados. A API estava indisponível e a checagem cobriu apenas esse estado do login; não substitui auditoria manual nem leitor de tela.
 - Revisão complementar (25/11/2026): com a API indisponível, a SPA foi aberta em Chrome na tela de login. A sequência Tab percorreu marca, e-mail, senha e botão; ela revelou que “Entrar” dependia do contorno padrão do navegador. Foi aplicado foco explícito de 3 px ao botão em `frontend/src/App.css`. A checagem visual/DOM após a mudança confirmou o contorno de 3 px. Uma simulação de zoom CSS a 200% não mostrou overflow na tela de login, mas não equivale ao zoom do navegador nem à checagem do fluxo autenticado. Maven, Docker e API local não estavam disponíveis; a auditoria do workspace, leitor de tela e zoom real continuam pendentes.
+- Verificação complementar (26/11/2026): `npm.cmd run test:e2e -- e2e/workspace-navigation-ui.spec.ts` passou (1 teste em Chrome com API sintética): skip link, navegação por teclado, Escape, restauração de foco, axe nos estados cobertos e ausência de overflow em 390, 800 e 1024 px. Maven, Docker, API local e leitor de tela não estão disponíveis nesta sessão; não foi possível verificar a jornada autenticada com API real, leitor de tela ou zoom real.
 - Verificação complementar (25/11/2026): `npm.cmd run test:e2e -- e2e/workspace-navigation-ui.spec.ts` passou (1 teste, Chrome, API sintética). Verificou skip link, menu mobile/tablet, Escape, retorno de foco, seção ativa, scans axe nos estados cobertos e ausência de overflow em 390, 800 e 1024 px. Rodar pelo filtro global tentou carregar specs de demo que exigem `FLOWPAY_E2E_DEMO_PASSWORD` e não iniciou a jornada; a execução direta do arquivo isolado passou. A API real, fluxos além desta jornada, leitor de tela e zoom real seguem sem validação nesta sessão.
 - Jornada Playwright de 24/11/2026: os cinco testes passaram em Chrome contra uma API e PostgreSQL 16.15 descartáveis, com somente dados sintéticos. Foram cobertos login e telas do seed, troca de empresa com isolamento de saldos, empresa real com papel `READER`, navegação móvel recolhível por teclado e fluxo financeiro de baixa, importação, conciliação e replay. Axe, Tab e viewport reduzido foram exercitados dentro dos limites já descritos; a auditoria com leitor de tela e zoom real continua pendente.
 
 - Parcial: ao salvar ou cancelar os formulários de contatos, contas, categorias, títulos, movimentos avulsos, baixas/reversões e confirmação de conciliação, o foco retorna a um título da seção; campos de valor recebem foco ao abrir baixa/reversão. A área autenticada oferece “Pular para o conteúdo principal”, com destino focável envolvendo a seção ativa. Em 24/11/2026, Playwright com API sintética reproduziu perda de foco ao escolher seção com o drawer aberto a 800 px; o código foi corrigido para devolver foco ao botão do menu em todo breakpoint de drawer (até 1023 px). A jornada confirma o título da seção, foco restaurado, item ativo em `aria-current="page"` e scans axe no dashboard, menu tablet e tela de contatos em tablet. A jornada integrada contra API real e teste manual com leitor de tela continuam pendentes.
-- Pendente: auditar manualmente teclado, zoom, contraste, leitor de tela e fluxos além do demo em toda a jornada.
+- Pendente: completar a auditoria da jornada autenticada com teclado, zoom real, contraste, leitor de tela e fluxos além do demo; registrar achados e correções. A cobertura sintética/automatizada descrita acima não substitui essa auditoria.
 - Testar teclado, leitores de tela nos fluxos principais, foco/modal, erros, zoom 200%, contraste e viewport móvel.
 - Conferir linguagem não técnica, status não comunicado só por cor, valores negativos e datas no fuso definido.
 - **Aceite:** relatório de auditoria documenta critérios verificados e questões abertas; não reivindicar conformidade ampla sem avaliação.
